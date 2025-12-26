@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora Penal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+<style>
+/* TUS ESTILOS ORIGINALES */
+body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 15px; color: #333; margin: 0; }
+.header-app { text-align: center; padding: 25px 10px; background: white; margin-bottom: 20px; border-bottom: 3px solid #1a73e8; }
+.header-app h1 { font-size: 1.5em; color: #1a73e8; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+.header-app p { margin: 5px 0 0; font-weight: bold; color: #555; font-size: 1em; }
+
+/* BARRA DE USUARIO ACTUALIZADA */
+.user-status-bar { 
+background: #f8f9fa; 
+padding: 8px 15px; 
+border-radius: 8px; 
+margin: -10px 10px 20px 10px; 
+display: flex; 
+justify-content: space-between; 
+align-items: center;
+font-size: 0.75em; 
+color: #666;
+border: 1px solid #e1e4e8;
+}
+.btn-logout { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 4px 8px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 10px; }
+
+/* ESTILO PARA EL INTERRUPTOR DE NUBE */
+.switch-container {
+display: flex;
+align-items: center;
+justify-content: space-between;
+background: #e8f0fe;
+padding: 10px 15px;
+border-radius: 10px;
+margin-bottom: 15px;
+border: 1px solid #1a73e8;
+}
+.switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #1a73e8; }
+input:checked + .slider:before { transform: translateX(18px); }
+
+.modulo { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+.sub-modulo { background: #f8f9fa; border: 1px dashed #1a73e8; padding: 15px; border-radius: 10px; margin-top: 15px; display: none; }
+h2 { color: #1a73e8; font-size: 1em; margin-top: 0; border-bottom: 2px solid #e8f0fe; padding-bottom: 10px; text-transform: uppercase; }
+label { display: block; margin-top: 12px; font-weight: 600; font-size: 0.85em; color: #555; }
+input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 1em; }
+#listaCasos { max-height: 200px; overflow-y: auto; margin-top: 10px; border-radius: 8px; background: #fff; }
+.btn-principal { width: 100%; background: #1a73e8; color: white; border: none; padding: 18px; border-radius: 12px; font-weight: bold; font-size: 1.1em; margin-top: 10px; cursor: pointer; }
+.btn-whatsapp { width: 100%; background: #25D366; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; margin-top: 5px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 1em; }
+.btn-pdf { width: 100%; background: #e74c3c; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; margin-top: 10px; cursor: pointer; font-size: 1em; display: none; }
+.btn-add { background: #34a853; color: white; border: none; padding: 8px 12px; border-radius: 8px; margin-top: 10px; font-size: 0.8em; cursor: pointer; font-weight: bold; }
+.btn-calc-red { background: #6c757d; color: white; border: none; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.9em; cursor: pointer; width: 100%; }
+.btn-save { background: #28a745; margin-bottom: 10px; }
+.btn-delete { background: #dc3545; color: white; border: none; padding: 5px 8px; border-radius: 5px; cursor: pointer; font-size: 0.8em; }
+.grid-3 { display: flex; gap: 8px; }
+.grid-red { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; align-items: center; margin-top: 10px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.beneficio-item { margin-bottom: 15px; padding: 12px; border-radius: 10px; background: #fff; border: 1px solid #e1e4e8; font-size: 0.9em; line-height: 1.4; }
+.case-card { border-left: 5px solid #1a73e8; background: #f8f9fa; padding: 10px; margin-bottom: 5px; border-radius: 8px; font-size: 0.85em; display: flex; justify-content: space-between; align-items: center; }
+.search-box { background: #e8f0fe; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
+.res-box { background: #f0f7ff; padding: 15px; border-radius: 10px; margin-top: 10px; border-left: 5px solid #1a73e8; }
+.txt-destaque { color: #d93025; font-weight: bold; }
+.db-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.btn-db { background: #6c757d; color: white; border: none; padding: 10px; border-radius: 8px; font-size: 0.8em; cursor: pointer; font-weight: bold; }
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); overflow-y: auto; }
+.modal-content { background-color: white; margin: 5% auto; padding: 20px; border-radius: 15px; width: 90%; max-width: 600px; line-height: 1.5; font-size: 0.85em; position: relative; }
+.close-modal { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+
+.tabs-container { display: flex; background: #fff; margin-bottom: 20px; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+.tab-button { flex: 1; padding: 15px; border: none; background: #eee; cursor: pointer; font-weight: bold; color: #666; transition: 0.3s; }
+.tab-button.active { background: #1a73e8; color: white; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.calc-res { background: #fff3cd; padding: 10px; border-radius: 8px; margin-top: 10px; border-left: 5px solid #ffc107; font-weight: bold; color: #856404; }
+
+.report-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8em; }
+.report-table th, .report-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+.report-table th { background-color: #f2f2f2; }
+
+/* ESTILOS PARA EL CONTRATO */
+.contrato-scroll {
+height: 300px;
+overflow-y: scroll;
+border: 1px solid #ccc;
+padding: 15px;
+background: #f9f9f9;
+text-align: justify;
+font-size: 0.9em;
+margin-bottom: 15px;
+border-radius: 8px;
+}
+</style>
+</head>
+<body>
+
+<div id="auth-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#1a2a40; z-index:9999; display:flex; align-items:center; justify-content:center; color:white; font-family:sans-serif;">
+<div style="background:white; padding:30px; border-radius:20px; width:85%; max-width:350px; text-align:center; color:#333;">
+<h2 style="margin:0; color:#1a73e8;">IURIS PENAL</h2>
+<p id="auth-title" style="margin-bottom:20px; font-size:0.9em; color:#666;">Inicie Sesión para continuar</p>
+
+<input type="email" id="f_email" placeholder="Correo electrónico" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:8px;">
+<input type="password" id="f_pass" placeholder="Contraseña (mín. 6 caracteres)" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:8px;">
+
+<button id="btn-login" onclick="loginFirebase()" style="width:100%; padding:15px; background:#1a73e8; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-top:10px;">ENTRAR</button>
+<p style="margin-top:10px;"><a href="#" onclick="olvideClave()" style="color:#1a73e8; font-size:0.8em; text-decoration:none;">¿Olvidó su contraseña?</a></p>
+
+<div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
+<p style="font-size:0.8em; color:#666;">¿No tienes cuenta?</p>
+<button onclick="registroFirebase()" style="width:100%; padding:10px; background:#34a853; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">CREAR CUENTA NUEVA</button>
+</div>
+
+<p id="f_error" style="color:red; font-size:12px; margin-top:15px; min-height:15px;"></p>
+</div>
+</div>
+
+<div id="app-container">
+<div class="header-app">
+<h1>Calculadora Penal</h1>
+<p>Consultora Iuris</p>
+</div>
+
+<div id="status-bar" class="user-status-bar" style="display:none;">
+<div>👤 <b id="user-display">Cargando...</b> <button class="btn-logout" onclick="logoutFirebase()">Salir</button></div>
+<span>⏳ <b id="days-display">--</b></span>
+</div>
+
+<div class="tabs-container no-print">
+<button class="tab-button active" onclick="openTab(event, 'principal')">Cómputo de Pena</button>
+<button class="tab-button" onclick="openTab(event, 'calculadora')">Herramientas para Dosimetría y Cómputo</button>
+</div>
+
+<div id="principal" class="tab-content active">
+<div class="modulo search-box no-print">
+<h2>📂 Expedientes (Buscar/Backup)</h2>
+
+<div class="switch-container">
+<span style="font-size: 0.85em; font-weight: bold; color: #1a73e8;">☁️ Sincronizar con la Nube (Firebase)</span>
+<label class="switch">
+<input type="checkbox" id="syncToggle" checked onchange="localStorage.setItem('preferenciaSync', this.checked)">
+<span class="slider"></span>
+</label>
+</div>
+
+<input type="text" id="busqueda" placeholder="Escriba nombre o cédula..." onkeyup="listarCasos()">
+<div id="listaCasos"></div>
+<div class="db-controls">
+<button class="btn-db" onclick="exportarDB()">📤 Exportar Backup</button>
+<button class="btn-db" onclick="document.getElementById('fileInput').click()">📥 Importar Backup</button>
+<input type="file" id="fileInput" style="display:none" onchange="importarDB(event)">
+</div>
+</div>
+
+<div class="modulo no-print" style="border: 2px solid #34a853;">
+<h2>📊 Generación de Reportes</h2>
+<div class="grid-2">
+<div><label>Filtrar por Delito:</label><input type="text" id="repDelito" placeholder="Ej: Robo"></div>
+<div><label>Filtrar por Lugar:</label><input type="text" id="repLugar" placeholder="Ej: CPO"></div>
+</div>
+<div class="grid-2">
+<div><label>Desde (Fecha Mod):</label><input type="date" id="repDesde"></div>
+<div><label>Hasta (Fecha Mod):</label><input type="date" id="repHasta"></div>
+</div>
+
+<label style="margin-top:15px;"><b>Campos para Excel:</b></label>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-top: 5px; font-size: 0.8em;">
+<label><input type="checkbox" class="col-excel" value="nombre" checked> Nombre</label>
+<label><input type="checkbox" class="col-excel" value="cedula" checked> Cédula</label>
+<label><input type="checkbox" class="col-excel" value="delito" checked> Delito</label>
+<label><input type="checkbox" class="col-excel" value="lugar" checked> Lugar</label>
+<label><input type="checkbox" class="col-excel" value="expJud"> Exp. Judicial</label>
+<label><input type="checkbox" class="col-excel" value="expCar"> Exp. Carcelario</label>
+</div>
+
+<button class="btn-principal" style="background:#34a853; margin-top:15px; padding: 12px;" onclick="generarReporteFiltrado()">🔍 DESCARGAR REPORTE FILTRADO (PDF)</button>
+<button class="btn-principal" style="background:#107c41; margin-top:5px; padding: 12px;" onclick="generarExcelFiltrado()">📗 DESCARGAR REPORTE EXCEL (.XLSX)</button>
+</div>
+
+<div class="modulo">
+<input type="hidden" id="casoActivoId" value="">
+<h2>0. Perfil del Privado de Libertad</h2>
+<div class="grid-2">
+<div><label>Nombre:</label><input type="text" id="pNombre" required></div>
+<div><label>Cédula:</label><input type="text" id="pCedula" required></div>
+</div>
+<div class="grid-2">
+<div><label>Exp. Judicial:</label><input type="text" id="pExpJud"></div>
+<div><label>Exp. Carcelario:</label><input type="text" id="pExpCar"></div>
+</div>
+<label>Delito:</label><input type="text" id="pDelito" placeholder="Ej: Robo Agravado">
+<label>Lugar de Reclusión:</label><input type="text" id="pLugar">
+<label>¿Caso de Drogas?</label>
+<select id="esDrogas" onchange="document.getElementById('divDrogas').style.display = (this.value=='si'?'block':'none')">
+<option value="no">No</option><option value="si">Sí</option>
+</select>
+<div id="divDrogas" style="display:none; margin-top:10px;"><input type="text" id="pTipoDroga" placeholder="Tipo de Droga"><input type="text" id="pCantDroga" placeholder="Cantidad"></div>
+</div>
+
+<div class="modulo">
+<h2>1. Condena e Ingreso</h2>
+<div class="grid-3">
+<div><label>Años</label><input type="number" id="cAno" placeholder="0"></div>
+<div><label>Meses</label><input type="number" id="cMes" placeholder="0"></div>
+<div><label>Días</label><input type="number" id="cDia" placeholder="0"></div>
+</div>
+<label>¿Acumulación de Penas / Periodos?</label>
+<select id="esAcum" onchange="toggleAcumulacion()"><option value="no">No</option><option value="si">Sí</option></select>
+<div id="seccionUnica"><label>Fecha Detención:</label><input type="date" id="fDetencionUnica"></div>
+<div id="seccionAcumulada" style="display:none;">
+<div id="contenedorPeriodos"></div>
+<button class="btn-add no-print" onclick="agregarPeriodo()">+ Agregar Periodo Anterior</button>
+<label>Detención Actual (Desde):</label><input type="date" id="fDetencionActual">
+</div>
+</div>
+
+<div class="modulo no-print">
+<h2>2. Tiempo Redimido</h2>
+<div id="listaRedenciones"></div>
+<button class="btn-add" onclick="agregarFilaRedencion(0,0,0)">+ Añadir Manualmente</button>
+<button class="btn-calc-red" onclick="toggleSubModulo()">Calculadora de redenciones</button>
+<div id="subModuloRedencion" class="sub-modulo">
+<h3>Cálculo Proporcional</h3>
+<label>Fecha de Inicio de Labores:</label><input type="date" id="redInicio">
+<label>Fecha de Fin de Labores:</label><input type="date" id="redFin">
+<div class="grid-2">
+<div><label>Días/Semana:</label><input type="number" id="redDiasSemana" value="5"></div>
+<div><label>Horas/Día:</label><input type="number" id="redHorasDia" value="8"></div>
+</div>
+<button class="btn-principal" style="background:#28a745; padding:10px;" onclick="procesarRedencionAutomatica()">Procesar</button>
+<div id="resultadoMiniRed"></div>
+</div>
+</div>
+
+<div id="controles-principales" style="padding: 0 15px;" class="no-print">
+<button class="btn-principal btn-save" id="btnGuardar" onclick="guardarCaso()">💾 GUARDAR EXPEDIENTE</button>
+<button class="btn-principal" onclick="validarYCalcular()">CALCULAR CÓMPUTO Y BENEFICIOS</button>
+<button class="btn-add" style="background:#dc3545; width:100%; margin-top:10px;" onclick="nuevoExpediente()">NUEVO / LIMPIAR</button>
+</div>
+
+<div id="resultado" class="modulo" style="display:none;">
+<h2 id="resTitulo">Resultados</h2>
+<div id="resResumen"></div><hr>
+<h3>Proyección de Beneficios Penales</h3>
+<div id="resBeneficios"></div>
+<button id="btnExportarPDF" class="btn-pdf no-print" onclick="exportarAPDF()">📄 DESCARGAR INFORME PDF</button>
+</div>
+</div>
+
+<div id="calculadora" class="tab-content">
+<div class="modulo">
+<h2>Cálculo de Término Medio (Dosimetría)</h2>
+<div class="grid-2">
+<div><label>Límite Mínimo (Años):</label><input type="number" id="tm_min" placeholder="Ej: 5"></div>
+<div><label>Límite Máximo (Años):</label><input type="number" id="tm_max" placeholder="Ej: 10"></div>
+</div>
+<button class="btn-principal" style="padding:10px; background:#1a73e8;" onclick="calcularTerminoMedio()">Calcular Término Medio</button>
+<div id="resTM" class="calc-res"></div>
+</div>
+
+<div class="modulo">
+<h2>7.1 Calcular lapso entre dos fechas</h2>
+<div class="grid-2">
+<div><label>Fecha Inicial:</label><input type="date" id="calc71_inicio"></div>
+<div><label>Fecha Final:</label><input type="date" id="calc71_fin"></div>
+</div>
+<button class="btn-principal" style="padding:10px;" onclick="calc71()">Calcular Lapso</button>
+<div id="res71" class="calc-res"></div>
+</div>
+
+<div class="modulo">
+<h2>7.2 Sumar lapsos de tiempo</h2>
+<div id="listaLapsosSuma">
+<div class="grid-3"><input type="number" class="sa" placeholder="Años"><input type="number" class="sm" placeholder="Meses"><input type="number" class="sd" placeholder="Días"></div>
+</div>
+<button class="btn-add" onclick="agregarFilaSuma()">+ Agregar otro lapso</button>
+<button class="btn-principal" style="padding:10px;" onclick="calc72()">Sumar Lapsos</button>
+<div id="res72" class="calc-res"></div>
+</div>
+
+<div class="modulo">
+<h2>7.3 Restar dos lapsos</h2>
+<p><small>Ingrese el mayor arriba y el menor abajo</small></p>
+<div class="grid-3"><input type="number" id="r1a" placeholder="Años"><input type="number" id="r1m" placeholder="Meses"><input type="number" id="r1d" placeholder="Días"></div>
+<div class="grid-3" style="margin-top:5px;"><input type="number" id="r2a" placeholder="Años"><input type="number" id="r2m" placeholder="Meses"><input type="number" id="r2d" placeholder="Días"></div>
+<button class="btn-principal" style="padding:10px;" onclick="calc73()">Restar Lapsos</button>
+<div id="res73" class="calc-res"></div>
+</div>
+
+<div class="modulo">
+<h2>7.4 y 7.5 Sumar/Restar Lapso a una Fecha</h2>
+<label>Fecha Base:</label><input type="date" id="fBase745">
+<div class="grid-3"><input type="number" id="la745" placeholder="Años"><input type="number" id="lm745" placeholder="Meses"><input type="number" id="ld745" placeholder="Días"></div>
+<div class="grid-2">
+<button class="btn-principal" style="padding:10px; background:#e67e22;" onclick="calc745('restar')">Restar Lapso</button>
+<button class="btn-principal" style="padding:10px; background:#27ae60;" onclick="calc745('sumar')">Sumar Lapso</button>
+</div>
+<div id="res745" class="calc-res"></div>
+</div>
+
+<div class="modulo">
+<h2>7.6 Fragmentar una pena</h2>
+<div class="grid-3"><input type="number" id="fra" placeholder="Años"><input type="number" id="frm" placeholder="Meses"><input type="number" id="frd" placeholder="Días"></div>
+<label>Fracción (Ejemplo: 1/3 o 3/4):</label>
+<input type="text" id="fraccion" placeholder="1/2">
+<button class="btn-principal" style="padding:10px;" onclick="calc76()">Calcular Fracción</button>
+<div id="res76" class="calc-res"></div>
+</div>
+</div>
+
+<div class="modulo no-print" style="text-align: center;">
+<p style="margin-bottom: 5px; font-weight: bold; color: #1a73e8;">Consulta legal personalizada</p>
+<button onclick="abrirWhatsApp()" class="btn-whatsapp">WhatsApp Dr. Charles Reyes</button>
+</div>
+</div>
+
+<div id="modalTerminos" class="modal" style="background: rgba(0,0,0,0.8);">
+<div class="modal-content" style="max-width: 700px;">
+<h2 style="font-size: 1.2em; text-align: center;">TÉRMINOS Y CONDICIONES DE USO DE LA APLICACIÓN CALCULADORA PENAL DEL DR. CHARLES REYES</h2>
+<p style="font-size: 0.8em; color: #666; text-align: center;">Fecha de Última Actualización: 26 de Diciembre de 2025</p>
+
+<div class="contrato-scroll">
+<p><strong>IMPORTANTE:</strong> La aceptación de estos Términos y Condiciones (en adelante, "T&C") es obligatoria para el uso de la Aplicación. Al hacer clic en "Aceptar" o al utilizar la Aplicación, el Usuario declara haber leído, entendido y aceptado plenamente todas las cláusulas aquí contenidas.</p>
+
+<p><strong>1. DEFINICIONES Y OBJETO</strong><br>
+1.1. Aplicación: Se refiere al software Calculadora Penal del Dr. Charles Reyes...<br>
+1.2. Desarrollador: Dr. Charles Reyes, creador y propietario de la Aplicación.<br>
+1.3. Usuario: Cualquier persona que acceda o utilice la Aplicación...<br>
+1.5. Cifrado de Extremo a Extremo (E2EE): Mecanismo de seguridad que garantiza que la Data del Usuario es cifrada en el dispositivo del Usuario.</p>
+
+<p><strong>2. PROPIEDAD INTELECTUAL</strong><br>
+2.1. Titularidad: El Desarrollador es el único y exclusivo propietario de todos los derechos de propiedad intelectual e industrial sobre la Aplicación...</p>
+
+<p><strong>3. RESPONSABILIDADES Y ADVERTENCIAS LEGALES DEL USUARIO</strong><br>
+El Usuario reconoce que la Aplicación es una herramienta de apoyo y que no sustituye el criterio profesional.<br>
+3.1. Advertencia para el Abogado Litigante (Secreto Profesional): El Usuario que actúe como Abogado Litigante declara conocer y aceptar que es el único responsable de garantizar el cumplimiento del Secreto Profesional...<br>
+3.2. Advertencia para el Funcionario Público (Riesgo Administrativo): La Aplicación no es un sistema de información oficial ni está homologada por las autoridades competentes de la República Bolivariana de Venezuela.<br>
+3.3. Advertencia para el Familiar del Detenido: La Aplicación no proporciona asesoría legal; los resultados son meramente indicativos.</p>
+
+<p><strong>4. ALMACENAMIENTO DE DATOS Y SEGURIDAD (E2EE)</strong><br>
+4.1. Cifrado de Extremo a Extremo (E2EE) y Clave de Usuario: Toda la Data del Usuario ingresada en la Aplicación es cifrada mediante E2EE...<br>
+4.2. No Acceso al Contenido: El Desarrollador no posee las claves de descifrado y, por lo tanto, no tiene acceso al contenido de la Data del Usuario...<br>
+4.4. Exoneración por Contenido: El Desarrollador queda totalmente exonerado de cualquier responsabilidad penal, civil o administrativa derivada del contenido de la Data del Usuario.</p>
+
+<p><strong>5. LIMITACIÓN DE RESPONSABILIDAD</strong><br>
+5.1. Exoneración por Pérdida de Datos: El Desarrollador no será responsable por la pérdida, corrupción o inaccesibilidad de la Data del Usuario...<br>
+5.2. Exoneración por Resultados de Cálculo: El Desarrollador no garantiza la exactitud absoluta de los cálculos generados por la Aplicación.</p>
+
+<p><strong>6. USOS PROHIBIDOS</strong><br>
+El Usuario se compromete a no utilizar la Aplicación para fines ilícitos o fraudulentos.</p>
+
+<p><strong>7. CIERRE Y TERMINACIÓN DE CUENTA</strong><br>
+El Desarrollador se reserva el derecho de suspender o terminar la cuenta de cualquier Usuario sin previo aviso.</p>
+
+<p><strong>8. LEY APLICABLE Y JURISDICCIÓN</strong><br>
+Estos T&C se rigen e interpretan de conformidad con las leyes de la República Bolivariana de Venezuela. Cualquier controversia será sometida a la jurisdicción exclusiva de los tribunales competentes de la ciudad de San Cristóbal, Estado Táchira Venezuela.</p>
+</div>
+
+<button class="btn-principal" onclick="aceptarTerminos()" style="padding:15px; background: #34a853;">HE LEÍDO, ENTIENDO Y ACEPTO LOS TÉRMINOS Y CONDICIONES</button>
+</div>
+</div>
+
+<div id="modalVencimiento" class="modal" style="background-color: rgba(0,0,0,0.9);">
+<div class="modal-content" style="text-align: center; margin-top: 15%;">
+<h2 style="color: #d93025;">PERIODO DE PRUEBA FINALIZADO</h2>
+<p>Para continuar utilizando las herramientas de <b>Iuris Penal</b> y mantener el acceso a sus expedientes, por favor contacte al administrador para activar un plan de suscripción.</p>
+<button onclick="abrirWhatsAppSuscripcion()" class="btn-whatsapp">
+📲 Contactar al Dr. Charles Reyes
+</button>
+</div>
+</div>
+
+<script>
+// CONFIGURACIÓN DE FIREBASE
+const firebaseConfig = {
+apiKey: "AIzaSyBvqlV6yj-V1GMkTiOL2pDBg0VHFanJRa4",
+authDomain: "calculadora-penal-dffb3.firebaseapp.com",
+projectId: "calculadora-penal-dffb3",
+storageBucket: "calculadora-penal-dffb3.firebasestorage.app",
+messagingSenderId: "293337226624",
+appId: "1:293337226624:web:7b5acb2356faa8842f3555"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// HELPER DE CIFRADO AUTOMÁTICO E2EE
+const encryptionHelper = {
+getSecretKey: (uid) => CryptoJS.SHA256(uid).toString(),
+encrypt: (data, uid) => {
+if (!data || data.toString().trim() === "") return "";
+return CryptoJS.AES.encrypt(data.toString(), encryptionHelper.getSecretKey(uid)).toString();
+},
+decrypt: (ciphertext, uid) => {
+if (!ciphertext || ciphertext.toString().trim() === "") return "";
+try {
+const bytes = CryptoJS.AES.decrypt(ciphertext.toString(), encryptionHelper.getSecretKey(uid));
+return bytes.toString(CryptoJS.enc.Utf8);
+} catch (e) { return "Error de lectura"; }
+}
+};
+
+// LOGICA DE ACCESO
+function loginFirebase() {
+const email = document.getElementById('f_email').value;
+const pass = document.getElementById('f_pass').value;
+const errorDom = document.getElementById('f_error');
+
+if(!email || !pass) return errorDom.innerText = "Complete todos los campos.";
+
+auth.signInWithEmailAndPassword(email, pass).catch(e => {
+if(e.code === 'auth/user-not-found') {
+errorDom.innerText = "El usuario no existe. Use 'Crear Cuenta'.";
+} else if(e.code === 'auth/wrong-password') {
+errorDom.innerText = "Contraseña incorrecta.";
+} else {
+errorDom.innerText = "Error: Acceso denegado.";
+}
+});
+}
+
+function logoutFirebase() {
+if(confirm("¿Seguro que desea cerrar sesión?")) {
+auth.signOut().then(() => {
+localStorage.removeItem('terminosAceptados'); // Reset al salir
+window.location.reload();
+});
+}
+}
+
+function olvideClave() {
+const email = document.getElementById('f_email').value;
+if(!email) return alert("Por favor, escriba su correo electrónico arriba.");
+auth.sendPasswordResetEmail(email)
+.then(() => alert("Se ha enviado un enlace de recuperación a su correo."))
+.catch(e => alert("Error: Asegúrese de que el correo sea válido."));
+}
+
+function registroFirebase() {
+const email = document.getElementById('f_email').value;
+const pass = document.getElementById('f_pass').value;
+const errorDom = document.getElementById('f_error');
+
+if(!email || !pass) return errorDom.innerText = "Ingrese correo y clave.";
+if(pass.length < 6) return errorDom.innerText = "Mínimo 6 caracteres.";
+
+auth.createUserWithEmailAndPassword(email, pass)
+.then(() => { console.log("Usuario registrado"); })
+.catch(e => {
+if(e.code === 'auth/email-already-in-use') {
+errorDom.innerText = "El correo ya está registrado.";
+} else {
+errorDom.innerText = "Error al registrar.";
+}
+});
+}
+
+// GESTIÓN DE TÉRMINOS Y CONDICIONES
+function aceptarTerminos() {
+localStorage.setItem('terminosAceptados', 'true');
+document.getElementById('modalTerminos').style.display = 'none';
+}
+
+auth.onAuthStateChanged(user => {
+if(user) {
+document.getElementById('auth-overlay').style.display = 'none';
+document.getElementById('status-bar').style.display = 'flex';
+document.getElementById('user-display').innerText = user.email.split('@')[0].toUpperCase();
+
+// VERIFICAR ACEPTACIÓN DE TÉRMINOS
+if (!localStorage.getItem('terminosAceptados')) {
+document.getElementById('modalTerminos').style.display = 'block';
+}
+
+obtenerSuscripcion(user.uid);
+sincronizarConNube();
+} else {
+document.getElementById('auth-overlay').style.display = 'flex';
+document.getElementById('status-bar').style.display = 'none';
+}
+});
+
+async function obtenerSuscripcion(uid) {
+try {
+const docRef = db.collection('usuarios').doc(uid);
+const doc = await docRef.get();
+let venc;
+if (doc.exists && doc.data().vencimiento) {
+venc = new Date(doc.data().vencimiento);
+} else {
+const user = auth.currentUser;
+const fechaCreacion = new Date(user.metadata.creationTime);
+venc = new Date(fechaCreacion.getTime() + (2 * 24 * 60 * 60 * 1000));
+await docRef.set({
+email: user.email,
+vencimiento: venc.toISOString(),
+rol: 'prueba',
+fechaRegistro: new Date().toISOString()
+}, { merge: true });
+}
+const hoy = new Date();
+const diff = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
+if (diff <= 0) {
+document.getElementById('days-display').innerText = "Suscripción Vencida";
+document.getElementById('modalVencimiento').style.display = 'block';
+} else {
+document.getElementById('days-display').innerText = "Prueba: " + diff + " días restantes";
+document.getElementById('modalVencimiento').style.display = 'none';
+}
+} catch (e) { console.error(e); }
+}
+
+function abrirWhatsAppSuscripcion() {
+const email = auth.currentUser ? auth.currentUser.email : "Usuario no identificado";
+const mensaje = encodeURIComponent(`Hola Dr. Charles Reyes, mi correo es ${email} y deseo conocer los planes de suscripción para Iuris Penal.`);
+window.open(`https://wa.me/584247640846?text=${mensaje}`, '_blank');
+}
+
+let casos = JSON.parse(localStorage.getItem('casosIuris')) || [];
+const DIAS_AÑO = 360;
+const DIAS_MES = 30;
+
+function openTab(evt, tabName) {
+let i, tabcontent, tablinks;
+tabcontent = document.getElementsByClassName("tab-content");
+for (i = 0; i < tabcontent.length; i++) tabcontent[i].style.display = "none";
+tablinks = document.getElementsByClassName("tab-button");
+for (i = 0; i < tablinks.length; i++) tablinks[i].className = tablinks[i].className.replace(" active", "");
+document.getElementById(tabName).style.display = "block";
+evt.currentTarget.className += " active";
+}
+
+function calcularTerminoMedio() {
+const min = parseFloat(document.getElementById('tm_min').value);
+const max = parseFloat(document.getElementById('tm_max').value);
+if(isNaN(min) || isNaN(max)) return alert("Por favor ingrese ambos límites.");
+const tmAnos = (min + max) / 2;
+const totalDias = tmAnos * DIAS_AÑO;
+document.getElementById('resTM').innerText = "Término Medio: " + desglosar(totalDias);
+}
+
+function exportarDB() {
+if (casos.length === 0) return alert("No hay expedientes.");
+const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(casos));
+const dl = document.createElement('a'); dl.setAttribute("href", dataStr);
+dl.setAttribute("download", "Cómputos_Iuris_" + new Date().toLocaleDateString() + ".json");
+dl.click();
+}
+
+function importarDB(event) {
+const reader = new FileReader();
+reader.onload = (e) => {
+try {
+const importados = JSON.parse(e.target.result);
+if (confirm(`¿Importar ${importados.length} expedientes?`)) {
+casos = importados; localStorage.setItem('casosIuris', JSON.stringify(casos));
+listarCasos(); alert("Éxito.");
+}
+} catch (err) { alert("Archivo inválido."); }
+};
+reader.readAsText(event.target.files[0]);
+}
+
+function nuevoExpediente() {
+document.getElementById('casoActivoId').value = ""; 
+document.querySelectorAll('input').forEach(i => i.value = "");
+document.getElementById('listaRedenciones').innerHTML = "";
+document.getElementById('resultado').style.display = 'none';
+document.getElementById('divDrogas').style.display = 'none';
+}
+
+async function guardarCaso() {
+const nombre = document.getElementById('pNombre').value;
+const cedula = document.getElementById('pCedula').value;
+const quiereNube = document.getElementById('syncToggle').checked;
+
+if(!nombre || !cedula) return alert("Nombre y Cédula obligatorios.");
+
+const userId = auth.currentUser.uid;
+const redenciones = [];
+const rAnos = document.getElementsByClassName('rAno'), rMeses = document.getElementsByClassName('rMes'), rDias = document.getElementsByClassName('rDia');
+for(let i=0; i<rAnos.length; i++) redenciones.push({ a: rAnos[i].value, m: rMeses[i].value, d: rDias[i].value });
+
+const idExistente = document.getElementById('casoActivoId').value;
+
+const datosCasoBase = {
+nombre: nombre,
+cedula: cedula,
+expJud: document.getElementById('pExpJud').value,
+expCar: document.getElementById('pExpCar').value,
+delito: document.getElementById('pDelito').value,
+lugar: document.getElementById('pLugar').value,
+esDrogas: document.getElementById('esDrogas').value,
+pTipoDroga: document.getElementById('pTipoDroga').value,
+pCantDroga: document.getElementById('pCantDroga').value,
+cAno: document.getElementById('cAno').value, cMes: document.getElementById('cMes').value, cDia: document.getElementById('cDia').value,
+esAcum: document.getElementById('esAcum').value, fDetencionUnica: document.getElementById('fDetencionUnica').value,
+fDetencionActual: document.getElementById('fDetencionActual').value, redenciones: redenciones, fechaMod: Date.now()
+};
+
+if (quiereNube) {
+const datosCifrados = {
+...datosCasoBase,
+nombre: encryptionHelper.encrypt(nombre, userId),
+cedula: encryptionHelper.encrypt(cedula, userId),
+expJud: encryptionHelper.encrypt(datosCasoBase.expJud, userId),
+expCar: encryptionHelper.encrypt(datosCasoBase.expCar, userId),
+delito: encryptionHelper.encrypt(datosCasoBase.delito, userId),
+lugar: encryptionHelper.encrypt(datosCasoBase.lugar, userId),
+pTipoDroga: encryptionHelper.encrypt(datosCasoBase.pTipoDroga, userId),
+pCantDroga: encryptionHelper.encrypt(datosCasoBase.pCantDroga, userId)
+};
+try {
+if(idExistente && isNaN(idExistente) && idExistente !== "" && !idExistente.startsWith("local_")) {
+await db.collection('usuarios').doc(userId).collection('expedientes').doc(idExistente).set(datosCifrados);
+} else {
+const docRef = await db.collection('usuarios').doc(userId).collection('expedientes').add(datosCifrados);
+document.getElementById('casoActivoId').value = docRef.id;
+}
+alert("¡Sincronizado en Nube!");
+} catch(e) { alert("Error al sincronizar."); }
+} else {
+if(!idExistente) document.getElementById('casoActivoId').value = "local_" + Date.now();
+alert("Guardado localmente.");
+}
+
+const finalId = document.getElementById('casoActivoId').value;
+const idx = casos.findIndex(c => c.id === finalId);
+if(idx !== -1) casos[idx] = { id: finalId, ...datosCasoBase };
+else casos.push({ id: finalId, ...datosCasoBase });
+localStorage.setItem('casosIuris', JSON.stringify(casos));
+listarCasos();
+}
+
+async function sincronizarConNube() {
+try {
+const userId = auth.currentUser.uid;
+const snap = await db.collection('usuarios').doc(userId).collection('expedientes').orderBy('fechaMod', 'desc').get();
+casos = [];
+snap.forEach(doc => { 
+const d = doc.data();
+casos.push({ 
+id: doc.id, 
+...d,
+nombre: encryptionHelper.decrypt(d.nombre, userId),
+cedula: encryptionHelper.decrypt(d.cedula, userId),
+expJud: encryptionHelper.decrypt(d.expJud, userId),
+expCar: encryptionHelper.decrypt(d.expCar, userId),
+delito: encryptionHelper.decrypt(d.delito, userId),
+lugar: encryptionHelper.decrypt(d.lugar, userId),
+pTipoDroga: encryptionHelper.decrypt(d.pTipoDroga, userId),
+pCantDroga: encryptionHelper.decrypt(d.pCantDroga, userId)
+}); 
+});
+localStorage.setItem('casosIuris', JSON.stringify(casos));
+listarCasos();
+} catch(e) { console.log("Offline"); }
+}
+
+function listarCasos() {
+const b = document.getElementById('busqueda').value.toLowerCase();
+const div = document.getElementById('listaCasos'); div.innerHTML = "";
+casos.sort((a, b) => b.fechaMod - a.fechaMod).filter(c => c.nombre.toLowerCase().includes(b) || c.cedula.includes(b)).forEach(c => {
+const card = document.createElement('div'); card.className = "case-card";
+card.innerHTML = `<span><b>${c.nombre}</b><br><small>${c.cedula}</small></span>
+<div><button onclick="cargarCaso('${c.id}')" style="background:#1a73e8; color:white; border:none; padding:5px 10px; border-radius:5px;">Abrir</button>
+<button onclick="eliminarCaso('${c.id}')" class="btn-delete">🗑️</button></div>`;
+div.appendChild(card);
+});
+}
+
+function cargarCaso(id) {
+const c = casos.find(i => i.id == id); 
+if(!c) return;
+document.getElementById('casoActivoId').value = c.id; 
+document.getElementById('pNombre').value = c.nombre; 
+document.getElementById('pCedula').value = c.cedula;
+document.getElementById('pExpJud').value = c.expJud; 
+document.getElementById('pExpCar').value = c.expCar;
+document.getElementById('pDelito').value = c.delito; 
+document.getElementById('pLugar').value = c.lugar;
+document.getElementById('esDrogas').value = c.esDrogas || 'no';
+document.getElementById('pTipoDroga').value = c.pTipoDroga || '';
+document.getElementById('pCantDroga').value = c.pCantDroga || '';
+document.getElementById('divDrogas').style.display = (c.esDrogas === 'si' ? 'block' : 'none');
+document.getElementById('cAno').value = c.cAno; 
+document.getElementById('cMes').value = c.cMes; 
+document.getElementById('cDia').value = c.cDia;
+document.getElementById('esAcum').value = c.esAcum; 
+document.getElementById('fDetencionUnica').value = c.fDetencionUnica;
+document.getElementById('fDetencionActual').value = c.fDetencionActual;
+document.getElementById('listaRedenciones').innerHTML = '';
+if(c.redenciones) c.redenciones.forEach(r => agregarFilaRedencion(r.a, r.m, r.d));
+toggleAcumulacion();
+}
+
+function agregarFilaRedencion(a, m, d) {
+const div = document.createElement('div'); div.className = 'grid-red';
+div.innerHTML = `<input type="number" class="rAno" value="${a}" placeholder="A"><input type="number" class="rMes" value="${m}" placeholder="M"><input type="number" class="rDia" value="${d}" placeholder="D">
+<button class="btn-delete" onclick="this.parentElement.remove()">🗑️</button>`;
+document.getElementById('listaRedenciones').appendChild(div);
+}
+
+function procesarRedencionAutomatica() {
+const f1 = new Date(document.getElementById('redInicio').value);
+const f2 = new Date(document.getElementById('redFin').value);
+const ds = parseInt(document.getElementById('redDiasSemana').value) || 5;
+const hd = parseInt(document.getElementById('redHorasDia').value) || 8;
+if (isNaN(f1.getTime()) || isNaN(f2.getTime())) return alert("Fechas inválidas");
+const diasCronologicos = Math.ceil(Math.abs(f2 - f1) / 86400000);
+const totalHoras = (diasCronologicos / 7) * ds * hd;
+const diasTrabajados = Math.floor(totalHoras / 8);
+const diasRedimidosTotal = Math.floor(diasTrabajados / 2);
+if (diasRedimidosTotal >= 0) {
+agregarFilaRedencion(Math.floor(diasRedimidosTotal / DIAS_AÑO), Math.floor((diasRedimidosTotal % DIAS_AÑO) / DIAS_MES), Math.floor((diasRedimidosTotal % DIAS_AÑO) % DIAS_MES));
+document.getElementById('resultadoMiniRed').innerHTML = `
+<div class="info-red">
+<b>Días Cronológicos:</b> ${diasCronologicos}<br>
+<hr>
+<b>Días Laborados:</b> ${diasTrabajados}<br>
+<b>Lapso Laborado:</b> ${desglosarBreve(diasTrabajados)}<br>
+<hr>
+<b>Días Redimidos:</b> ${diasRedimidosTotal}<br>
+<b>Lapso Redimido:</b> ${desglosarBreve(diasRedimidosTotal)}
+</div>`;
+}
+}
+
+function desglosar(t) { 
+let a = Math.floor(t / DIAS_AÑO); let m = Math.floor((t % DIAS_AÑO) / DIAS_MES); let d = Math.floor((t % DIAS_AÑO) % DIAS_MES);
+return `${a} años, ${m} meses y ${d} días`; 
+}
+
+function desglosarBreve(t) { 
+let a = Math.floor(t / DIAS_AÑO); let m = Math.floor((t % DIAS_AÑO) / DIAS_MES); let d = Math.floor((t % DIAS_AÑO) % DIAS_MES);
+return `${a}a, ${m}m y ${d}d`; 
+}
+
+function exportarAPDF() {
+const elemento = document.getElementById('app-container');
+const botones = document.querySelectorAll('.no-print');
+botones.forEach(b => b.style.setProperty('display', 'none', 'important'));
+html2pdf().set({ margin: 10, filename: `Computo_${document.getElementById('pNombre').value}.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } }).from(elemento).save().then(() => {
+botones.forEach(b => b.style.display = '');
+});
+}
+
+function toggleAcumulacion() { const esA = document.getElementById('esAcum').value === 'si'; document.getElementById('seccionUnica').style.display = esA ? 'none' : 'block'; document.getElementById('seccionAcumulada').style.display = esA ? 'block' : 'none'; }
+function toggleSubModulo() { const sm = document.getElementById('subModuloRedencion'); sm.style.display = sm.style.display === 'block' ? 'none' : 'block'; }
+function agregarPeriodo() { const div = document.createElement('div'); div.className = 'modulo'; div.style.background = "#f0f7ff"; div.innerHTML = `<label>Desde:</label><input type="date" class="pInicio"><label>Hasta:</label><input type="date" class="pFin">`; document.getElementById('contenedorPeriodos').appendChild(div); }
+function abrirWhatsApp() { window.open(`https://wa.me/584247640846`, '_blank'); }
+
+function calcularTodo() {
+const hoy = new Date(); let df = 0;
+if (document.getElementById('esAcum').value === 'no') {
+const fDet = new Date(document.getElementById('fDetencionUnica').value); if (!isNaN(fDet)) df = Math.floor((hoy - fDet) / 86400000);
+} else {
+const inis = document.getElementsByClassName('pInicio'), fins = document.getElementsByClassName('pFin');
+for (let i = 0; i < inis.length; i++) {
+const d1 = new Date(inis[i].value), d2 = new Date(fins[i].value); if (!isNaN(d1) && !isNaN(d2)) df += Math.floor((d2 - d1) / 86400000);
+}
+const fAct = new Date(document.getElementById('fDetencionActual').value); if (!isNaN(fAct)) df += Math.floor((hoy - fAct) / 86400000);
+}
+let dr = 0; const rAnos = document.getElementsByClassName('rAno'), rMeses = document.getElementsByClassName('rMes'), rDias = document.getElementsByClassName('rDia');
+for (let i = 0; i < rAnos.length; i++) dr += (parseInt(rAnos[i].value)||0)*DIAS_AÑO + (parseInt(rMeses[i].value)||0)*DIAS_MES + (parseInt(rDias[i].value)||0);
+const pt = (parseInt(document.getElementById('cAno').value)||0)*DIAS_AÑO + (parseInt(document.getElementById('cMes').value)||0)*DIAS_MES + (parseInt(document.getElementById('cDia').value)||0);
+const tc = df + dr;
+document.getElementById('resultado').style.display = 'block';
+document.getElementById('resTitulo').innerText = "Cómputo: " + (document.getElementById('pNombre').value || "S/N");
+document.getElementById('resResumen').innerHTML = `<div class="res-box"><b>Físico:</b> ${desglosarBreve(df)}</div><div class="res-box"><b>Redimido:</b> ${desglosarBreve(dr)}</div><div class="res-box" style="background:#e6ffed;"><b>TOTAL CUMPLIDO:</b> ${desglosarBreve(tc)}</div>`;
+document.getElementById('resBeneficios').innerHTML = `${crearFichaDoble("100% (Fin de Condena)", pt, df, dr)}${crearFichaDoble("1/2 (Destacamento de Trabajo)", pt*0.5, df, dr)}${crearFichaDoble("2/3 (Régimen Abierto)", pt*(2/3), df, dr)}${crearFichaDoble("3/4 (Libertad Condicional)", pt*0.75, df, dr)}`;
+}
+
+function crearFichaDoble(titulo, metaDias, fisicoActual, redimidoActual) {
+const h = new Date();
+const faltaFisico = Math.max(0, Math.ceil(metaDias - fisicoActual));
+const fechaFisico = new Date(); fechaFisico.setDate(h.getDate() + faltaFisico);
+const faltaMixto = Math.max(0, Math.ceil(metaDias - (fisicoActual + redimidoActual)));
+const fechaMixto = new Date(); fechaMixto.setDate(h.getDate() + faltaMixto);
+return `<div class="beneficio-item"><b>${titulo}</b><hr><b>Sólo Físico:</b> ${desglosarBreve(faltaFisico)} -> ${fechaFisico.toLocaleDateString()}<br><b>Físico+Red:</b> ${desglosarBreve(faltaMixto)} -> ${fechaMixto.toLocaleDateString()}</div>`;
+}
+
+async function eliminarCaso(id) { 
+if(confirm(`¿Eliminar?`)) { 
+try { await db.collection('usuarios').doc(auth.currentUser.uid).collection('expedientes').doc(id).delete(); sincronizarConNube(); }
+catch(e) { casos = casos.filter(i => i.id !== id); localStorage.setItem('casosIuris', JSON.stringify(casos)); listarCasos(); }
+} 
+}
+
+function validarYCalcular() { if(!document.getElementById('cAno').value) return alert("Ingrese la pena."); calcularTodo(); document.getElementById('btnExportarPDF').style.display = 'block'; }
+function calc71() {
+const f1 = new Date(document.getElementById('calc71_inicio').value), f2 = new Date(document.getElementById('calc71_fin').value);
+if(isNaN(f1)||isNaN(f2)) return;
+let a=f2.getFullYear()-f1.getFullYear(), m=f2.getMonth()-f1.getMonth(), d=f2.getDate()-f1.getDate();
+if(d<0){m--;d+=30}if(m<0){a--;m+=12}
+document.getElementById('res71').innerText = `Lapso: ${a}a, ${m}m, ${d}d`;
+}
+function agregarFilaSuma() {
+const div = document.createElement('div'); div.className = 'grid-3'; div.style.marginTop = '5px';
+div.innerHTML = `<input type="number" class="sa" placeholder="A"><input type="number" class="sm" placeholder="M"><input type="number" class="sd" placeholder="D">`;
+document.getElementById('listaLapsosSuma').appendChild(div);
+}
+function calc72() {
+let a=0, m=0, d=0; document.querySelectorAll('.sa').forEach(i=>a+=parseInt(i.value||0)); document.querySelectorAll('.sm').forEach(i=>m+=parseInt(i.value||0)); document.querySelectorAll('.sd').forEach(i=>d+=parseInt(i.value||0));
+m+=Math.floor(d/30); d=d%30; a+=Math.floor(m/12); m=m%12; document.getElementById('res72').innerText = `Total: ${a}a, ${m}m, ${d}d`;
+}
+function calc73() {
+const d1 = (parseInt(document.getElementById('r1a').value||0)*360) + (parseInt(document.getElementById('r1m').value||0)*30) + (parseInt(document.getElementById('r1d').value||0));
+const d2 = (parseInt(document.getElementById('r2a').value||0)*360) + (parseInt(document.getElementById('r2m').value||0)*30) + (parseInt(document.getElementById('r2d').value||0));
+document.getElementById('res73').innerText = "Resultado: " + desglosarBreve(d1 - d2);
+}
+function calc745(op) {
+    const dateInput = document.getElementById('fBase745').value;
+    if (!dateInput) return alert("Por favor, seleccione una fecha base.");
+    const partes = dateInput.split('-');
+    const f = new Date(partes[0], partes[1] - 1, partes[2]);
+    const años = parseInt(document.getElementById('la745').value || 0);
+    const meses = parseInt(document.getElementById('lm745').value || 0);
+    const días = parseInt(document.getElementById('ld745').value || 0);
+    if (op === 'sumar') {
+        f.setFullYear(f.getFullYear() + años);
+        f.setMonth(f.getMonth() + meses);
+        f.setDate(f.getDate() + días);
+    } else {
+        f.setFullYear(f.getFullYear() - años);
+        f.setMonth(f.getMonth() - meses);
+        f.setDate(f.getDate() - días);
+    }
+    const opciones = { day: '2-digit', month: '2-digit', year: 'numeric' };
+    document.getElementById('res745').innerText = "Fecha Resultante: " + f.toLocaleDateString('es-ES', opciones);
+}
+function calc76() {
+const t = (parseInt(document.getElementById('fra').value||0)*360) + (parseInt(document.getElementById('frm').value||0)*30) + (parseInt(document.getElementById('frd').value||0));
+const p = document.getElementById('fraccion').value.split('/'); 
+document.getElementById('res76').innerText = "Producto: " + desglosarBreve(Math.floor((t*parseInt(p[0]))/parseInt(p[1])));
+}
+
+// FUNCIONES DE REPORTE MEJORADAS
+function generarReporteFiltrado() {
+const fDelito = document.getElementById('repDelito').value.toLowerCase();
+const fLugar = document.getElementById('repLugar').value.toLowerCase();
+const fDesde = document.getElementById('repDesde').value;
+const fHasta = document.getElementById('repHasta').value;
+
+const filtrados = casos.filter(c => {
+const cumpleDelito = !fDelito || (c.delito && c.delito.toLowerCase().includes(fDelito));
+const cumpleLugar = !fLugar || (c.lugar && c.lugar.toLowerCase().includes(fLugar));
+let cumpleFecha = true;
+if(fDesde || fHasta) {
+const fechaMod = new Date(c.fechaMod);
+if(fDesde && fechaMod < new Date(fDesde)) cumpleFecha = false;
+if(fHasta && fechaMod > new Date(fHasta)) cumpleFecha = false;
+}
+return cumpleDelito && cumpleLugar && cumpleFecha;
+});
+
+if (filtrados.length === 0) return alert("No hay datos que coincidan con los filtros.");
+
+let html = `
+<div style="padding:20px; font-family:sans-serif;">
+<h1 style="color:#1a73e8; text-align:center;">REPORTE DE EXPEDIENTES - IURIS PENAL</h1>
+<p>Filtros aplicados: ${fDelito || 'Todos'}, ${fLugar || 'Todos'}</p>
+<table border="1" style="width:100%; border-collapse:collapse; font-size:10px;">
+<thead>
+<tr style="background:#f2f2f2;">
+<th>NOMBRE</th><th>CÉDULA</th><th>DELITO</th><th>LUGAR</th><th>CONDENA</th>
+</tr>
+</thead>
+<tbody>
+${filtrados.map(c => `
+<tr>
+<td style="padding:5px;">${c.nombre}</td>
+<td style="padding:5px;">${c.cedula}</td>
+<td style="padding:5px;">${c.delito || ''}</td>
+<td style="padding:5px;">${c.lugar || ''}</td>
+<td style="padding:5px;">${c.cAno||0}a ${c.cMes||0}m ${c.cDia||0}d</td>
+</tr>
+`).join('')}
+</tbody>
+</table>
+<p style="font-size:8px; text-align:right; margin-top:10px;">Generado el: ${new Date().toLocaleString()}</p>
+</div>`;
+
+const el = document.createElement('div'); el.innerHTML = html;
+html2pdf().set({ margin: 10, filename: 'Reporte_Iuris.pdf', html2canvas: { scale: 2 } }).from(el).save();
+}
+
+function generarExcelFiltrado() {
+const fDelito = document.getElementById('repDelito').value.toLowerCase();
+const fLugar = document.getElementById('repLugar').value.toLowerCase();
+const fDesde = document.getElementById('repDesde').value;
+const fHasta = document.getElementById('repHasta').value;
+
+const camposSeleccionados = Array.from(document.querySelectorAll('.col-excel:checked')).map(cb => cb.value);
+if (camposSeleccionados.length === 0) return alert("Seleccione al menos un campo para el Excel.");
+
+const filtrados = casos.filter(c => {
+const cumpleDelito = !fDelito || (c.delito && c.delito.toLowerCase().includes(fDelito));
+const cumpleLugar = !fLugar || (c.lugar && c.lugar.toLowerCase().includes(fLugar));
+let cumpleFecha = true;
+if(fDesde || fHasta) {
+const fechaMod = new Date(c.fechaMod);
+if(fDesde && fechaMod < new Date(fDesde)) cumpleFecha = false;
+if(fHasta && fechaMod > new Date(fHasta)) cumpleFecha = false;
+}
+return cumpleDelito && cumpleLugar && cumpleFecha;
+});
+
+if (filtrados.length === 0) return alert("No hay datos para exportar.");
+
+const cabeceras = {
+nombre: "NOMBRE", cedula: "CÉDULA", delito: "DELITO", 
+lugar: "LUGAR", expJud: "EXP. JUDICIAL", expCar: "EXP. CARCELARIO"
+};
+
+const dataExcel = filtrados.map(c => {
+let fila = {};
+camposSeleccionados.forEach(campo => { fila[cabeceras[campo]] = c[campo] || ""; });
+return fila;
+});
+
+const ws = XLSX.utils.json_to_sheet(dataExcel);
+const wb = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb, ws, "Expedientes");
+XLSX.writeFile(wb, `Reporte_Iuris_${new Date().toLocaleDateString()}.xlsx`);
+}
+
+if(localStorage.getItem('preferenciaSync') === 'false') document.getElementById('syncToggle').checked = false;
+listarCasos();
+</script>
+</body>
+</html>
