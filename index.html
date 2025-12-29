@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calculadora Penal</title>
+<link rel="manifest" href="manifest.json">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -73,6 +74,7 @@ input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-ra
 .search-box { background: #e8f0fe; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
 .res-box { background: #f0f7ff; padding: 15px; border-radius: 10px; margin-top: 10px; border-left: 5px solid #1a73e8; }
 .txt-destaque { color: #d93025; font-weight: bold; }
+.txt-cumplido { color: #28a745; font-weight: bold; }
 .db-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
 .btn-db { background: #6c757d; color: white; border: none; padding: 10px; border-radius: 8px; font-size: 0.8em; cursor: pointer; font-weight: bold; }
 .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); overflow-y: auto; }
@@ -217,7 +219,18 @@ border-radius: 8px;
 </div>
 <label>¿Acumulación de Penas / Periodos?</label>
 <select id="esAcum" onchange="toggleAcumulacion()"><option value="no">No</option><option value="si">Sí</option></select>
-<div id="seccionUnica"><label>Fecha Detención:</label><input type="date" id="fDetencionUnica"></div>
+
+<div id="seccionUnica">
+    <label>Fecha Detención:</label>
+    <input type="date" id="fDetencionUnica">
+</div>
+
+<div style="margin-top: 15px; padding: 10px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 8px;">
+    <label style="color: #856404; margin-top: 0;">📅 Realizar cómputo a la fecha de:</label>
+    <input type="date" id="fFechaCorte">
+    <small style="color: #666;">(Por defecto es hoy, pero puede cambiarla)</small>
+</div>
+
 <div id="seccionAcumulada" style="display:none;">
 <div id="contenedorPeriodos"></div>
 <button class="btn-add no-print" onclick="agregarPeriodo()">+ Agregar Periodo Anterior</button>
@@ -270,6 +283,69 @@ border-radius: 8px;
 </div>
 
 <div class="modulo">
+    <h2>Concurso Ideal de Delitos</h2>
+    <p><small>Se aplica el aumento a la pena del delito más grave.</small></p>
+    <label>Pena del delito más grave:</label>
+    <div class="grid-3">
+        <input type="number" id="ideal_a" placeholder="Años">
+        <input type="number" id="ideal_m" placeholder="Meses">
+        <input type="number" id="ideal_d" placeholder="Días">
+    </div>
+
+    <label style="margin-top:20px;">Deslice para ajustar el incremento (ej. 1/6 a 1/2):</label>
+    <div style="padding: 10px 0;">
+        <input type="range" id="sliderIncremento" min="0" max="50" step="0.01" value="16.66" style="width: 100%; cursor: pointer;" oninput="actualizarLabelIncremento(this.value)">
+        <div style="text-align: center; margin-top: 10px; font-weight: bold; color: #e67e22; font-size: 1.2em;">
+            Aumento: <span id="labelProporcionInc">1/6</span> (<span id="labelPorcentajeInc">16.66</span>%)
+        </div>
+    </div>
+
+    <button class="btn-principal" style="padding:10px; background:#e67e22;" onclick="calcularConcursoIdeal()">Calcular Pena Resultante</button>
+    <div id="resIdeal" class="calc-res" style="border-left: 5px solid #e67e22;"></div>
+</div>
+
+<div class="modulo">
+    <h2>Concurso Real de Delitos</h2>
+    <p><small>Regla: Pena mayor + mitad de la suma de las penas restantes.</small></p>
+    <div id="listaPenasReal">
+        <div class="grid-3" style="margin-bottom: 8px;">
+            <input type="number" class="ra" placeholder="Años">
+            <input type="number" class="rm" placeholder="Meses">
+            <input type="number" class="rd" placeholder="Días">
+        </div>
+        <div class="grid-3" style="margin-bottom: 8px;">
+            <input type="number" class="ra" placeholder="Años">
+            <input type="number" class="rm" placeholder="Meses">
+            <input type="number" class="rd" placeholder="Días">
+        </div>
+    </div>
+    <button class="btn-add" onclick="agregarFilaPenaReal()">+ Agregar otra condena</button>
+    <button class="btn-principal" style="padding:10px; background:#8e44ad; margin-top: 15px;" onclick="calcularConcursoReal()">Calcular Pena Resultante </button>
+    <div id="resReal" class="calc-res" style="border-left: 5px solid #8e44ad;"></div>
+</div>
+
+<div class="modulo">
+    <h2>Rebaja por Admisión de los Hechos</h2>
+    <label>Pena impuesta o estimada:</label>
+    <div class="grid-3">
+        <input type="number" id="adm_a" placeholder="Años">
+        <input type="number" id="adm_m" placeholder="Meses">
+        <input type="number" id="adm_d" placeholder="Días">
+    </div>
+
+    <label style="margin-top:20px;">Deslice para ajustar la rebaja:</label>
+    <div style="padding: 10px 0;">
+        <input type="range" id="sliderRebaja" min="0" max="50" step="0.01" value="33.33" style="width: 100%; cursor: pointer;" oninput="actualizarLabelRebaja(this.value)">
+        <div style="text-align: center; margin-top: 10px; font-weight: bold; color: #1a73e8; font-size: 1.2em;">
+            Proporción: <span id="labelProporcion">1/3</span> (<span id="labelPorcentaje">33.33</span>%)
+        </div>
+    </div>
+
+    <button class="btn-principal" style="padding:10px; background:#27ae60;" onclick="calcularAdmision()">Calcular Pena con Rebaja</button>
+    <div id="resAdmision" class="calc-res"></div>
+</div>
+
+<div class="modulo">
 <h2>7.1 Calcular lapso entre dos fechas</h2>
 <div class="grid-2">
 <div><label>Fecha Inicial:</label><input type="date" id="calc71_inicio"></div>
@@ -282,7 +358,7 @@ border-radius: 8px;
 <div class="modulo">
 <h2>7.2 Sumar lapsos de tiempo</h2>
 <div id="listaLapsosSuma">
-<div class="grid-3"><input type="number" class="sa" placeholder="Años"><input type="number" class="sm" placeholder="Meses"><input type="number" class="sd" placeholder="Días"></div>
+<div class="grid-3"><input type="number" class="sa" placeholder="Años"><input type="number" class="sm" placeholder="M"><input type="number" class="sd" placeholder="D"></div>
 </div>
 <button class="btn-add" onclick="agregarFilaSuma()">+ Agregar otro lapso</button>
 <button class="btn-principal" style="padding:10px;" onclick="calc72()">Sumar Lapsos</button>
@@ -290,12 +366,21 @@ border-radius: 8px;
 </div>
 
 <div class="modulo">
-<h2>7.3 Restar dos lapsos</h2>
-<p><small>Ingrese el mayor arriba y el menor abajo</small></p>
-<div class="grid-3"><input type="number" id="r1a" placeholder="Años"><input type="number" id="r1m" placeholder="Meses"><input type="number" id="r1d" placeholder="Días"></div>
-<div class="grid-3" style="margin-top:5px;"><input type="number" id="r2a" placeholder="Años"><input type="number" id="r2m" placeholder="Meses"><input type="number" id="r2d" placeholder="Días"></div>
-<button class="btn-principal" style="padding:10px;" onclick="calc73()">Restar Lapsos</button>
-<div id="res73" class="calc-res"></div>
+    <h2>7.3 Restar dos lapsos</h2>
+    <p><small>Ingrese el lapso mayor arriba y el que desea restar abajo</small></p>
+    <div class="grid-3">
+        <input type="number" id="r1a" placeholder="Años">
+        <input type="number" id="r1m" placeholder="Meses">
+        <input type="number" id="r1d" placeholder="Días">
+    </div>
+    <div style="text-align:center; margin: 5px 0; font-weight:bold; color:#1a73e8;">MENOS</div>
+    <div class="grid-3">
+        <input type="number" id="r2a" placeholder="Años">
+        <input type="number" id="r2m" placeholder="Meses">
+        <input type="number" id="r2d" placeholder="Días">
+    </div>
+    <button class="btn-principal" style="padding:10px;" onclick="calc73()">Restar Lapsos</button>
+    <div id="res73" class="calc-res"></div>
 </div>
 
 <div class="modulo">
@@ -331,7 +416,7 @@ border-radius: 8px;
 <p style="font-size: 0.8em; color: #666; text-align: center;">Fecha de Última Actualización: 26 de Diciembre de 2025</p>
 
 <div class="contrato-scroll">
-<p><strong>IMPORTANTE:</strong> La aceptación de estos Términos y Condiciones (en adelante, "T&C") es obligatoria para el uso de la Aplicación. Al hacer clic en "Aceptar" o al utilizar la Aplicación, el Usuario declara haber leído, entendido y aceptado plenamente todas las cláusulas aquí contenidas.</p>
+<p><strong>IMPORTANTE:</strong> La aceptación de estos T&C es obligatoria para el uso de la Aplicación. Al hacer clic en "Aceptar" o al utilizar la Aplicación, el Usuario declara haber leído, entendido y aceptado plenamente todas las cláusulas aquí contenidas.</p>
 
 <p><strong>1. DEFINICIONES Y OBJETO</strong><br>
 1.1. Aplicación: Se refiere al software Calculadora Penal del Dr. Charles Reyes...<br>
@@ -579,6 +664,8 @@ document.querySelectorAll('input').forEach(i => i.value = "");
 document.getElementById('listaRedenciones').innerHTML = "";
 document.getElementById('resultado').style.display = 'none';
 document.getElementById('divDrogas').style.display = 'none';
+// Reiniciar fecha de corte a hoy
+document.getElementById('fFechaCorte').value = new Date().toISOString().split('T')[0];
 }
 
 async function guardarCaso() {
@@ -713,39 +800,105 @@ div.innerHTML = `<input type="number" class="rAno" value="${a}" placeholder="A">
 document.getElementById('listaRedenciones').appendChild(div);
 }
 
-function procesarRedencionAutomatica() {
-const f1 = new Date(document.getElementById('redInicio').value);
-const f2 = new Date(document.getElementById('redFin').value);
-const ds = parseInt(document.getElementById('redDiasSemana').value) || 5;
-const hd = parseInt(document.getElementById('redHorasDia').value) || 8;
-if (isNaN(f1.getTime()) || isNaN(f2.getTime())) return alert("Fechas inválidas");
-const diasCronologicos = Math.ceil(Math.abs(f2 - f1) / 86400000);
-const totalHoras = (diasCronologicos / 7) * ds * hd;
-const diasTrabajados = Math.floor(totalHoras / 8);
-const diasRedimidosTotal = Math.floor(diasTrabajados / 2);
-if (diasRedimidosTotal >= 0) {
-agregarFilaRedencion(Math.floor(diasRedimidosTotal / DIAS_AÑO), Math.floor((diasRedimidosTotal % DIAS_AÑO) / DIAS_MES), Math.floor((diasRedimidosTotal % DIAS_AÑO) % DIAS_MES));
-document.getElementById('resultadoMiniRed').innerHTML = `
-<div class="info-red">
-<b>Días Cronológicos:</b> ${diasCronologicos}<br>
-<hr>
-<b>Días Laborados:</b> ${diasTrabajados}<br>
-<b>Lapso Laborado:</b> ${desglosarBreve(diasTrabajados)}<br>
-<hr>
-<b>Días Redimidos:</b> ${diasRedimidosTotal}<br>
-<b>Lapso Redimido:</b> ${desglosarBreve(diasRedimidosTotal)}
-</div>`;
+// Función para obtener días totales basados en diferencia de calendario real
+function obtenerDiasCalendarioReal(fechaInicio, fechaFin) {
+    let f1 = new Date(fechaInicio);
+    let f2 = new Date(fechaFin);
+    
+    if (isNaN(f1.getTime()) || isNaN(f2.getTime())) return 0;
+
+    let a = f2.getFullYear() - f1.getFullYear();
+    let m = f2.getMonth() - f1.getMonth();
+    let d = f2.getDate() - f1.getDate();
+
+    if (d < 0) {
+        m--;
+        d += 30; // Normalización a mes comercial para el cómputo penal
+    }
+    if (m < 0) {
+        a--;
+        m += 12;
+    }
+    
+    // Retornamos el equivalente en días usando la base de la app (360/30)
+    return (a * 360) + (m * 30) + d;
 }
+
+function procesarRedencionAutomatica() {
+    const f1 = new Date(document.getElementById('redInicio').value);
+    const f2 = new Date(document.getElementById('redFin').value);
+    const ds = parseInt(document.getElementById('redDiasSemana').value) || 5;
+    const hd = parseInt(document.getElementById('redHorasDia').value) || 8;
+    
+    if (isNaN(f1.getTime()) || isNaN(f2.getTime())) return alert("Fechas inválidas");
+    
+    // 1. Cálculo de días cronológicos reales
+    const diasCronologicos = Math.ceil(Math.abs(f2 - f1) / 86400000);
+    
+    // 2. Cálculo de horas y días trabajados (según Ley de Redención)
+    const totalHoras = (diasCronologicos / 7) * ds * hd;
+    const diasTrabajados = Math.floor(totalHoras / 8);
+    
+    // 3. Aplicar el 2x1 (1 día de redención por cada 2 trabajados)
+    const diasRedimidosTotal = Math.floor(diasTrabajados / 2);
+    
+    if (diasRedimidosTotal >= 0) {
+        // --- UNIFICACIÓN DE LÓGICA (Base 360/30) ---
+        const años = Math.floor(diasRedimidosTotal / 360);
+        const meses = Math.floor((diasRedimidosTotal % 360) / 30);
+        const dias = Math.floor((diasRedimidosTotal % 360) % 30);
+
+        // Añadir arriba con los valores exactos
+        agregarFilaRedencion(años, meses, dias);
+
+        // Mostrar abajo con la misma lógica exacta
+        document.getElementById('resultadoMiniRed').innerHTML = `
+        <div class="info-red">
+            <b>Días Cronológicos:</b> ${diasCronologicos}<br>
+            <hr>
+            <b>Días Laborados:</b> ${diasTrabajados}<br>
+            <b>Lapso Laborado:</b> ${desglosar(diasTrabajados)}<br>
+            <hr>
+            <b>Días Redimidos (TOTAL):</b> ${diasRedimidosTotal}<br>
+            <b style="color:#1a73e8;">Lapso a Redimir:</b> ${años}a, ${meses}m, ${dias}d
+        </div>`;
+    }
 }
 
 function desglosar(t) { 
-let a = Math.floor(t / DIAS_AÑO); let m = Math.floor((t % DIAS_AÑO) / DIAS_MES); let d = Math.floor((t % DIAS_AÑO) % DIAS_MES);
-return `${a} años, ${m} meses y ${d} días`; 
+    let a = Math.floor(t / 360); 
+    let m = Math.floor((t % 360) / 30); 
+    let d = Math.floor((t % 360) % 30);
+    
+    let res = [];
+    if (a > 0) res.push(a + (a == 1 ? " año" : " años"));
+    if (m > 0) res.push(m + (m == 1 ? " mes" : " meses"));
+    if (d > 0) res.push(d + (d == 1 ? " día" : " días"));
+    
+    return res.length > 0 ? res.join(", ") : "0 días";
 }
 
-function desglosarBreve(t) { 
-let a = Math.floor(t / DIAS_AÑO); let m = Math.floor((t % DIAS_AÑO) / DIAS_MES); let d = Math.floor((t % DIAS_AÑO) % DIAS_MES);
-return `${a}a, ${m}m y ${d}d`; 
+function desglosarBreve(totalDias) { 
+    if (totalDias <= 0) return "0d";
+
+    // Cambiamos la base de 365.25 a 360 (Año comercial penal)
+    let a = Math.floor(totalDias / 360); 
+    let restoDias = totalDias % 360;
+    
+    // Cambiamos la base de 30.44 a 30 (Mes comercial penal)
+    let m = Math.floor(restoDias / 30); 
+    let d = Math.floor(restoDias % 30);
+
+    let resultado = "";
+    if (a > 0) resultado += a + "a ";
+    if (m > 0) resultado += m + "m ";
+    
+    // Solo mostramos días si hay o si el resultado está vacío
+    if (d > 0 || resultado === "") {
+        resultado += Math.round(d) + "d";
+    }
+
+    return resultado.trim();
 }
 
 function exportarAPDF() {
@@ -763,33 +916,120 @@ function agregarPeriodo() { const div = document.createElement('div'); div.class
 function abrirWhatsApp() { window.open(`https://wa.me/584247640846`, '_blank'); }
 
 function calcularTodo() {
-const hoy = new Date(); let df = 0;
-if (document.getElementById('esAcum').value === 'no') {
-const fDet = new Date(document.getElementById('fDetencionUnica').value); if (!isNaN(fDet)) df = Math.floor((hoy - fDet) / 86400000);
-} else {
-const inis = document.getElementsByClassName('pInicio'), fins = document.getElementsByClassName('pFin');
-for (let i = 0; i < inis.length; i++) {
-const d1 = new Date(inis[i].value), d2 = new Date(fins[i].value); if (!isNaN(d1) && !isNaN(d2)) df += Math.floor((d2 - d1) / 86400000);
-}
-const fAct = new Date(document.getElementById('fDetencionActual').value); if (!isNaN(fAct)) df += Math.floor((hoy - fAct) / 86400000);
-}
-let dr = 0; const rAnos = document.getElementsByClassName('rAno'), rMeses = document.getElementsByClassName('rMes'), rDias = document.getElementsByClassName('rDia');
-for (let i = 0; i < rAnos.length; i++) dr += (parseInt(rAnos[i].value)||0)*DIAS_AÑO + (parseInt(rMeses[i].value)||0)*DIAS_MES + (parseInt(rDias[i].value)||0);
-const pt = (parseInt(document.getElementById('cAno').value)||0)*DIAS_AÑO + (parseInt(document.getElementById('cMes').value)||0)*DIAS_MES + (parseInt(document.getElementById('cDia').value)||0);
-const tc = df + dr;
-document.getElementById('resultado').style.display = 'block';
-document.getElementById('resTitulo').innerText = "Cómputo: " + (document.getElementById('pNombre').value || "S/N");
-document.getElementById('resResumen').innerHTML = `<div class="res-box"><b>Físico:</b> ${desglosarBreve(df)}</div><div class="res-box"><b>Redimido:</b> ${desglosarBreve(dr)}</div><div class="res-box" style="background:#e6ffed;"><b>TOTAL CUMPLIDO:</b> ${desglosarBreve(tc)}</div>`;
-document.getElementById('resBeneficios').innerHTML = `${crearFichaDoble("100% (Fin de Condena)", pt, df, dr)}${crearFichaDoble("1/2 (Destacamento de Trabajo)", pt*0.5, df, dr)}${crearFichaDoble("2/3 (Régimen Abierto)", pt*(2/3), df, dr)}${crearFichaDoble("3/4 (Libertad Condicional)", pt*0.75, df, dr)}`;
+    const fechaCorteInput = document.getElementById('fFechaCorte').value;
+    const hoy = fechaCorteInput ? new Date(fechaCorteInput + "T12:00:00") : new Date();
+    
+    let df_total_dias = 0; 
+
+    if (document.getElementById('esAcum').value === 'no') {
+        const fDetStr = document.getElementById('fDetencionUnica').value;
+        if (fDetStr) {
+            // USAMOS LA NUEVA LÓGICA DE CALENDARIO
+            df_total_dias = obtenerDiasCalendarioReal(fDetStr + "T12:00:00", hoy);
+        }
+    } else {
+        const inis = document.getElementsByClassName('pInicio'), 
+              fins = document.getElementsByClassName('pFin');
+        for (let i = 0; i < inis.length; i++) {
+            if (inis[i].value && fins[i].value) {
+                df_total_dias += obtenerDiasCalendarioReal(inis[i].value + "T12:00:00", fins[i].value + "T12:00:00");
+            }
+        }
+        const fActStr = document.getElementById('fDetencionActual').value;
+        if (fActStr) {
+            df_total_dias += obtenerDiasCalendarioReal(fActStr + "T12:00:00", hoy);
+        }
+    }
+
+    // El resto del código de redenciones y beneficios se mantiene igual...
+    let dr = 0;
+    const rAnos = document.getElementsByClassName('rAno'), 
+          rMeses = document.getElementsByClassName('rMes'), 
+          rDias = document.getElementsByClassName('rDia');
+    for (let i = 0; i < rAnos.length; i++) {
+        dr += (parseInt(rAnos[i].value) || 0) * 360 + (parseInt(rMeses[i].value) || 0) * 30 + (parseInt(rDias[i].value) || 0);
+    }
+
+    const pt = (parseInt(document.getElementById('cAno').value) || 0) * 360 + (parseInt(document.getElementById('cMes').value) || 0) * 30 + (parseInt(document.getElementById('cDia').value) || 0);
+    const tc = df_total_dias + dr;
+
+    document.getElementById('resultado').style.display = 'block';
+    document.getElementById('resTitulo').innerText = "Cómputo: " + (document.getElementById('pNombre').value || "S/N");
+
+    document.getElementById('resResumen').innerHTML = `
+        <div class="res-box"><b>Físico:</b> ${desglosar(df_total_dias)}</div>
+        <div class="res-box"><b>Redimido:</b> ${desglosar(dr)}</div>
+        <div class="res-box" style="background:#e6ffed;"><b>TOTAL CUMPLIDO:</b> ${desglosar(tc)}</div>
+    `;
+
+    document.getElementById('resBeneficios').innerHTML = `
+        ${crearFichaDoble("100% (Fin de Condena)", pt, df_total_dias, dr)}
+        ${crearFichaDoble("1/2 (Destacamento de Trabajo)", pt * 0.5, df_total_dias, dr)}
+        ${crearFichaDoble("2/3 (Régimen Abierto)", pt * (2 / 3), df_total_dias, dr)}
+        ${crearFichaDoble("3/4 (Libertad Condicional)", pt * 0.75, df_total_dias, dr)}
+    `;
 }
 
-function crearFichaDoble(titulo, metaDias, fisicoActual, redimidoActual) {
-const h = new Date();
-const faltaFisico = Math.max(0, Math.ceil(metaDias - fisicoActual));
-const fechaFisico = new Date(); fechaFisico.setDate(h.getDate() + faltaFisico);
-const faltaMixto = Math.max(0, Math.ceil(metaDias - (fisicoActual + redimidoActual)));
-const fechaMixto = new Date(); fechaMixto.setDate(h.getDate() + faltaMixto);
-return `<div class="beneficio-item"><b>${titulo}</b><hr><b>Sólo Físico:</b> ${desglosarBreve(faltaFisico)} -> ${fechaFisico.toLocaleDateString()}<br><b>Físico+Red:</b> ${desglosarBreve(faltaMixto)} -> ${fechaMixto.toLocaleDateString()}</div>`;
+function crearFichaDoble(titulo, metaDiasEnBase360, fisicoActual, redimidoActual) {
+    const fechaCorteInput = document.getElementById('fFechaCorte').value;
+    
+    // Forzamos la fecha a mediodía para evitar saltos de día por zona horaria
+    let fechaReferencia = fechaCorteInput ? new Date(fechaCorteInput + "T12:00:00") : new Date();
+    fechaReferencia.setHours(12, 0, 0, 0); 
+
+    const opcionesFecha = { day: '2-digit', month: '2-digit', year: 'numeric' };
+
+    // 1. Calculamos la diferencia exacta
+    const diffFisicoTotalDias = Math.round(metaDiasEnBase360 - fisicoActual);
+    const diffMixtoTotalDias = Math.round(metaDiasEnBase360 - (fisicoActual + redimidoActual));
+
+    // 2. Función de proyección ajustada
+    function proyectarFechaCalendario(diasFaltantes) {
+        // Creamos una copia de la fecha de referencia
+        let fechaResultante = new Date(fechaReferencia.getTime());
+        
+        const signo = diasFaltantes >= 0 ? 1 : -1;
+        const diasAbs = Math.abs(diasFaltantes);
+        
+        // Convertimos los días comerciales (360/30) a desplazamiento real de calendario
+        let anios = Math.floor(diasAbs / 360) * signo;
+        let meses = Math.floor((diasAbs % 360) / 30) * signo;
+        let dias = Math.floor(diasAbs % 30) * signo;
+
+        fechaResultante.setFullYear(fechaResultante.getFullYear() + anios);
+        fechaResultante.setMonth(fechaResultante.getMonth() + meses);
+        fechaResultante.setDate(fechaResultante.getDate() + dias);
+        
+        return fechaResultante;
+    }
+
+    const fechaFisico = proyectarFechaCalendario(diffFisicoTotalDias);
+    const fechaMixto = proyectarFechaCalendario(diffMixtoTotalDias);
+
+    // Ajuste de visualización: Si faltan 22 días y hoy es 29/12, el resultado debe ser 20/01
+    // Usamos Math.max(0, ...) para la etiqueta de texto
+    const diasFisicoTexto = diffFisicoTotalDias > 0 ? diffFisicoTotalDias : 0;
+    const diasMixtoTexto = diffMixtoTotalDias > 0 ? diffMixtoTotalDias : 0;
+
+    return `
+    <div class="beneficio-item">
+    <b style="color: #1a73e8; font-size: 1.1em;">${titulo}</b>
+    <hr style="border: 0; border-top: 1px solid #eee;">
+
+    <div style="margin-bottom: 10px;">
+    <b style="color: #555; font-size: 0.9em;">🔹 Escenario: Solo tiempo físico</b><br>
+    <b>Tiempo faltante:</b> ${desglosarBreve(diasFisicoTexto)}<br>
+    <b>${diffFisicoTotalDias <= 0 ? '✅ Cumplido el:' : '📅 Fecha de cumplimiento:'}</b> 
+    <span class="${diffFisicoTotalDias <= 0 ? 'txt-cumplido' : 'txt-destaque'}">${fechaFisico.toLocaleDateString('es-ES', opcionesFecha)}</span>
+    </div>
+
+    <div>
+    <b style="color: #555; font-size: 0.9em;">🔹 Escenario: Físico + Redenciones</b><br>
+    <b>Tiempo faltante:</b> ${desglosarBreve(diasMixtoTexto)}<br>
+    <b>${diffMixtoTotalDias <= 0 ? '✅ Cumplido el:' : '📅 Fecha de cumplimiento:'}</b> 
+    <span class="${diffMixtoTotalDias <= 0 ? 'txt-cumplido' : 'txt-destaque'}">${fechaMixto.toLocaleDateString('es-ES', opcionesFecha)}</span>
+    </div>
+    </div>`;
 }
 
 async function eliminarCaso(id) { 
@@ -816,38 +1056,77 @@ function calc72() {
 let a=0, m=0, d=0; document.querySelectorAll('.sa').forEach(i=>a+=parseInt(i.value||0)); document.querySelectorAll('.sm').forEach(i=>m+=parseInt(i.value||0)); document.querySelectorAll('.sd').forEach(i=>d+=parseInt(i.value||0));
 m+=Math.floor(d/30); d=d%30; a+=Math.floor(m/12); m=m%12; document.getElementById('res72').innerText = `Total: ${a}a, ${m}m, ${d}d`;
 }
+
 function calc73() {
-const d1 = (parseInt(document.getElementById('r1a').value||0)*360) + (parseInt(document.getElementById('r1m').value||0)*30) + (parseInt(document.getElementById('r1d').value||0));
-const d2 = (parseInt(document.getElementById('r2a').value||0)*360) + (parseInt(document.getElementById('r2m').value||0)*30) + (parseInt(document.getElementById('r2d').value||0));
-document.getElementById('res73').innerText = "Resultado: " + desglosarBreve(d1 - d2);
+    // Obtenemos los valores del primer lapso (el mayor)
+    const a1 = parseInt(document.getElementById('r1a').value || 0);
+    const m1 = parseInt(document.getElementById('r1m').value || 0);
+    const d1 = parseInt(document.getElementById('r1d').value || 0);
+    
+    // Obtenemos los valores del segundo lapso (el menor)
+    const a2 = parseInt(document.getElementById('r2a').value || 0);
+    const m2 = parseInt(document.getElementById('r2m').value || 0);
+    const d2 = parseInt(document.getElementById('r2d').value || 0);
+
+    // Convertimos ambos a la base exacta de la App (360/30)
+    const totalDias1 = (a1 * 360) + (m1 * 30) + d1;
+    const totalDias2 = (a2 * 360) + (m2 * 30) + d2;
+
+    const diferencia = totalDias1 - totalDias2;
+
+    if (diferencia < 0) {
+        document.getElementById('res73').innerText = "Resultado: El segundo lapso no puede ser mayor al primero.";
+        document.getElementById('res73').style.color = "red";
+    } else {
+        // Usamos desglosar() que es tu función precisa para base 360
+        document.getElementById('res73').innerText = "Resultado: " + desglosar(diferencia);
+        document.getElementById('res73').style.color = "#856404"; // Color original
+    }
 }
+
+/**
+ * REEMPLAZO LOGICA MODULO 7.4 y 7.5: Sumar/Restar Lapso a una Fecha (FORMA CLÁSICA)
+ */
 function calc745(op) {
     const dateInput = document.getElementById('fBase745').value;
     if (!dateInput) return alert("Por favor, seleccione una fecha base.");
+
+    // 1. Separar la fecha base en sus componentes numéricos puros
     const partes = dateInput.split('-');
-    const f = new Date(partes[0], partes[1] - 1, partes[2]);
-    const años = parseInt(document.getElementById('la745').value || 0);
-    const meses = parseInt(document.getElementById('lm745').value || 0);
-    const días = parseInt(document.getElementById('ld745').value || 0);
+    const anioBase = parseInt(partes[0], 10);
+    const mesBase = parseInt(partes[1], 10) - 1; // Enero es 0
+    const diaBase = parseInt(partes[2], 10);
+
+    // 2. Obtener el lapso a sumar/restar
+    const añosAdd = parseInt(document.getElementById('la745').value || 0);
+    const mesesAdd = parseInt(document.getElementById('lm745').value || 0);
+    const díasAdd = parseInt(document.getElementById('ld745').value || 0);
+
+    // 3. Crear el objeto Date forzado a 00:00:00 local para evitar saltos horarios
+    let f = new Date(anioBase, mesBase, diaBase);
+
+    // 4. Aplicar aritmética clásica
     if (op === 'sumar') {
-        f.setFullYear(f.getFullYear() + años);
-        f.setMonth(f.getMonth() + meses);
-        f.setDate(f.getDate() + días);
+        f.setFullYear(f.getFullYear() + añosAdd);
+        f.setMonth(f.getMonth() + mesesAdd);
+        f.setDate(f.getDate() + díasAdd);
     } else {
-        f.setFullYear(f.getFullYear() - años);
-        f.setMonth(f.getMonth() - meses);
-        f.setDate(f.getDate() - días);
+        f.setFullYear(f.getFullYear() - añosAdd);
+        f.setMonth(f.getMonth() - mesesAdd);
+        f.setDate(f.getDate() - díasAdd);
     }
+
+    // 5. Formatear salida final
     const opciones = { day: '2-digit', month: '2-digit', year: 'numeric' };
     document.getElementById('res745').innerText = "Fecha Resultante: " + f.toLocaleDateString('es-ES', opciones);
 }
+
 function calc76() {
 const t = (parseInt(document.getElementById('fra').value||0)*360) + (parseInt(document.getElementById('frm').value||0)*30) + (parseInt(document.getElementById('frd').value||0));
 const p = document.getElementById('fraccion').value.split('/'); 
 document.getElementById('res76').innerText = "Producto: " + desglosarBreve(Math.floor((t*parseInt(p[0]))/parseInt(p[1])));
 }
 
-// FUNCIONES DE REPORTE MEJORADAS
 function generarReporteFiltrado() {
 const fDelito = document.getElementById('repDelito').value.toLowerCase();
 const fLugar = document.getElementById('repLugar').value.toLowerCase();
@@ -871,7 +1150,6 @@ if (filtrados.length === 0) return alert("No hay datos que coincidan con los fil
 let html = `
 <div style="padding:20px; font-family:sans-serif;">
 <h1 style="color:#1a73e8; text-align:center;">REPORTE DE EXPEDIENTES - IURIS PENAL</h1>
-<p>Filtros aplicados: ${fDelito || 'Todos'}, ${fLugar || 'Todos'}</p>
 <table border="1" style="width:100%; border-collapse:collapse; font-size:10px;">
 <thead>
 <tr style="background:#f2f2f2;">
@@ -879,18 +1157,9 @@ let html = `
 </tr>
 </thead>
 <tbody>
-${filtrados.map(c => `
-<tr>
-<td style="padding:5px;">${c.nombre}</td>
-<td style="padding:5px;">${c.cedula}</td>
-<td style="padding:5px;">${c.delito || ''}</td>
-<td style="padding:5px;">${c.lugar || ''}</td>
-<td style="padding:5px;">${c.cAno||0}a ${c.cMes||0}m ${c.cDia||0}d</td>
-</tr>
-`).join('')}
+${filtrados.map(c => `<tr><td>${c.nombre}</td><td>${c.cedula}</td><td>${c.delito || ''}</td><td>${c.lugar || ''}</td><td>${c.cAno||0}a ${c.cMes||0}m ${c.cDia||0}d</td></tr>`).join('')}
 </tbody>
 </table>
-<p style="font-size:8px; text-align:right; margin-top:10px;">Generado el: ${new Date().toLocaleString()}</p>
 </div>`;
 
 const el = document.createElement('div'); el.innerHTML = html;
@@ -904,7 +1173,7 @@ const fDesde = document.getElementById('repDesde').value;
 const fHasta = document.getElementById('repHasta').value;
 
 const camposSeleccionados = Array.from(document.querySelectorAll('.col-excel:checked')).map(cb => cb.value);
-if (camposSeleccionados.length === 0) return alert("Seleccione al menos un campo para el Excel.");
+if (camposSeleccionados.length === 0) return alert("Seleccione al menos un campo.");
 
 const filtrados = casos.filter(c => {
 const cumpleDelito = !fDelito || (c.delito && c.delito.toLowerCase().includes(fDelito));
@@ -918,13 +1187,7 @@ if(fHasta && fechaMod > new Date(fHasta)) cumpleFecha = false;
 return cumpleDelito && cumpleLugar && cumpleFecha;
 });
 
-if (filtrados.length === 0) return alert("No hay datos para exportar.");
-
-const cabeceras = {
-nombre: "NOMBRE", cedula: "CÉDULA", delito: "DELITO", 
-lugar: "LUGAR", expJud: "EXP. JUDICIAL", expCar: "EXP. CARCELARIO"
-};
-
+const cabeceras = { nombre: "NOMBRE", cedula: "CÉDULA", delito: "DELITO", lugar: "LUGAR", expJud: "EXP. JUDICIAL", expCar: "EXP. CARCELARIO" };
 const dataExcel = filtrados.map(c => {
 let fila = {};
 camposSeleccionados.forEach(campo => { fila[cabeceras[campo]] = c[campo] || ""; });
@@ -937,8 +1200,191 @@ XLSX.utils.book_append_sheet(wb, ws, "Expedientes");
 XLSX.writeFile(wb, `Reporte_Iuris_${new Date().toLocaleDateString()}.xlsx`);
 }
 
+// AL INICIAR LA APP
 if(localStorage.getItem('preferenciaSync') === 'false') document.getElementById('syncToggle').checked = false;
+// Al cargar la página, ponemos la fecha de hoy en el nuevo campo
+document.getElementById('fFechaCorte').value = new Date().toISOString().split('T')[0];
 listarCasos();
+
+/**
+ * REEMPLAZO: Actualiza visualmente la fracción y el porcentaje con efecto magnético
+ */
+function actualizarLabelRebaja(valor) {
+    let val = parseFloat(valor);
+    const lblPorcentaje = document.getElementById('labelPorcentaje');
+    const lblProporcion = document.getElementById('labelProporcion');
+    const slider = document.getElementById('sliderRebaja');
+
+    // Definición de puntos magnéticos (Umbral de 1.5 unidades)
+    const puntosMagneticos = [
+        { valor: 12.5, etiqueta: "1/8" },
+        { valor: 16.66, etiqueta: "1/6" },
+        { valor: 20, etiqueta: "1/5" },
+        { valor: 25, etiqueta: "1/4" },
+        { valor: 33.33, etiqueta: "1/3" },
+        { valor: 50, etiqueta: "1/2" }
+    ];
+
+    let etiquetaActual = "Proporcional";
+    const umbral = 1.5; 
+
+    // Lógica magnética
+    puntosMagneticos.forEach(punto => {
+        if (Math.abs(val - punto.valor) < umbral) {
+            val = punto.valor;
+            etiquetaActual = punto.etiqueta;
+            // Actualizamos el valor del slider visualmente para que se sienta el "imán"
+            slider.value = val;
+        }
+    });
+
+    if (val === 0) etiquetaActual = "0";
+
+    lblPorcentaje.innerText = val.toFixed(2);
+    lblProporcion.innerText = etiquetaActual;
+}
+
+/**
+ * REEMPLAZO: Realiza el cálculo matemático de la rebaja
+ */
+function calcularAdmision() {
+    const a = parseInt(document.getElementById('adm_a').value || 0);
+    const m = parseInt(document.getElementById('adm_m').value || 0);
+    const d = parseInt(document.getElementById('adm_d').value || 0);
+    const porcentajeRebaja = parseFloat(document.getElementById('sliderRebaja').value);
+
+    if (a === 0 && m === 0 && d === 0) {
+        return alert("Por favor, ingrese un tiempo de condena válido.");
+    }
+
+    // Convertimos todo a días base 360
+    const totalDiasOriginal = (a * 360) + (m * 30) + d;
+    
+    // Calculamos el monto de la rebaja y el remanente
+    const dRebaja = totalDiasOriginal * (porcentajeRebaja / 100);
+    const totalFinal = totalDiasOriginal - dRebaja;
+
+    // Mostramos resultado limpio (sin el tiempo rebajado)
+    const resultadoDiv = document.getElementById('resAdmision');
+    resultadoDiv.innerHTML = `
+        <div style="font-size: 0.9em; color: #555;">Pena tras rebaja aplicada:</div>
+        <div style="font-size: 1.2em; color: #27ae60; font-weight: bold;">${desglosar(totalFinal)}</div>
+    `;
+}
+
+/**
+ * LÓGICA PARA CONCURSO IDEAL
+ */
+function actualizarLabelIncremento(valor) {
+    let val = parseFloat(valor);
+    const lblPorcentaje = document.getElementById('labelPorcentajeInc');
+    const lblProporcion = document.getElementById('labelProporcionInc');
+    const slider = document.getElementById('sliderIncremento');
+
+    const puntos = [
+        { valor: 12.5, etiqueta: "1/8" },
+        { valor: 16.66, etiqueta: "1/6" },
+        { valor: 20, etiqueta: "1/5" },
+        { valor: 25, etiqueta: "1/4" },
+        { valor: 33.33, etiqueta: "1/3" },
+        { valor: 50, etiqueta: "1/2" }
+    ];
+
+    let etiqueta = "Proporcional";
+    const umbral = 1.5; 
+
+    puntos.forEach(p => {
+        if (Math.abs(val - p.valor) < umbral) {
+            val = p.valor;
+            etiqueta = p.etiqueta;
+            slider.value = val;
+        }
+    });
+
+    lblPorcentaje.innerText = val.toFixed(2);
+    lblProporcion.innerText = etiqueta;
+}
+
+function calcularConcursoIdeal() {
+    const a = parseInt(document.getElementById('ideal_a').value || 0);
+    const m = parseInt(document.getElementById('ideal_m').value || 0);
+    const d = parseInt(document.getElementById('ideal_d').value || 0);
+    const porcentaje = parseFloat(document.getElementById('sliderIncremento').value);
+
+    const totalDias = (a * 360) + (m * 30) + d;
+    if (totalDias <= 0) return alert("Ingrese una pena base.");
+
+    const incremento = totalDias * (porcentaje / 100);
+    const resultado = totalDias + incremento;
+
+    document.getElementById('resIdeal').innerHTML = `
+        <div style="font-size: 0.85em; color: #666;">Pena con aumento aplicado:</div>
+        <strong>${desglosar(resultado)}</strong>
+    `;
+}
+
+/**
+ * LÓGICA PARA CONCURSO REAL
+ */
+function agregarFilaPenaReal() {
+    const div = document.createElement('div');
+    div.className = 'grid-red'; // Usamos tu clase de grid con basura
+    div.style.marginTop = '8px';
+    div.innerHTML = `
+        <input type="number" class="ra" placeholder="A">
+        <input type="number" class="rm" placeholder="M">
+        <input type="number" class="rd" placeholder="D">
+        <button class="btn-delete" onclick="this.parentElement.remove()">🗑️</button>
+    `;
+    document.getElementById('listaPenasReal').appendChild(div);
+}
+
+function calcularConcursoReal() {
+    const anos = document.getElementsByClassName('ra');
+    const meses = document.getElementsByClassName('rm');
+    const dds = document.getElementsByClassName('rd');
+    
+    let penasEnDias = [];
+
+    for (let i = 0; i < anos.length; i++) {
+        let t = (parseInt(anos[i].value || 0) * 360) + 
+                (parseInt(meses[i].value || 0) * 30) + 
+                (parseInt(dds[i].value || 0));
+        if (t > 0) penasEnDias.push(t);
+    }
+
+    if (penasEnDias.length < 2) return alert("Debe ingresar al menos dos penas para un concurso real.");
+
+    // 1. Identificar la pena mayor
+    const penaMayor = Math.max(...penasEnDias);
+    
+    // 2. Sumar las demás penas
+    const indexMayor = penasEnDias.indexOf(penaMayor);
+    penasEnDias.splice(indexMayor, 1); // Quitamos la mayor del array
+    
+    const sumaRestantes = penasEnDias.reduce((acc, curr) => acc + curr, 0);
+    
+    // 3. Aplicar fórmula: Mayor + (Suma Restantes / 2)
+    const totalFinal = penaMayor + (sumaRestantes / 2);
+
+    document.getElementById('resReal').innerHTML = `
+        <div style="font-size: 0.85em; color: #666;">Pena Mayor: ${desglosar(penaMayor)}</div>
+        <div style="font-size: 0.85em; color: #666;">Aumento (mitad de las otras): ${desglosar(sumaRestantes / 2)}</div>
+        <hr>
+        <div style="color: #8e44ad;">Total Cúmulo Jurídico:</div>
+        <strong>${desglosar(totalFinal)}</strong>
+    `;
+}
+</script>
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js")
+        .then(reg => console.log("Service Worker registrado"))
+        .catch(err => console.log("Error al registrar SW", err));
+    });
+  }
 </script>
 </body>
 </html>
