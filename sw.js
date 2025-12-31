@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iuris-penal-v1';
+const CACHE_NAME = 'iuris-penal-v2';
 const assets = [
   "./",
   "./index.html",
