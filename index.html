@@ -148,9 +148,9 @@ border-radius: 8px;
 
 <div id="gestion" class="tab-content active">
     <div class="modulo search-box">
-        <h2>📂 Base de Datos de Casos</h2>
+        <h2>📂 Todos los Casos</h2>
         <div class="switch-container">
-            <span>☁️ Sincronización en Nube</span>
+            <span>☁️ Sincronizar con la  Nube</span>
             <label class="switch">
                 <input type="checkbox" id="syncToggleGestion" onchange="actualizarEstadoSync(this.checked)">
                 <span class="slider"></span>
@@ -199,6 +199,20 @@ border-radius: 8px;
             <div><label>Delito:</label><input type="text" id="gDelito"></div>
         </div>
 
+        <div style="background: #fdf2f2; padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid #fca5a5;">
+            <label>¿Caso de Drogas?</label>
+            <select id="gEsDrogas" onchange="document.getElementById('gDivDrogas').style.display = (this.value=='si'?'block':'none')">
+                <option value="no">No</option>
+                <option value="si">Sí</option>
+            </select>
+            <div id="gDivDrogas" style="display:none; margin-top:10px;">
+                <div class="grid-2">
+                    <div><label>Tipo de Droga:</label><input type="text" id="gTipoDroga" placeholder="Ej: Cocaína"></div>
+                    <div><label>Cantidad:</label><input type="text" id="gCantDroga" placeholder="Ej: 500g"></div>
+                </div>
+            </div>
+        </div>
+
         <div id="seccionEjecucionGestion" style="background: #fff9db; padding: 10px; border-radius: 8px; margin-top: 10px;">
             <label>Fecha de Detención Inicial:</label>
             <input type="date" id="gFechaIni">
@@ -214,7 +228,7 @@ border-radius: 8px;
     </div>
 
     <div class="modulo">
-        <h2>📅 Bitácora y Próximos Eventos</h2>
+        <h2>📅 Bitácora y Agenda</h2>
         <div class="grid-2">
             <div>
                 <label>Fecha del Evento:</label>
@@ -237,10 +251,10 @@ border-radius: 8px;
 
 <div id="principal" class="tab-content">
     <div class="modulo search-box no-print">
-        <h2>📂 Expedientes (Buscar)</h2>
+        <h2>📂 Casos de Privados Condenados</h2>
 
         <div class="switch-container">
-            <span style="font-size: 0.85em; font-weight: bold; color: #1a73e8;">☁️ Sincronizar con la Nube (Firebase)</span>
+            <span style="font-size: 0.85em; font-weight: bold; color: #1a73e8;">☁️ Sincronizar con la Nube</span>
             <label class="switch">
                 <input type="checkbox" id="syncToggle" onchange="actualizarEstadoSync(this.checked)">
                 <span class="slider"></span>
@@ -253,7 +267,7 @@ border-radius: 8px;
 
     <div class="modulo">
         <input type="hidden" id="casoActivoId" value="">
-        <h2>0. Perfil del Privado de Libertad</h2>
+        <h2>0. Datos del Privado de Libertad</h2>
         <div class="grid-2">
             <div><label>Nombre:</label><input type="text" id="pNombre" required></div>
             <div><label>Cédula:</label><input type="text" id="pCedula" required></div>
@@ -264,19 +278,10 @@ border-radius: 8px;
         </div>
         <label>Delito:</label><input type="text" id="pDelito" placeholder="Ej: Robo Agravado">
         <label>Lugar de Reclusión:</label><input type="text" id="pLugar">
-        <label>¿Caso de Drogas?</label>
-        <select id="esDrogas" onchange="document.getElementById('divDrogas').style.display = (this.value=='si'?'block':'none')">
-            <option value="no">No</option>
-            <option value="si">Sí</option>
-        </select>
-        <div id="divDrogas" style="display:none; margin-top:10px;">
-            <input type="text" id="pTipoDroga" placeholder="Tipo de Droga">
-            <input type="text" id="pCantDroga" placeholder="Cantidad">
-        </div>
     </div>
 
     <div class="modulo">
-        <h2>1. Condena e Ingreso</h2>
+        <h2>1. Condena y Fechas de Detencion</h2>
         <div class="grid-3">
             <div><label>Años</label><input type="number" id="cAno" placeholder="0"></div>
             <div><label>Meses</label><input type="number" id="cMes" placeholder="0"></div>
@@ -588,6 +593,13 @@ Estos T&C se rigen e interpretan de conformidad con las leyes de la República B
 </div>
 
 <script>
+// FUNCIÓN DE AYUDA PARA FORMATO DE FECHA LATINO
+function formatFechaLatina(fechaStr) {
+    if(!fechaStr) return "";
+    const [y, m, d] = fechaStr.split('-');
+    return `${d}/${m}/${y}`;
+}
+
 // CONFIGURACIÓN DE FIREBASE
 const firebaseConfig = {
 apiKey: "AIzaSyBvqlV6yj-V1GMkTiOL2pDBg0VHFanJRa4",
@@ -638,6 +650,54 @@ return bytes.toString(CryptoJS.enc.Utf8);
 // --- NUEVA LÓGICA DE GESTIÓN DE EXPEDIENTES ---
 let eventosTemporales = [];
 
+// --- FUNCIÓN DE LIMPIEZA UNIFICADA (Resetea Gestión y Cómputo) ---
+function nuevoExpediente() {
+    // 1. Limpiar Identificadores
+    document.getElementById('casoActivoId').value = ""; 
+    document.getElementById('idCasoGestion').value = "";
+
+    // 2. Limpiar todos los inputs, selects y textareas de ambas secciones
+    const contenedores = ['#gestion', '#principal'];
+    contenedores.forEach(selector => {
+        const elementoRaiz = document.querySelector(selector);
+        if (elementoRaiz) {
+            elementoRaiz.querySelectorAll('input, select, textarea').forEach(i => {
+                if (i.tagName === 'SELECT') {
+                    i.selectedIndex = 0;
+                } else {
+                    i.value = "";
+                }
+            });
+        }
+    });
+
+    // 3. Limpiar elementos dinámicos específicos de Cómputo
+    document.getElementById('listaRedenciones').innerHTML = "";
+    document.getElementById('contenedorPeriodos').innerHTML = "";
+    document.getElementById('resultado').style.display = 'none';
+    
+    // Resetear fecha de corte a hoy por defecto
+    const hoy = new Date().toISOString().split('T')[0];
+    if (document.getElementById('fFechaCorte')) {
+        document.getElementById('fFechaCorte').value = hoy;
+    }
+
+    // 4. Limpiar elementos dinámicos específicos de Gestión
+    eventosTemporales = [];
+    renderizarEventos();
+    document.getElementById('gDivDrogas').style.display = 'none';
+
+    // 5. Resetear estados visuales (como la acumulación de penas)
+    toggleAcumulacion(); 
+
+    console.log("Sistema reseteado: Ambas pestañas han sido limpiadas.");
+}
+
+// Para mantener compatibilidad con los botones que ya tienes creados:
+function nuevoExpedienteGestion() {
+    nuevoExpediente();
+}
+
 // FUNCIÓN DE AGREGAR EVENTO ADAPTADA A LOS NUEVOS CAMPOS (Fecha/Hora y Recordatorio)
 function agregarEvento() {
     const fecha = document.getElementById('evFecha').value;
@@ -682,10 +742,13 @@ function renderizarEventos() {
         const nombreCliente = document.getElementById('gNombre').value || "Cliente";
         const expediente = document.getElementById('gExpJud').value || "Sin Exp.";
 
+        const fEvento = new Date(ev.fecha);
+        const fFormat = fEvento.toLocaleDateString('es-ES') + ' ' + fEvento.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
+
         item.innerHTML = `
         <div style="display:flex; justify-content: space-between; align-items:center;">
             <div style="flex-grow:1;">
-                <b>📅 Evento:</b> ${ev.fecha.replace('T', ' ')}<br>
+                <b>📅 Evento:</b> ${fFormat}<br>
                 <b>🔔 Aviso:</b> ${ev.recordatorio}<br>
                 <b>📝:</b> ${ev.minuta}
             </div>
@@ -716,7 +779,6 @@ function listarCasosGestion() {
         const card = document.createElement('div');
         card.className = "case-card";
         
-        // Estilo para alinear elementos: Nombre a la izquierda, Botones a la derecha
         card.style.display = "flex";
         card.style.justifyContent = "space-between";
         card.style.alignItems = "center";
@@ -743,14 +805,6 @@ function listarCasosGestion() {
 
 function cargarCasoEnGestion(id) {
     cargarCaso(id);
-}
-
-function nuevoExpedienteGestion() {
-    document.getElementById('idCasoGestion').value = "";
-    document.getElementById('casoActivoId').value = "";
-    document.querySelectorAll('#gestion input').forEach(i => i.value = "");
-    eventosTemporales = [];
-    renderizarEventos();
 }
 
 // LOGICA DE ACCESO
@@ -792,7 +846,7 @@ auth.sendPasswordResetEmail(email)
 function registroFirebase() {
     const email = document.getElementById('f_email').value;
     const pass = document.getElementById('f_pass').value;
-    const referidoPor = document.getElementById('f_referido').value; // <--- Capturamos el referido
+    const referidoPor = document.getElementById('f_referido').value;
     const errorDom = document.getElementById('f_error');
 
     if(!email || !pass) return errorDom.innerText = "Ingrese correo y clave.";
@@ -801,12 +855,11 @@ function registroFirebase() {
     auth.createUserWithEmailAndPassword(email, pass)
     .then(async (userCredential) => {
         const uid = userCredential.user.uid;
-        // Guardamos en la ficha del usuario quién lo refirió
         await db.collection('usuarios').doc(uid).set({
             email: email,
-            vencimiento: new Date(Date.now() + (15 * 24 * 60 * 60 * 1000)).toISOString(), // Tus 10 días de prueba
+            vencimiento: new Date(Date.now() + (15 * 24 * 60 * 60 * 1000)).toISOString(),
             rol: 'prueba',
-            referidoPor: referidoPor || "Ninguno", // <--- Esto aparecerá en tu base de datos
+            referidoPor: referidoPor || "Ninguno",
             fechaRegistro: new Date().toISOString()
         });
         console.log("Usuario registrado con referido");
@@ -834,13 +887,16 @@ if (!localStorage.getItem('terminosAceptados')) {
 document.getElementById('modalTerminos').style.display = 'block';
 }
 obtenerSuscripcion(user.uid);
-cargarPreferenciaSync(); // Cargamos preferencia al autenticar
+cargarPreferenciaSync();
 sincronizarConNube();
 } else {
 document.getElementById('auth-overlay').style.display = 'flex';
 document.getElementById('status-bar').style.display = 'none';
 }
 });
+
+// Variable global para controlar el acceso
+let suscripcionVencida = false;
 
 async function obtenerSuscripcion(uid) {
 try {
@@ -862,14 +918,25 @@ fechaRegistro: new Date().toISOString()
 }
 const hoy = new Date();
 const diff = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
+
 if (diff <= 0) {
 document.getElementById('days-display').innerText = "Suscripción Vencida";
-document.getElementById('modalVencimiento').style.display = 'block';
+suscripcionVencida = true; // Marcamos como vencida
 } else {
 document.getElementById('days-display').innerText = "Prueba: " + diff + " días restantes";
+suscripcionVencida = false;
 document.getElementById('modalVencimiento').style.display = 'none';
 }
 } catch (e) { console.error(e); }
+}
+
+// Función auxiliar para validar antes de ejecutar tareas premium
+function validarAccesoPremium() {
+if (suscripcionVencida) {
+document.getElementById('modalVencimiento').style.display = 'block';
+return false;
+}
+return true;
 }
 
 function abrirWhatsAppSuscripcion() {
@@ -923,35 +990,21 @@ listarCasos(); listarCasosGestion(); alert("Éxito.");
 reader.readAsText(event.target.files[0]);
 }
 
-function nuevoExpediente() {
-document.getElementById('casoActivoId').value = ""; 
-document.getElementById('idCasoGestion').value = "";
-document.querySelectorAll('#principal input, #gestion input').forEach(i => i.value = "");
-document.getElementById('listaRedenciones').innerHTML = "";
-document.getElementById('resultado').style.display = 'none';
-document.getElementById('divDrogas').style.display = 'none';
-document.getElementById('fFechaCorte').value = new Date().toISOString().split('T')[0];
-eventosTemporales = [];
-renderizarEventos();
-}
-
 // --- FUNCIÓN DE GUARDADO UNIFICADA ---
 async function guardarCasoCompleto() {
+    if (!validarAccesoPremium()) return; // <--- Bloqueo
     const userId = auth.currentUser.uid;
     const idActivo = document.getElementById('casoActivoId').value || document.getElementById('idCasoGestion').value;
     
-    // Captura de datos priorizando donde haya información
     const nombre = document.getElementById('gNombre').value || document.getElementById('pNombre').value;
     const cedula = document.getElementById('gCedula').value || document.getElementById('pCedula').value;
 
     if(!nombre || !cedula) return alert("Nombre y Cédula son obligatorios.");
 
-    // Recolectar redenciones
     const redenciones = [];
     const rAnos = document.getElementsByClassName('rAno'), rMeses = document.getElementsByClassName('rMes'), rDias = document.getElementsByClassName('rDia');
     for(let i=0; i<rAnos.length; i++) redenciones.push({ a: rAnos[i].value, m: rMeses[i].value, d: rDias[i].value });
 
-    // --- NUEVA LÓGICA DE ROBUSTEZ PARA LAPSOS PREVIOS ---
     const periodosPrevios = [];
     const pInis = document.getElementsByClassName('pInicio');
     const pFins = document.getElementsByClassName('pFin');
@@ -960,14 +1013,12 @@ async function guardarCasoCompleto() {
             periodosPrevios.push({ inicio: pInis[i].value, fin: pFins[i].value });
         }
     }
-    // ----------------------------------------------------
 
-    // LÓGICA FORZADA DE CAPTURA DE FECHA
     const fIniCapturada = document.getElementById('gFechaIni').value || document.getElementById('fDetencionUnica').value;
 
     const datosCasoBase = {
         nombre, cedula,
-        expJud: document.getElementById('gExpJud').value || document.getElementById('pNombre').value,
+        expJud: document.getElementById('gExpJud').value || document.getElementById('pExpJud').value,
         expFis: document.getElementById('gExpFis').value,
         expCar: document.getElementById('gExpCar').value || document.getElementById('pExpCar').value,
         numFis: document.getElementById('gNumFis').value,
@@ -975,12 +1026,12 @@ async function guardarCasoCompleto() {
         lugar: document.getElementById('gLugar').value || document.getElementById('pLugar').value,
         fase: document.getElementById('gFase').value,
         delito: document.getElementById('gDelito').value || document.getElementById('pDelito').value,
-        fIni: fIniCapturada, // Guardamos siempre en la propiedad 'fIni'
+        fIni: fIniCapturada,
         familiar: document.getElementById('gFamiliar').value,
         tel: document.getElementById('gTel').value,
-        esDrogas: document.getElementById('esDrogas').value,
-        pTipoDroga: document.getElementById('pTipoDroga').value,
-        pCantDroga: document.getElementById('pCantDroga').value,
+        esDrogas: document.getElementById('gEsDrogas').value,
+        pTipoDroga: document.getElementById('gTipoDroga').value,
+        pCantDroga: document.getElementById('gCantDroga').value,
         cAno: document.getElementById('cAno').value, 
         cMes: document.getElementById('cMes').value, 
         cDia: document.getElementById('cDia').value,
@@ -988,7 +1039,7 @@ async function guardarCasoCompleto() {
         fDetencionActual: document.getElementById('fDetencionActual').value,
         redenciones: redenciones,
         eventos: eventosTemporales,
-        periodosPrevios: periodosPrevios, // Inclusión de los periodos de detención previos
+        periodosPrevios: periodosPrevios,
         fechaMod: Date.now()
     };
 
@@ -1003,6 +1054,9 @@ async function guardarCasoCompleto() {
             expCar: encryptionHelper.encrypt(datosCasoBase.expCar, userId),
             delito: encryptionHelper.encrypt(datosCasoBase.delito, userId),
             lugar: encryptionHelper.encrypt(datosCasoBase.lugar, userId),
+            tribunal: encryptionHelper.encrypt(datosCasoBase.tribunal, userId),
+            expFis: encryptionHelper.encrypt(datosCasoBase.expFis, userId),
+            numFis: encryptionHelper.encrypt(datosCasoBase.numFis, userId),
             pTipoDroga: encryptionHelper.encrypt(datosCasoBase.pTipoDroga, userId),
             pCantDroga: encryptionHelper.encrypt(datosCasoBase.pCantDroga, userId),
             familiar: encryptionHelper.encrypt(datosCasoBase.familiar, userId),
@@ -1067,10 +1121,9 @@ function listarCasos() {
     
     div.innerHTML = "";
 
-    // Filtramos: 1. Por búsqueda, 2. QUE SOLO SEAN DE FASE EJECUCIÓN
     const casosFiltrados = casos.filter(c => {
         const coincideBusqueda = (c.nombre || "").toLowerCase().includes(b) || (c.cedula || "").includes(b);
-        const esEjecucion = (c.fase === "Ejecución"); // <--- Esta es la clave
+        const esEjecucion = (c.fase === "Ejecución");
         return coincideBusqueda && esEjecucion;
     });
 
@@ -1086,23 +1139,18 @@ function listarCasos() {
         div.appendChild(card);
     });
 
-    // Mensaje si no hay nadie en ejecución
     if (casosFiltrados.length === 0 && b === "") {
         div.innerHTML = "<p style='text-align:center; color:#666; font-size:0.8em; padding:10px;'>No hay privados en Fase de Ejecución registrados.</p>";
     }
 }
 
-
-// --- FUNCIÓN DE CARGA UNIFICADA ---
 function cargarCaso(id) {
     const c = casos.find(i => i.id == id); 
     if(!c) return;
 
-    // Sincronizar ID activo en ambas pestañas
     document.getElementById('casoActivoId').value = c.id; 
     document.getElementById('idCasoGestion').value = c.id;
 
-    // --- Campos Comunes y Específicos de Pestaña 1 (Gestión) ---
     document.getElementById('gNombre').value = c.nombre || "";
     document.getElementById('gCedula').value = c.cedula || "";
     document.getElementById('gExpJud').value = c.expJud || "";
@@ -1114,7 +1162,6 @@ function cargarCaso(id) {
     document.getElementById('gFase').value = c.fase || "Preparatoria";
     document.getElementById('gDelito').value = c.delito || "";
     
-    // CARGA DE FECHA UNIFICADA
     document.getElementById('gFechaIni').value = c.fIni || ""; 
     document.getElementById('fDetencionUnica').value = c.fIni || ""; 
     
@@ -1123,7 +1170,12 @@ function cargarCaso(id) {
     eventosTemporales = c.eventos || [];
     renderizarEventos();
 
-    // --- Campos Comunes y Específicos de Pestaña 2 (Cómputo) ---
+    // Actualización campos de Drogas en pestaña Gestión
+    document.getElementById('gEsDrogas').value = c.esDrogas || 'no';
+    document.getElementById('gTipoDroga').value = c.pTipoDroga || '';
+    document.getElementById('gCantDroga').value = c.pCantDroga || '';
+    document.getElementById('gDivDrogas').style.display = (c.esDrogas === 'si' ? 'block' : 'none');
+
     document.getElementById('pNombre').value = c.nombre || ""; 
     document.getElementById('pCedula').value = c.cedula || "";
     document.getElementById('pExpJud').value = c.expJud || ""; 
@@ -1131,24 +1183,15 @@ function cargarCaso(id) {
     document.getElementById('pDelito').value = c.delito || ""; 
     document.getElementById('pLugar').value = c.lugar || "";
     
-    // Datos de Drogas
-    document.getElementById('esDrogas').value = c.esDrogas || 'no';
-    document.getElementById('pTipoDroga').value = c.pTipoDroga || '';
-    document.getElementById('pCantDroga').value = c.pCantDroga || '';
-    document.getElementById('divDrogas').style.display = (c.esDrogas === 'si' ? 'block' : 'none');
-
-    // Datos de Pena
     document.getElementById('cAno').value = c.cAno || ""; 
     document.getElementById('cMes').value = c.cMes || ""; 
     document.getElementById('cDia').value = c.cDia || "";
     document.getElementById('esAcum').value = c.esAcum || "no"; 
     document.getElementById('fDetencionActual').value = c.fDetencionActual || "";
 
-    // Redenciones
     document.getElementById('listaRedenciones').innerHTML = '';
     if(c.redenciones) c.redenciones.forEach(r => agregarFilaRedencion(r.a, r.m, r.d));
 
-    // Cargar periodos de detención previos si existen
     document.getElementById('contenedorPeriodos').innerHTML = "";
     if(c.periodosPrevios) {
         c.periodosPrevios.forEach(p => {
@@ -1236,11 +1279,8 @@ if (d > 0 || resultado === "") resultado += Math.round(d) + "d";
 return resultado.trim();
 }
 
-// NUEVA VERSIÓN CORREGIDA DE EXPORTACIÓN A PDF
 function exportarAPDF() {
     const plantilla = document.getElementById('plantilla-pdf');
-    
-    // 1. Validar que existan resultados calculados
     const resumenHTML = document.getElementById('resResumen').innerHTML;
     const beneficiosHTML = document.getElementById('resBeneficios').innerHTML;
 
@@ -1249,27 +1289,23 @@ function exportarAPDF() {
         return;
     }
 
-    // 2. Llenar Datos Personales en la plantilla
     document.getElementById('pdf-nombre').innerText = document.getElementById('pNombre').value || "No especificado";
     document.getElementById('pdf-cedula').innerText = document.getElementById('pCedula').value || "No especificado";
     document.getElementById('pdf-exp').innerText = document.getElementById('pExpJud').value || "No especificado";
     document.getElementById('pdf-delito').innerText = document.getElementById('pDelito').value || "No especificado";
 
-    // Lógica de Drogas
-    const esDrogas = document.getElementById('esDrogas').value;
+    const esDrogas = document.getElementById('gEsDrogas').value;
     if(esDrogas === 'si') {
         document.getElementById('pdf-fila-drogas').style.display = 'table-row';
         document.getElementById('pdf-drogas').innerText = 
-            (document.getElementById('pTipoDroga').value || "N/A") + " (" + (document.getElementById('pCantDroga').value || "N/A") + ")";
+            (document.getElementById('gTipoDroga').value || "N/A") + " (" + (document.getElementById('gCantDroga').value || "N/A") + ")";
     } else {
         document.getElementById('pdf-fila-drogas').style.display = 'none';
     }
 
-    // 3. Sincronizar el contenido visual con la plantilla del PDF
     document.getElementById('pdf-resumen-calculo').innerHTML = resumenHTML;
     document.getElementById('pdf-beneficios').innerHTML = beneficiosHTML;
 
-    // 4. Configuración de html2pdf
     const opciones = {
         margin: [15, 15, 15, 15],
         filename: `Informe_Penal_${document.getElementById('pNombre').value || 'Sin_Nombre'}.pdf`,
@@ -1278,7 +1314,6 @@ function exportarAPDF() {
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    // 5. Mostrar, Generar y Ocultar
     plantilla.style.display = 'block';
     
     html2pdf().set(opciones).from(plantilla).save().then(() => {
@@ -1318,7 +1353,6 @@ function agregarPeriodo() {
 
 function abrirWhatsApp() { window.open(`https://wa.me/584247640846`, '_blank'); }
 
-// --- NUEVA VERSIÓN MEJORADA DE CALCULAR TODO CON DESGLOSE ---
 function calcularTodo() {
     const fechaCorteInput = document.getElementById('fFechaCorte').value;
     const hoyStr = fechaCorteInput || new Date().toISOString().split('T')[0];
@@ -1328,19 +1362,16 @@ function calcularTodo() {
     const esAcumulado = document.getElementById('esAcum').value === 'si';
 
     if (!esAcumulado) {
-        // MODO ÚNICO
         const fDetStr = document.getElementById('fDetencionUnica').value;
         if (fDetStr) {
             const dias = obtenerDiasCalendarioReal(fDetStr, hoyStr);
             df_total_dias = dias;
-            desgloseHTML += `<b>Detención única:</b> ${fDetStr} al ${hoyStr} <br>» Lapso: ${desglosar(dias)}<br>`;
+            desgloseHTML += `<b>Detención única:</b> ${formatFechaLatina(fDetStr)} al ${formatFechaLatina(hoyStr)} <br>» Lapso: ${desglosar(dias)}<br>`;
         } else {
             alert("Por favor, ingrese la Fecha de Detención.");
             return;
         }
     } else {
-        // MODO ACUMULADO
-        // 1. Lapsos anteriores
         const inis = document.getElementsByClassName('pInicio');
         const fins = document.getElementsByClassName('pFin');
         let contador = 1;
@@ -1349,17 +1380,16 @@ function calcularTodo() {
             if (inis[i].value && fins[i].value) {
                 const diasLapso = obtenerDiasCalendarioReal(inis[i].value, fins[i].value);
                 df_total_dias += diasLapso;
-                desgloseHTML += `<b>${contador}ª Detención:</b> ${inis[i].value} al ${fins[i].value} <br>» Lapso: ${desglosar(diasLapso)}<br>`;
+                desgloseHTML += `<b>${contador}ª Detención:</b> ${formatFechaLatina(inis[i].value)} al ${formatFechaLatina(fins[i].value)} <br>» Lapso: ${desglosar(diasLapso)}<br>`;
                 contador++;
             }
         }
         
-        // 2. Detención actual
         const fActStr = document.getElementById('fDetencionActual').value;
         if (fActStr) {
             const diasActual = obtenerDiasCalendarioReal(fActStr, hoyStr);
             df_total_dias += diasActual;
-            desgloseHTML += `<b>Detención Actual:</b> ${fActStr} al ${hoyStr} <br>» Lapso: ${desglosar(diasActual)}<br>`;
+            desgloseHTML += `<b>Detención Actual:</b> ${formatFechaLatina(fActStr)} al ${formatFechaLatina(hoyStr)} <br>» Lapso: ${desglosar(diasActual)}<br>`;
         } else {
             alert("En modo acumulado, debe ingresar la 'Detención Actual (Desde)'.");
             return;
@@ -1367,7 +1397,6 @@ function calcularTodo() {
     }
     desgloseHTML += '</div>';
 
-    // Calcular Redenciones
     let dr = 0;
     const rAnos = document.getElementsByClassName('rAno'),
           rMeses = document.getElementsByClassName('rMes'),
@@ -1379,7 +1408,6 @@ function calcularTodo() {
               (parseInt(rDias[i].value) || 0);
     }
 
-    // Pena Total Impuesta
     const pt = (parseInt(document.getElementById('cAno').value) || 0) * 360 + 
                (parseInt(document.getElementById('cMes').value) || 0) * 30 + 
                (parseInt(document.getElementById('cDia').value) || 0);
@@ -1391,7 +1419,6 @@ function calcularTodo() {
 
     const tc = df_total_dias + dr;
 
-    // Mostrar resultados con el desglose incluido
     document.getElementById('resultado').style.display = 'block';
     document.getElementById('resTitulo').innerText = "Cómputo: " + (document.getElementById('pNombre').value || "S/N");
     document.getElementById('resResumen').innerHTML = `
@@ -1414,7 +1441,7 @@ function calcularTodo() {
 function crearFichaDoble(titulo, metaDiasEnBase360, fisicoActual, redimidoActual) {
 const fechaCorteInput = document.getElementById('fFechaCorte').value;
 let fechaReferencia = fechaCorteInput ? new Date(fechaCorteInput + "T12:00:00") : new Date();
-fechaReferencia.setHours(12, 0, 0, 0); 
+fechaReferencia.setHours(12, 0, 0, 0, 0); 
 const opcionesFecha = { day: '2-digit', month: '2-digit', year: 'numeric' };
 const diffFisicoTotalDias = Math.round(metaDiasEnBase360 - fisicoActual);
 const diffMixtoTotalDias = Math.round(metaDiasEnBase360 - (fisicoActual + redimidoActual));
@@ -1455,6 +1482,7 @@ catch(e) { casos = casos.filter(i => i.id !== id); localStorage.setItem('casosIu
 }
 
 function validarYCalcular() { 
+    if (!validarAccesoPremium()) return; // <--- Bloqueo
     if(!document.getElementById('cAno').value) return alert("Ingrese la pena."); 
     calcularTodo(); 
 }
@@ -1547,6 +1575,7 @@ lblPorcentaje.innerText = val.toFixed(2); lblProporcion.innerText = etiquetaActu
 }
 
 function calcularAdmision() {
+if (!validarAccesoPremium()) return; // <--- Bloqueo
 const a = parseInt(document.getElementById('adm_a').value || 0), m = parseInt(document.getElementById('adm_m').value || 0), d = parseInt(document.getElementById('adm_d').value || 0);
 const porcentajeRebaja = parseFloat(document.getElementById('sliderRebaja').value);
 if (a === 0 && m === 0 && d === 0) return alert("Ingrese una pena.");
@@ -1555,14 +1584,12 @@ const totalFinal = totalDiasOriginal - (totalDiasOriginal * (porcentajeRebaja / 
 document.getElementById('resAdmision').innerHTML = `<div style="font-size: 0.9em; color: #555;">Pena tras rebaja aplicada:</div><div style="font-size: 1.2em; color: #27ae60; font-weight: bold;">${desglosar(totalFinal)}</div>`;
 }
 
-// --- FUNCIÓN CORREGIDA PARA ACTUALIZAR EL INCREMENTO DEL CONCURSO IDEAL ---
 function actualizarLabelIncremento(valor) {
     let val = parseFloat(valor);
     const lblPorcentaje = document.getElementById('labelPorcentajeInc');
     const lblProporcion = document.getElementById('labelProporcionInc');
     const slider = document.getElementById('sliderIncremento');
 
-    // Puntos magnéticos para fracciones comunes en Derecho Penal
     const puntos = [
         { valor: 12.5, etiqueta: "1/8" },
         { valor: 16.66, etiqueta: "1/6" },
@@ -1573,26 +1600,25 @@ function actualizarLabelIncremento(valor) {
     ];
 
     let etiqueta = "Proporcional";
-    const umbral = 1.5; // Margen para que el slider "se pegue" a la fracción
+    const umbral = 1.5;
 
-    // Verificar si el valor actual está cerca de un punto magnético
     puntos.forEach(p => {
         if (Math.abs(val - p.valor) < umbral) {
             val = p.valor;
             etiqueta = p.etiqueta;
-            slider.value = val; // Hace que el slider se ajuste visualmente
+            slider.value = val;
         }
     });
 
     if (val === 0) etiqueta = "0";
 
-    // ACTUALIZACIÓN DE LAS ETIQUETAS EN EL HTML
     if (lblPorcentaje) lblPorcentaje.innerText = val.toFixed(2);
     if (lblProporcion) lblProporcion.innerText = etiqueta;
 }
 
 
 function calcularConcursoIdeal() {
+if (!validarAccesoPremium()) return; // <--- Bloqueo
 const a = parseInt(document.getElementById('ideal_a').value || 0), m = parseInt(document.getElementById('ideal_m').value || 0), d = parseInt(document.getElementById('ideal_d').value || 0);
 const porcentaje = parseFloat(document.getElementById('sliderIncremento').value);
 const totalDias = (a * 360) + (m * 30) + d;
@@ -1607,6 +1633,7 @@ document.getElementById('listaPenasReal').appendChild(div);
 }
 
 function calcularConcursoReal() {
+if (!validarAccesoPremium()) return; // <--- Bloqueo
 const anos = document.getElementsByClassName('ra'), meses = document.getElementsByClassName('rm'), dds = document.getElementsByClassName('rd');
 let penasEnDias = [];
 for (let i = 0; i < anos.length; i++) { let t = (parseInt(anos[i].value || 0) * 360) + (parseInt(meses[i].value || 0) * 30) + (parseInt(dds[i].value || 0)); if (t > 0) penasEnDias.push(t); }
@@ -1631,7 +1658,7 @@ function exportarTodaLaDataExcel() {
             "LUGAR DE RECLUSIÓN": c.lugar || "",
             "FASE PROCESAL": c.fase || "",
             "DELITO": c.delito || "",
-            "FECHA DETENCIÓN": c.fIni || "",
+            "FECHA DETENCIÓN": formatFechaLatina(c.fIni),
             "FAMILIAR": c.familiar || "",
             "TELÉFONO": c.tel || "",
             "FECHA REGISTRO": new Date(c.fechaMod).toLocaleDateString()
@@ -1643,27 +1670,22 @@ function exportarTodaLaDataExcel() {
     XLSX.writeFile(wb, `Base_Datos_Completa_Iuris_${new Date().toISOString().split('T')[0]}.xlsx`);
 }
 async function copiarResultados(event) {
-    // 1. Extraemos los textos de la pantalla
     const nombre = document.getElementById('pNombre')?.value || "N/A";
     const resumen = document.getElementById('resResumen')?.innerText || "";
     const beneficios = document.getElementById('resBeneficios')?.innerText || "";
 
-    // 2. Creamos el formato de texto plano
     const textoACopiar = `INFORME DE CÓMPUTO PENAL\n` +
                          `Privado: ${nombre}\n\n` +
                          `RESUMEN:\n${resumen}\n\n` +
                          `BENEFICIOS:\n${beneficios}`;
 
-    // 3. Definimos el botón para el feedback visual
     const btn = event.currentTarget;
     const originalText = btn.innerHTML;
 
-    // Intentamos copiar usando la API moderna
     try {
         await navigator.clipboard.writeText(textoACopiar);
         mostrarExito(btn, originalText);
     } catch (err) {
-        // Si falla la API moderna (en algunos móviles), usamos el método clásico "execCommand"
         try {
             const textArea = document.createElement("textarea");
             textArea.value = textoACopiar;
@@ -1674,19 +1696,17 @@ async function copiarResultados(event) {
             mostrarExito(btn, originalText);
         } catch (secondaryErr) {
             console.error('Error definitivo al copiar: ', secondaryErr);
-            // Solo aquí mostraríamos un error si ambos métodos fallan
             alert("Error al acceder al portapapeles.");
         }
     }
 }
 
-// Función auxiliar para el cambio visual del botón
 function mostrarExito(btn, textoOriginal) {
-    btn.style.background = "#28a745"; // Cambia a verde
+    btn.style.background = "#28a745";
     btn.innerHTML = "¡Copiado con éxito! ✅";
     
     setTimeout(() => {
-        btn.style.background = "#6c757d"; // Vuelve al gris original
+        btn.style.background = "#6c757d";
         btn.innerHTML = textoOriginal;
     }, 2000);
 }
@@ -1697,21 +1717,12 @@ function enviarAGoogleCalendar(cliente, descripcion, fechaRecordatorio, expedien
         return;
     }
 
-    // Formatear la fecha para Google (AAAAMMDD)
     const fechaLimpia = fechaRecordatorio.replace(/-/g, '');
-    
-    // Construir el título profesional: "IURIS: [Expediente] - [Cliente]"
     const titulo = encodeURIComponent(`IURIS: Exp. ${expediente} - ${cliente}`);
-    
-    // Cuerpo del recordatorio
     const detalles = encodeURIComponent(`Gestión Pendiente: ${descripcion}\n\nGenerado por Calculadora Penal Iuris.`);
-    
-    // Fechas (Evento de todo el día)
     const fechas = `${fechaLimpia}/${fechaLimpia}`;
 
     const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${titulo}&details=${detalles}&dates=${fechas}`;
-
-    // Abrir ventana de sincronización
     window.open(url, '_blank');
 }
 
