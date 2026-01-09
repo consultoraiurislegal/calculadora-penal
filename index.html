@@ -104,6 +104,13 @@ font-size: 0.9em;
 margin-bottom: 15px;
 border-radius: 8px;
 }
+
+/* Agrega esto a tus estilos CSS */
+.grid-4 { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr 1fr 1fr; 
+    gap: 8px; 
+}
 </style>
 </head>
 <body>
@@ -144,6 +151,7 @@ border-radius: 8px;
 <button class="tab-button active" onclick="openTab(event, 'gestion')">📁 Gestión de Expedientes</button>
 <button class="tab-button" onclick="openTab(event, 'principal')">Cómputo de Pena</button>
 <button class="tab-button" onclick="openTab(event, 'calculadora')">Herramientas para Dosimetría y Cómputo</button>
+<button id="tab-admin" class="tab-button" style="display:none; background: #991b1b; color: white;" onclick="openTab(event, 'adminPanel')">🛡️ Admin</button>
 </div>
 
 <div id="gestion" class="tab-content active">
@@ -164,13 +172,15 @@ border-radius: 8px;
         </button>
     </div>
 
+
+
     <div class="modulo">
         <h2>📝 Registro de Información</h2>
         <input type="hidden" id="idCasoGestion">
         
         <div class="grid-2">
-            <div><label>Nombre Completo:</label><input type="text" id="gNombre"></div>
-            <div><label>Cédula:</label><input type="text" id="gCedula"></div>
+            <div><label>Nombre Completo:</label><input type="text" id="gNombre" oninput="document.getElementById('pNombre').value = this.value"></div>
+            <div><label>Cédula:</label><input type="text" id="gCedula" oninput="document.getElementById('pCedula').value = this.value"></div>
         </div>
 
         <div class="grid-3">
@@ -215,7 +225,7 @@ border-radius: 8px;
 
         <div id="seccionEjecucionGestion" style="background: #fff9db; padding: 10px; border-radius: 8px; margin-top: 10px;">
             <label>Fecha de Detención Inicial:</label>
-            <input type="date" id="gFechaIni">
+            <input type="date" id="gFechaIni" oninput="document.getElementById('fDetencionUnica').value = this.value">
         </div>
 
         <div class="grid-2">
@@ -269,8 +279,8 @@ border-radius: 8px;
         <input type="hidden" id="casoActivoId" value="">
         <h2>0. Datos del Privado de Libertad</h2>
         <div class="grid-2">
-            <div><label>Nombre:</label><input type="text" id="pNombre" required></div>
-            <div><label>Cédula:</label><input type="text" id="pCedula" required></div>
+            <div><label>Nombre:</label><input type="text" id="pNombre" required oninput="document.getElementById('gNombre').value = this.value"></div>
+            <div><label>Cédula:</label><input type="text" id="pCedula" required oninput="document.getElementById('pCedula').value = this.value"></div>
         </div>
         <div class="grid-2">
             <div><label>Exp. Judicial:</label><input type="text" id="pExpJud"></div>
@@ -292,7 +302,7 @@ border-radius: 8px;
 
         <div id="seccionUnica">
             <label>Fecha Detención:</label>
-            <input type="date" id="fDetencionUnica">
+            <input type="date" id="fDetencionUnica" oninput="document.getElementById('gFechaIni').value = this.value">
         </div>
 
         <div style="margin-top: 15px; padding: 10px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 8px;">
@@ -346,35 +356,48 @@ border-radius: 8px;
 
 <div id="calculadora" class="tab-content">
 <div class="modulo">
-<h2>Cálculo de Término Medio (Dosimetría)</h2>
-<div class="grid-2">
-<div><label>Límite Mínimo (Años):</label><input type="number" id="tm_min" placeholder="Ej: 5"></div>
-<div><label>Límite Máximo (Años):</label><input type="number" id="tm_max" placeholder="Ej: 10"></div>
-</div>
-<button class="btn-principal" style="padding:10px; background:#1a73e8;" onclick="calcularTerminoMedio()">Calcular Término Medio</button>
-<div id="resTM" class="calc-res"></div>
+    <h2>Cálculo de Término Medio (Dosimetría)</h2>
+    
+    <label>Límite Mínimo (Límite Inferior):</label>
+    <div class="grid-4">
+        <input type="number" id="tm_min_a" placeholder="Años">
+        <input type="number" id="tm_min_m" placeholder="Meses">
+        <input type="number" id="tm_min_d" placeholder="Días">
+        <input type="number" id="tm_min_h" placeholder="Horas">
+    </div>
+
+    <label style="margin-top:10px;">Límite Máximo (Límite Superior):</label>
+    <div class="grid-4">
+        <input type="number" id="tm_max_a" placeholder="Años">
+        <input type="number" id="tm_max_m" placeholder="Meses">
+        <input type="number" id="tm_max_d" placeholder="Días">
+        <input type="number" id="tm_max_h" placeholder="Horas">
+    </div>
+
+    <button class="btn-principal" style="padding:10px; background:#1a73e8; margin-top:10px;" onclick="calcularTerminoMedio()">Calcular Término Medio</button>
+    <div id="resTM" class="calc-res"></div>
 </div>
 
 <div class="modulo">
-<h2>Concurso Ideal de Delitos</h2>
-<p><small>Se aplica el aumento a la pena del delito más grave.</small></p>
-<label>Pena del delito más grave:</label>
-<div class="grid-3">
-<input type="number" id="ideal_a" placeholder="Años">
-<input type="number" id="ideal_m" placeholder="Meses">
-<input type="number" id="ideal_d" placeholder="Días">
-</div>
+    <h2>Concurso Ideal de Delitos</h2>
+    <p><small>Pena del delito más grave:</small></p>
+    <div class="grid-4">
+        <input type="number" id="ideal_a" placeholder="Años">
+        <input type="number" id="ideal_m" placeholder="Meses">
+        <input type="number" id="ideal_d" placeholder="Días">
+        <input type="number" id="ideal_h" placeholder="Horas">
+    </div>
+    
+    <label style="margin-top:20px;">Deslice para ajustar el incremento:</label>
+    <div style="padding: 10px 0;">
+        <input type="range" id="sliderIncremento" min="0" max="50" step="0.01" value="16.66" style="width: 100%;" oninput="actualizarLabelIncremento(this.value)">
+        <div style="text-align: center; margin-top: 10px; font-weight: bold; color: #e67e22;">
+            Aumento: <span id="labelProporcionInc">1/6</span> (<span id="labelPorcentajeInc">16.66</span>%)
+        </div>
+    </div>
 
-<label style="margin-top:20px;">Deslice para ajustar el incremento (ej. 1/6 a 1/2):</label>
-<div style="padding: 10px 0;">
-<input type="range" id="sliderIncremento" min="0" max="50" step="0.01" value="16.66" style="width: 100%; cursor: pointer;" oninput="actualizarLabelIncremento(this.value)">
-<div style="text-align: center; margin-top: 10px; font-weight: bold; color: #e67e22; font-size: 1.2em;">
-Aumento: <span id="labelProporcionInc">1/6</span> (<span id="labelPorcentajeInc">16.66</span>%)
-</div>
-</div>
-
-<button class="btn-principal" style="padding:10px; background:#e67e22;" onclick="calcularConcursoIdeal()">Calcular Pena Resultante</button>
-<div id="resIdeal" class="calc-res" style="border-left: 5px solid #e67e22;"></div>
+    <button class="btn-principal" style="padding:10px; background:#e67e22;" onclick="calcularConcursoIdeal()">Calcular Pena Resultante</button>
+    <div id="resIdeal" class="calc-res" style="border-left: 5px solid #e67e22;"></div>
 </div>
 
 <div class="modulo">
@@ -398,24 +421,25 @@ Aumento: <span id="labelProporcionInc">1/6</span> (<span id="labelPorcentajeInc"
 </div>
 
 <div class="modulo">
-<h2>Rebaja por Admisión de los Hechos</h2>
-<label>Pena impuesta o estimada:</label>
-<div class="grid-3">
-<input type="number" id="adm_a" placeholder="Años">
-<input type="number" id="adm_m" placeholder="Meses">
-<input type="number" id="adm_d" placeholder="Días">
-</div>
+    <h2>Rebaja por Admisión de los Hechos</h2>
+    <label>Pena impuesta o estimada:</label>
+    <div class="grid-4">
+        <input type="number" id="adm_a" placeholder="Años">
+        <input type="number" id="adm_m" placeholder="Meses">
+        <input type="number" id="adm_d" placeholder="Días">
+        <input type="number" id="adm_h" placeholder="Horas">
+    </div>
+    
+    <label style="margin-top:20px;">Deslice para ajustar la rebaja:</label>
+    <div style="padding: 10px 0;">
+        <input type="range" id="sliderRebaja" min="0" max="50" step="0.01" value="33.33" style="width: 100%;" oninput="actualizarLabelRebaja(this.value)">
+        <div style="text-align: center; margin-top: 10px; font-weight: bold; color: #1a73e8;">
+            Proporción: <span id="labelProporcion">1/3</span> (<span id="labelPorcentaje">33.33</span>%)
+        </div>
+    </div>
 
-<label style="margin-top:20px;">Deslice para ajustar la rebaja:</label>
-<div style="padding: 10px 0;">
-<input type="range" id="sliderRebaja" min="0" max="50" step="0.01" value="33.33" style="width: 100%; cursor: pointer;" oninput="actualizarLabelRebaja(this.value)">
-<div style="text-align: center; margin-top: 10px; font-weight: bold; color: #1a73e8; font-size: 1.2em;">
-Proporción: <span id="labelProporcion">1/3</span> (<span id="labelPorcentaje">33.33</span>%)
-</div>
-</div>
-
-<button class="btn-principal" style="padding:10px; background:#27ae60;" onclick="calcularAdmision()">Calcular Pena con Rebaja</button>
-<div id="resAdmision" class="calc-res"></div>
+    <button class="btn-principal" style="padding:10px; background:#27ae60;" onclick="calcularAdmision()">Calcular Pena con Rebaja</button>
+    <div id="resAdmision" class="calc-res"></div>
 </div>
 
 <div class="modulo">
@@ -477,6 +501,29 @@ Proporción: <span id="labelProporcion">1/3</span> (<span id="labelPorcentaje">3
 </div>
 </div>
 
+<div id="adminPanel" class="tab-content">
+    <div class="modulo">
+        <h2>👥 Gestión de Usuarios y Suscripciones</h2>
+        <button class="btn-principal" onclick="cargarUsuariosAdmin()" style="background:#4b5563; margin-bottom:15px;">🔄 Refrescar Lista de Usuarios</button>
+        
+        <div style="overflow-x: auto;">
+            <table class="report-table" id="tablaUsuarios">
+                <thead>
+                    <tr>
+                        <th>Email / Registro</th>
+                        <th>Referido por</th>
+                        <th>Estado</th>
+                        <th>Vencimiento</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="bodyUsuariosAdmin">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <div class="modulo no-print" style="text-align: center;">
 <p style="margin-bottom: 5px; font-weight: bold; color: #1a73e8;">Consulta legal, Soporte Tecnico, Pagos</p>
 <button onclick="abrirWhatsApp()" class="btn-whatsapp">WhatsApp Dr. Charles Reyes</button>
@@ -504,19 +551,19 @@ Proporción: <span id="labelProporcion">1/3</span> (<span id="labelPorcentaje">3
 1.1. Aplicación: Se refiere al software Calculadora Penal del Dr. Charles Reyes...<br>
 1.2. Desarrollador: Dr. Charles Reyes, creador y propietario de la Aplicación.<br>
 1.3. Usuario: Cualquier persona que acceda o utilice la Aplicación...<br>
-1.5. Cifrado de Extremo a Extremo (E2EE): Mecanismo de seguridad que garantiza que la Data del Usuario es cifrada en el dispositivo del Usuario.</p>
+1.5. Cifrado de Extremo a Extremo (E2EE): Mecanismo de seguridad que garantiza que la Data del Usuario es cifrada en el dispositivo del Usuario , utilizando el correo electronico para cifrar los datos, esta apñicacion no utiliza llave maestra para cifrar datos, en consexuencia no se garantiza la seguridad total de los datos</p>
 
 <p><strong>2. PROPIEDAD INTELECTUAL</strong><br>
 2.1. Titularidad: El Desarrollador es el único y exclusivo propietario de todos los derechos de propiedad intelectual e industrial sobre la Aplicación...</p>
 
 <p><strong>3. RESPONSABILIDADES Y ADVERTENCIAS LEGALES DEL USUARIO</strong><br>
 El Usuario reconoce que la Aplicación es una herramienta de apoyo y que no sustituye el criterio profesional.<br>
-3.1. Advertencia para el Abogado Litigante (Secreto Profesional): El Usuario que actúe como Abogado Litigante declara conocer y aceptar que es el único responsable de garantizar el cumplimiento del Secreto Profesional...<br>
-3.2. Advertencia para el Funcionario Público (Riesgo Administrativo): La Aplicación no es un sistema de información oficial ni está homologada por las autoridades competentes de la República Bolivariana de Venezuela.<br>
+3.1. Advertencia para el Abogado Litigante (Secreto Profesional): El Usuario que actúe como Abogado Litigante en el libre ejercicio de su profesion, declara conocer y aceptar que es el único responsable de garantizar el cumplimiento del Secreto Profesional y que cuenta con la autorizacion para enviar data sensible a servidores externos, en este caso encriptada a los servidores de firebase de google, sin embargo el usuario puese escogwr a traves de un interruptor si guarda la informacion en la nube o localmente en su dispositivo.<br>
+3.2. Advertencia para el Funcionario Público (Riesgo Administrativo y Penal): La Aplicación no es un sistema de información oficial ni está homologada por las autoridades competentes de la República Bolivariana de Venezuela, no cumple con las formalidades de la Ley de Infogobierno y el servidor se encuentra alojado fuera de la Republica, aunque la informacion se graba de manera encriptada, la legislacion venezolana prohibe que los servidores esten en custodia y control de un tercero, en consecuencia, todo usuario que se registre y haga uso de esta aplicacion declara QUE NO ES FUNCIONARIO PUBLICO DE LA REPUBLICA BOLIVARIANA DE VENEZUELA relacionado con data sensible de los privados de libertad y libra de toda responsabilidad civil, administrativa y penal al propietario y administrador de esta aplicacion, en conclusion si usted es funcionario publico, por favor ABSTENERSE de usar esta aplicacion.<br>
 3.3. Advertencia para el Familiar del Detenido: La Aplicación no proporciona asesoría legal; los resultados son meramente indicativos.</p>
 
 <p><strong>4. ALMACENAMIENTO DE DATOS Y SEGURIDAD (E2EE)</strong><br>
-4.1. Cifrado de Extremo a Extremo (E2EE) y Clave de Usuario: Toda la Data del Usuario ingresada en la Aplicación es cifrada mediante E2EE...<br>
+4.1. Cifrado de Extremo a extremo (E2EE) y Clave de Usuario: Toda la Data del Usuario ingresada en la Aplicación es cifrada mediante E2EE...<br>
 4.2. No Acceso al Contenido: El Desarrollador no posee las claves de descifrado y, por lo tanto, no tiene acceso al contenido de la Data del Usuario...<br>
 4.4. Exoneración por Contenido: El Desarrollador queda totalmente exonerado de cualquier responsabilidad penal, civil o administrativa derivada del contenido de la Data del Usuario.</p>
 
@@ -531,7 +578,7 @@ El Usuario se compromete a no utilizar la Aplicación para fines ilícitos o fra
 El Desarrollador se reserva el derecho de suspender o terminar la cuenta de cualquier Usuario sin previo aviso.</p>
 
 <p><strong>8. LEY APLICABLE Y JURISDICCIÓN</strong><br>
-Estos T&C se rigen e interpretan de conformidad con las leyes de la República Bolivariana de Venezuela. Cualquier controversia será sometida a la jurisdicción exclusiva de los tribunales competentes de la ciudad de San Cristóbal, Estado Táchira Venezuela.</p>
+Estos T&C se rigen e interpretan de conformidad con las leyes de la República Bolivariana de Venezuela. Cualquier controversia será sometida a la jurisdicción exclusiva de los tribunales civilew competentes de la ciudad de San Cristóbal, Estado Táchira Venezuela.</p>
 </div>
 
 <button class="btn-principal" onclick="aceptarTerminos()" style="padding:15px; background: #34a853;">HE LEÍDO, ENTIENDO Y ACEPTO LOS TÉRMINOS Y CONDICIONES</button>
@@ -891,7 +938,7 @@ cargarPreferenciaSync();
 sincronizarConNube();
 } else {
 document.getElementById('auth-overlay').style.display = 'flex';
-document.getElementById('status-bar').style.display = 'none';
+document.getElementById('status-bar').style.none;
 }
 });
 
@@ -959,15 +1006,6 @@ document.getElementById(tabName).style.display = "block";
 evt.currentTarget.className += " active";
 }
 
-function calcularTerminoMedio() {
-const min = parseFloat(document.getElementById('tm_min').value);
-const max = parseFloat(document.getElementById('tm_max').value);
-if(isNaN(min) || isNaN(max)) return alert("Por favor ingrese ambos límites.");
-const tmAnos = (min + max) / 2;
-const totalDias = tmAnos * DIAS_AÑO;
-document.getElementById('resTM').innerText = "Término Medio: " + desglosar(totalDias);
-}
-
 function exportarDB() {
 if (casos.length === 0) return alert("No hay expedientes.");
 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(casos));
@@ -991,128 +1029,164 @@ reader.readAsText(event.target.files[0]);
 }
 
 // --- FUNCIÓN DE GUARDADO UNIFICADA ---
+// --- FUNCIÓN DE GUARDADO MEJORADA ---
 async function guardarCasoCompleto() {
-    if (!validarAccesoPremium()) return; // <--- Bloqueo
+    if (!validarAccesoPremium()) return;
     const userId = auth.currentUser.uid;
-    const idActivo = document.getElementById('casoActivoId').value || document.getElementById('idCasoGestion').value;
     
+    // 1. Identificar o generar ID
+    let idActivo = document.getElementById('casoActivoId').value || document.getElementById('idCasoGestion').value;
+    if (!idActivo) idActivo = "local_" + Date.now();
+
+    // 2. Captura de datos unificada
     const nombre = document.getElementById('gNombre').value || document.getElementById('pNombre').value;
     const cedula = document.getElementById('gCedula').value || document.getElementById('pCedula').value;
-
+    
     if(!nombre || !cedula) return alert("Nombre y Cédula son obligatorios.");
 
-    const redenciones = [];
-    const rAnos = document.getElementsByClassName('rAno'), rMeses = document.getElementsByClassName('rMes'), rDias = document.getElementsByClassName('rDia');
-    for(let i=0; i<rAnos.length; i++) redenciones.push({ a: rAnos[i].value, m: rMeses[i].value, d: rDias[i].value });
-
-    const periodosPrevios = [];
-    const pInis = document.getElementsByClassName('pInicio');
-    const pFins = document.getElementsByClassName('pFin');
-    for(let i=0; i < pInis.length; i++){
-        if(pInis[i].value) {
-            periodosPrevios.push({ inicio: pInis[i].value, fin: pFins[i].value });
-        }
-    }
-
-    const fIniCapturada = document.getElementById('gFechaIni').value || document.getElementById('fDetencionUnica').value;
-
+    // Objeto con la información recolectada
     const datosCasoBase = {
-        nombre, cedula,
-        expJud: document.getElementById('gExpJud').value || document.getElementById('pExpJud').value,
+        id: idActivo,
+        nombre: nombre,
+        cedula: cedula,
+        fase: document.getElementById('gFase').value,
+        expJud: document.getElementById('gExpJud').value,
         expFis: document.getElementById('gExpFis').value,
-        expCar: document.getElementById('gExpCar').value || document.getElementById('pExpCar').value,
+        expCar: document.getElementById('gExpCar').value,
         numFis: document.getElementById('gNumFis').value,
         tribunal: document.getElementById('gTribunal').value,
-        lugar: document.getElementById('gLugar').value || document.getElementById('pLugar').value,
-        fase: document.getElementById('gFase').value,
-        delito: document.getElementById('gDelito').value || document.getElementById('pDelito').value,
-        fIni: fIniCapturada,
+        lugar: document.getElementById('gLugar').value,
+        delito: document.getElementById('gDelito').value,
+        fIni: document.getElementById('gFechaIni').value,
         familiar: document.getElementById('gFamiliar').value,
         tel: document.getElementById('gTel').value,
         esDrogas: document.getElementById('gEsDrogas').value,
         pTipoDroga: document.getElementById('gTipoDroga').value,
         pCantDroga: document.getElementById('gCantDroga').value,
-        cAno: document.getElementById('cAno').value, 
-        cMes: document.getElementById('cMes').value, 
+        // Datos de cómputo
+        cAno: document.getElementById('cAno').value,
+        cMes: document.getElementById('cMes').value,
         cDia: document.getElementById('cDia').value,
         esAcum: document.getElementById('esAcum').value,
         fDetencionActual: document.getElementById('fDetencionActual').value,
-        redenciones: redenciones,
         eventos: eventosTemporales,
-        periodosPrevios: periodosPrevios,
         fechaMod: Date.now()
     };
 
-    const quiereNube = document.getElementById('syncToggle').checked || document.getElementById('syncToggleGestion').checked;
-
-    if (quiereNube) {
-        const datosCifrados = {
-            ...datosCasoBase,
-            nombre: encryptionHelper.encrypt(nombre, userId),
-            cedula: encryptionHelper.encrypt(cedula, userId),
-            expJud: encryptionHelper.encrypt(datosCasoBase.expJud, userId),
-            expCar: encryptionHelper.encrypt(datosCasoBase.expCar, userId),
-            delito: encryptionHelper.encrypt(datosCasoBase.delito, userId),
-            lugar: encryptionHelper.encrypt(datosCasoBase.lugar, userId),
-            tribunal: encryptionHelper.encrypt(datosCasoBase.tribunal, userId),
-            expFis: encryptionHelper.encrypt(datosCasoBase.expFis, userId),
-            numFis: encryptionHelper.encrypt(datosCasoBase.numFis, userId),
-            pTipoDroga: encryptionHelper.encrypt(datosCasoBase.pTipoDroga, userId),
-            pCantDroga: encryptionHelper.encrypt(datosCasoBase.pCantDroga, userId),
-            familiar: encryptionHelper.encrypt(datosCasoBase.familiar, userId),
-            tel: encryptionHelper.encrypt(datosCasoBase.tel, userId)
-        };
-        try {
-            if(idActivo && !idActivo.startsWith("local_")) {
-                await db.collection('usuarios').doc(userId).collection('expedientes').doc(idActivo).set(datosCifrados);
-            } else {
-                const docRef = await db.collection('usuarios').doc(userId).collection('expedientes').add(datosCifrados);
-                document.getElementById('casoActivoId').value = docRef.id;
-                document.getElementById('idCasoGestion').value = docRef.id;
-            }
-            alert("¡Expediente actualizado en todas las secciones y sincronizado!");
-        } catch(e) { alert("Error al sincronizar."); }
+    // 3. ACTUALIZACIÓN DE LA VARIABLE GLOBAL Y LOCALSTORAGE
+    // Buscamos si ya existe para reemplazarlo o añadirlo
+    const index = casos.findIndex(c => c.id === idActivo);
+    if (index !== -1) {
+        casos[index] = datosCasoBase;
     } else {
-        if(!idActivo) {
-            const tempId = "local_" + Date.now();
-            document.getElementById('casoActivoId').value = tempId;
-            document.getElementById('idCasoGestion').value = tempId;
-        }
-        alert("Guardado localmente.");
+        casos.push(datosCasoBase);
     }
-    sincronizarConNube();
+
+    // Guardamos el array global actualizado en el almacenamiento local
+    localStorage.setItem('casosIuris', JSON.stringify(casos));
+
+    // 4. GUARDADO EN LA NUBE (Opcional según interruptor)
+    const syncActiva = document.getElementById('syncToggle').checked;
+    if (syncActiva) {
+        try {
+            const datosCifrados = {
+                ...datosCasoBase,
+                nombre: encryptionHelper.encrypt(nombre, userId),
+                cedula: encryptionHelper.encrypt(cedula, userId)
+                // Aquí podrías cifrar más campos si lo deseas
+            };
+
+            if(idActivo.startsWith("local_")) {
+                const docRef = await db.collection('usuarios').doc(userId).collection('expedientes').add(datosCifrados);
+                // Actualizamos el ID real de Firebase en nuestro objeto local
+                datosCasoBase.id = docRef.id;
+                actualizarIdEnPantalla(docRef.id);
+                localStorage.setItem('casosIuris', JSON.stringify(casos));
+            } else {
+                await db.collection('usuarios').doc(userId).collection('expedientes').doc(idActivo).set(datosCifrados);
+            }
+            alert("Sincronizado con la nube ✅");
+        } catch(e) {
+            console.error(e);
+            alert("Error de conexión. Guardado solo en este dispositivo.");
+        }
+    } else {
+        alert("Guardado localmente con éxito 💾");
+    }
+
+    // 5. Refrescar las listas visuales
+    listarCasos();
+    listarCasosGestion();
 }
+
+
+function actualizarIdEnPantalla(nuevoId) {
+    document.getElementById('casoActivoId').value = nuevoId;
+    document.getElementById('idCasoGestion').value = nuevoId;
+}
+
+
 
 async function sincronizarConNube() {
-try {
-const userId = auth.currentUser.uid;
-const snap = await db.collection('usuarios').doc(userId).collection('expedientes').orderBy('fechaMod', 'desc').get();
-casos = [];
-snap.forEach(doc => { 
-const d = doc.data();
-casos.push({ 
-id: doc.id, 
-...d,
-nombre: encryptionHelper.decrypt(d.nombre, userId),
-cedula: encryptionHelper.decrypt(d.cedula, userId),
-expJud: encryptionHelper.decrypt(d.expJud, userId),
-expFis: encryptionHelper.decrypt(d.expFis, userId),
-expCar: encryptionHelper.decrypt(d.expCar, userId),
-numFis: encryptionHelper.decrypt(d.numFis, userId),
-tribunal: encryptionHelper.decrypt(d.tribunal, userId),
-lugar: encryptionHelper.decrypt(d.lugar, userId),
-delito: encryptionHelper.decrypt(d.delito, userId),
-pTipoDroga: encryptionHelper.decrypt(d.pTipoDroga, userId),
-pCantDroga: encryptionHelper.decrypt(d.pCantDroga, userId),
-familiar: encryptionHelper.decrypt(d.familiar, userId),
-tel: encryptionHelper.decrypt(d.tel, userId)
-}); 
-});
-localStorage.setItem('casosIuris', JSON.stringify(casos));
-listarCasos();
-listarCasosGestion();
-} catch(e) { console.log("Offline"); }
+    const userId = auth.currentUser.uid;
+    const estaSincronizado = document.getElementById('syncToggle').checked;
+
+    // Si el usuario NO quiere sincronizar, solo cargamos lo local
+    if (!estaSincronizado) {
+        casos = JSON.parse(localStorage.getItem('casosIuris')) || [];
+        listarCasos();
+        listarCasosGestion();
+        return;
+    }
+
+    try {
+        const snap = await db.collection('usuarios').doc(userId).collection('expedientes').get();
+        let casosLocales = JSON.parse(localStorage.getItem('casosIuris')) || [];
+        const mapCasos = new Map();
+
+        // 1. Cargamos primero lo local al mapa
+        casosLocales.forEach(c => mapCasos.set(c.id, c));
+
+        // 2. Procesamos lo de la nube
+        snap.forEach(doc => {
+            const dataNube = doc.data();
+            const idNube = doc.id;
+            
+            // Desencriptamos datos sensibles
+            const casoNubeDecodificado = {
+                ...dataNube,
+                id: idNube,
+                nombre: encryptionHelper.decrypt(dataNube.nombre, userId),
+                cedula: encryptionHelper.decrypt(dataNube.cedula, userId),
+                origen: 'nube'
+            };
+
+            if (mapCasos.has(idNube)) {
+                // SI EL CASO EXISTE EN AMBOS: Comparamos fecha de modificación
+                const casoLocal = mapCasos.get(idNube);
+                if ((dataNube.fechaMod || 0) > (casoLocal.fechaMod || 0)) {
+                    mapCasos.set(idNube, casoNubeDecodificado); // Gana la nube por ser más reciente
+                }
+            } else {
+                // SI SOLO EXISTE EN LA NUBE: Lo agregamos
+                mapCasos.set(idNube, casoNubeDecodificado);
+            }
+        });
+
+        // 3. Guardamos la unión final
+        casos = Array.from(mapCasos.values());
+        localStorage.setItem('casosIuris', JSON.stringify(casos));
+        
+        listarCasos();
+        listarCasosGestion();
+        console.log("Sincronización inteligente completada.");
+    } catch(e) {
+        console.error("Error en sincronización, operando en modo local:", e);
+    }
 }
+
+
+
 
 function listarCasos() {
     const b = document.getElementById('busqueda').value.toLowerCase();
@@ -1144,13 +1218,16 @@ function listarCasos() {
     }
 }
 
+// --- FUNCIÓN DE CARGA MEJORADA ---
 function cargarCaso(id) {
     const c = casos.find(i => i.id == id); 
     if(!c) return;
 
+    // Sincronizar IDs activos en ambos campos ocultos
     document.getElementById('casoActivoId').value = c.id; 
     document.getElementById('idCasoGestion').value = c.id;
 
+    // --- CARGA EN PESTAÑA GESTIÓN ---
     document.getElementById('gNombre').value = c.nombre || "";
     document.getElementById('gCedula').value = c.cedula || "";
     document.getElementById('gExpJud').value = c.expJud || "";
@@ -1161,21 +1238,21 @@ function cargarCaso(id) {
     document.getElementById('gLugar').value = c.lugar || "";
     document.getElementById('gFase').value = c.fase || "Preparatoria";
     document.getElementById('gDelito').value = c.delito || "";
-    
     document.getElementById('gFechaIni').value = c.fIni || ""; 
-    document.getElementById('fDetencionUnica').value = c.fIni || ""; 
-    
     document.getElementById('gFamiliar').value = c.familiar || "";
     document.getElementById('gTel').value = c.tel || "";
-    eventosTemporales = c.eventos || [];
-    renderizarEventos();
-
-    // Actualización campos de Drogas en pestaña Gestión
+    
+    // Cargar Drogas
     document.getElementById('gEsDrogas').value = c.esDrogas || 'no';
     document.getElementById('gTipoDroga').value = c.pTipoDroga || '';
     document.getElementById('gCantDroga').value = c.pCantDroga || '';
     document.getElementById('gDivDrogas').style.display = (c.esDrogas === 'si' ? 'block' : 'none');
 
+    // Cargar Eventos/Bitácora
+    eventosTemporales = c.eventos || [];
+    renderizarEventos();
+
+    // --- CARGA EN PESTAÑA CÓMPUTO ---
     document.getElementById('pNombre').value = c.nombre || ""; 
     document.getElementById('pCedula').value = c.cedula || "";
     document.getElementById('pExpJud').value = c.expJud || ""; 
@@ -1183,15 +1260,19 @@ function cargarCaso(id) {
     document.getElementById('pDelito').value = c.delito || ""; 
     document.getElementById('pLugar').value = c.lugar || "";
     
+    // Cómputo específico
     document.getElementById('cAno').value = c.cAno || ""; 
     document.getElementById('cMes').value = c.cMes || ""; 
     document.getElementById('cDia').value = c.cDia || "";
+    document.getElementById('fDetencionUnica').value = c.fIni || ""; // Sincroniza fecha
     document.getElementById('esAcum').value = c.esAcum || "no"; 
     document.getElementById('fDetencionActual').value = c.fDetencionActual || "";
 
+    // Limpiar y cargar Redenciones
     document.getElementById('listaRedenciones').innerHTML = '';
     if(c.redenciones) c.redenciones.forEach(r => agregarFilaRedencion(r.a, r.m, r.d));
 
+    // Limpiar y cargar Periodos Previos
     document.getElementById('contenedorPeriodos').innerHTML = "";
     if(c.periodosPrevios) {
         c.periodosPrevios.forEach(p => {
@@ -1203,7 +1284,13 @@ function cargarCaso(id) {
         });
     }
     
+    // Actualizar visibilidad de secciones (Drogas, Acumulación, etc.)
     toggleAcumulacion();
+    
+    // Ocultar resultados previos de la otra pestaña si existen
+    document.getElementById('resultado').style.display = 'none';
+
+    console.log("Expediente cargado y sincronizado en todas las pestañas.");
 }
 
 function agregarFilaRedencion(a, m, d) {
@@ -1475,11 +1562,38 @@ return `
 }
 
 async function eliminarCaso(id) { 
-if(confirm(`¿Eliminar?`)) { 
-try { await db.collection('usuarios').doc(auth.currentUser.uid).collection('expedientes').doc(id).delete(); sincronizarConNube(); }
-catch(e) { casos = casos.filter(i => i.id !== id); localStorage.setItem('casosIuris', JSON.stringify(casos)); listarCasos(); }
-} 
+    if(confirm(`¿Está seguro de que desea eliminar este expediente de forma permanente?`)) { 
+        try {
+            // 1. Intentar eliminar de la nube si el usuario está autenticado y tiene ID de Firebase
+            if (auth.currentUser && !id.startsWith("local_")) {
+                await db.collection('usuarios')
+                        .doc(auth.currentUser.uid)
+                        .collection('expedientes')
+                        .doc(id)
+                        .delete();
+                console.log("Eliminado de la nube ✅");
+            }
+
+            // 2. ELIMINACIÓN LOCAL (Obligatoria para que desaparezca de la vista)
+            // Filtramos el array global 'casos' para quitar el ID seleccionado
+            casos = casos.filter(i => i.id !== id); 
+            
+            // 3. Actualizar el almacenamiento del navegador
+            localStorage.setItem('casosIuris', JSON.stringify(casos));
+
+            // 4. REFRESCAR AMBAS VISTAS
+            listarCasos();        // Refresca pestaña de Cómputo
+            listarCasosGestion(); // Refresca pestaña de Gestión
+            
+            alert("Expediente eliminado con éxito.");
+
+        } catch(e) {
+            console.error("Error al eliminar:", e);
+            alert("Hubo un problema al eliminar. Inténtelo de nuevo.");
+        }
+    } 
 }
+
 
 function validarYCalcular() { 
     if (!validarAccesoPremium()) return; // <--- Bloqueo
@@ -1565,24 +1679,74 @@ document.getElementById('fFechaCorte').value = new Date().toISOString().split('T
 listarCasos();
 listarCasosGestion();
 
+// 1. Modificamos el objeto de puntos magnéticos para incluir la fracción exacta
 function actualizarLabelRebaja(valor) {
-let val = parseFloat(valor); const lblPorcentaje = document.getElementById('labelPorcentaje'), lblProporcion = document.getElementById('labelProporcion'), slider = document.getElementById('sliderRebaja');
-const puntosMagneticos = [{ valor: 12.5, etiqueta: "1/8" }, { valor: 16.66, etiqueta: "1/6" }, { valor: 20, etiqueta: "1/5" }, { valor: 25, etiqueta: "1/4" }, { valor: 33.33, etiqueta: "1/3" }, { valor: 50, etiqueta: "1/2" }];
-let etiquetaActual = "Proporcional"; const umbral = 1.5; 
-puntosMagneticos.forEach(punto => { if (Math.abs(val - punto.valor) < umbral) { val = punto.valor; etiquetaActual = punto.etiqueta; slider.value = val; } });
-if (val === 0) etiquetaActual = "0";
-lblPorcentaje.innerText = val.toFixed(2); lblProporcion.innerText = etiquetaActual;
+    let val = parseFloat(valor);
+    const lblPorcentaje = document.getElementById('labelPorcentaje');
+    const lblProporcion = document.getElementById('labelProporcion');
+    const slider = document.getElementById('sliderRebaja');
+    
+    // Definimos la fracción matemática real para el cálculo
+    const puntosMagneticos = [
+        { valor: 12.5, etiqueta: "1/8", fraccion: 1/8 },
+        { valor: 16.66, etiqueta: "1/6", fraccion: 1/6 },
+        { valor: 20, etiqueta: "1/5", fraccion: 1/5 },
+        { valor: 25, etiqueta: "1/4", fraccion: 1/4 },
+        { valor: 33.33, etiqueta: "1/3", fraccion: 1/3 },
+        { valor: 50, etiqueta: "1/2", fraccion: 1/2 }
+    ];
+
+    let etiquetaActual = "Proporcional";
+    let fraccionCalculo = val / 100; // Por defecto usa el porcentaje
+    const umbral = 1.5; 
+
+    puntosMagneticos.forEach(punto => {
+        if (Math.abs(val - punto.valor) < umbral) {
+            val = punto.valor;
+            etiquetaActual = punto.etiqueta;
+            fraccionCalculo = punto.fraccion; // <--- USAMOS LA FRACCIÓN EXACTA
+            slider.value = val;
+        }
+    });
+
+    if (val === 0) {
+        etiquetaActual = "0";
+        fraccionCalculo = 0;
+    }
+
+    lblPorcentaje.innerText = val.toFixed(2);
+    lblProporcion.innerText = etiquetaActual;
+    
+    // Guardamos la fracción exacta en un atributo del slider para usarla en el cálculo final
+    slider.dataset.fraccionEfectiva = fraccionCalculo;
 }
 
+// 2. Ajustamos la función de cálculo para usar esa fracción exacta
 function calcularAdmision() {
-if (!validarAccesoPremium()) return; // <--- Bloqueo
-const a = parseInt(document.getElementById('adm_a').value || 0), m = parseInt(document.getElementById('adm_m').value || 0), d = parseInt(document.getElementById('adm_d').value || 0);
-const porcentajeRebaja = parseFloat(document.getElementById('sliderRebaja').value);
-if (a === 0 && m === 0 && d === 0) return alert("Ingrese una pena.");
-const totalDiasOriginal = (a * 360) + (m * 30) + d;
-const totalFinal = totalDiasOriginal - (totalDiasOriginal * (porcentajeRebaja / 100));
-document.getElementById('resAdmision').innerHTML = `<div style="font-size: 0.9em; color: #555;">Pena tras rebaja aplicada:</div><div style="font-size: 1.2em; color: #27ae60; font-weight: bold;">${desglosar(totalFinal)}</div>`;
+    if (!validarAccesoPremium()) return;
+    const totalHoras = aHoras(
+        document.getElementById('adm_a').value,
+        document.getElementById('adm_m').value,
+        document.getElementById('adm_d').value,
+        document.getElementById('adm_h').value
+    );
+    
+    // Obtenemos la fracción exacta guardada o el valor del slider
+    const slider = document.getElementById('sliderRebaja');
+    const fraccion = slider.dataset.fraccionEfectiva ? parseFloat(slider.dataset.fraccionEfectiva) : (parseFloat(slider.value) / 100);
+    
+    if (totalHoras <= 0) return alert("Ingrese una pena.");
+    
+    // Ahora el cálculo es: 15 años * (1/3) = 5 años exactos (en horas)
+    const rebaja = totalHoras * fraccion;
+    const totalFinal = totalHoras - rebaja;
+
+    document.getElementById('resAdmision').innerHTML = 
+        `<small>Pena Original: ${desglosarHoras(totalHoras)}</small><br>` +
+        `<small>Rebaja: -${desglosarHoras(rebaja)}</small><hr>` +
+        `<div style="font-size: 1.2em; color: #27ae60; font-weight: bold;">Final: ${desglosarHoras(totalFinal)}</div>`;
 }
+
 
 function actualizarLabelIncremento(valor) {
     let val = parseFloat(valor);
@@ -1614,16 +1778,6 @@ function actualizarLabelIncremento(valor) {
 
     if (lblPorcentaje) lblPorcentaje.innerText = val.toFixed(2);
     if (lblProporcion) lblProporcion.innerText = etiqueta;
-}
-
-
-function calcularConcursoIdeal() {
-if (!validarAccesoPremium()) return; // <--- Bloqueo
-const a = parseInt(document.getElementById('ideal_a').value || 0), m = parseInt(document.getElementById('ideal_m').value || 0), d = parseInt(document.getElementById('ideal_d').value || 0);
-const porcentaje = parseFloat(document.getElementById('sliderIncremento').value);
-const totalDias = (a * 360) + (m * 30) + d;
-if (totalDias <= 0) return alert("Ingrese una pena base.");
-document.getElementById('resIdeal').innerHTML = `<div style="font-size: 0.85em; color: #666;">Pena con aumento aplicado:</div><strong>${desglosar(totalDias + (totalDias * (porcentaje / 100)))}</strong>`;
 }
 
 function agregarFilaPenaReal() {
@@ -1738,6 +1892,188 @@ function compartirReferido() {
     window.open(`https://wa.me/?text=${mensaje}`, '_blank');
 }
 
+// LOGICA DE ADMINISTRADOR (AÑADIDA)
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        const doc = await db.collection('usuarios').doc(user.uid).get();
+        if (doc.exists && doc.data().rol === 'admin') {
+            document.getElementById('tab-admin').style.display = 'block';
+        }
+    }
+});
+
+async function cargarUsuariosAdmin() {
+    const tbody = document.getElementById('bodyUsuariosAdmin');
+    tbody.innerHTML = "<tr><td colspan='5'>Cargando usuarios...</td></tr>";
+    
+    try {
+        const snapshot = await db.collection('usuarios').get();
+        tbody.innerHTML = "";
+        
+        snapshot.forEach(doc => {
+          const casoNubeDecodificado = {
+    ...dataNube,
+    id: idNube,
+    // Forzamos la desencriptación usando el UID del usuario actual
+    nombre: encryptionHelper.decrypt(dataNube.nombre, userId),
+    cedula: encryptionHelper.decrypt(dataNube.cedula, userId),
+    origen: 'nube'
+};
+            const u = doc.data();
+            const uid = doc.id;
+            const hoy = new Date();
+            const fechaVenc = new Date(u.vencimiento);
+            const esVigente = fechaVenc > hoy;
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <b>${u.email}</b><br>
+                    <small>${u.fechaRegistro ? new Date(u.fechaRegistro).toLocaleDateString() : 'S/F'}</small>
+                </td>
+                <td>${u.referidoPor || 'Directo'}</td>
+                <td style="color: ${esVigente ? 'green' : 'red'}; font-weight: bold;">
+                    ${esVigente ? 'VIGENTE' : 'VENCIDO'}
+                </td>
+                <td>
+                    <input type="date" id="venc-${uid}" value="${u.vencimiento ? u.vencimiento.split('T')[0] : ''}" style="padding:5px; font-size:0.8em;">
+                </td>
+                <td>
+                    <button onclick="actualizarSuscripcionManual('${uid}')" style="background:#1a73e8; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer;">💾</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (e) {
+        console.error("Error cargando usuarios:", e);
+        alert("No tienes permisos para ver esta lista.");
+    }
+}
+
+async function actualizarSuscripcionManual(uid) {
+    const nuevaFecha = document.getElementById(`venc-${uid}`).value;
+    if (!nuevaFecha) return alert("Seleccione una fecha válida.");
+
+    try {
+        const fechaISO = new Date(nuevaFecha + "T23:59:59").toISOString();
+        await db.collection('usuarios').doc(uid).update({
+            vencimiento: fechaISO,
+            rol: 'premium'
+        });
+        alert("Suscripción actualizada correctamente.");
+        cargarUsuariosAdmin();
+    } catch (e) {
+        alert("Error al actualizar: " + e.message);
+    }
+}
+
+// --- NUEVAS FUNCIONES PARA MANEJO DE HORAS ---
+
+// Constantes basadas en año de 360 días (estándar laboral/penal habitual en tu código)
+const H_DIA = 24;
+const H_MES = 30 * 24; // 720 horas
+const H_ANO = 360 * 24; // 8640 horas
+
+// Convierte Años, Meses, Días, Horas a Total de Horas
+function aHoras(a, m, d, h) {
+    return (parseInt(a||0) * H_ANO) + 
+           (parseInt(m||0) * H_MES) + 
+           (parseInt(d||0) * H_DIA) + 
+           parseInt(h||0);
+}
+
+// Convierte un total de horas de vuelta a formato legible
+function desglosarHoras(totalHoras) {
+    totalHoras = Math.round(totalHoras); // Redondear para evitar decimales
+    if (totalHoras <= 0) return "0 horas";
+
+    let a = Math.floor(totalHoras / H_ANO);
+    let resto = totalHoras % H_ANO;
+
+    let m = Math.floor(resto / H_MES);
+    resto = resto % H_MES;
+
+    let d = Math.floor(resto / H_DIA);
+    let h = Math.floor(resto % H_DIA);
+
+    let txt = [];
+    if(a > 0) txt.push(a + "a");
+    if(m > 0) txt.push(m + "m");
+    if(d > 0) txt.push(d + "d");
+    if(h > 0) txt.push(h + "h");
+    
+    return txt.join(" ");
+}
+
+function calcularTerminoMedio() {
+    // Convertir Limite Inferior a horas
+    const minH = aHoras(
+        document.getElementById('tm_min_a').value,
+        document.getElementById('tm_min_m').value,
+        document.getElementById('tm_min_d').value,
+        document.getElementById('tm_min_h').value
+    );
+
+    // Convertir Limite Superior a horas
+    const maxH = aHoras(
+        document.getElementById('tm_max_a').value,
+        document.getElementById('tm_max_m').value,
+        document.getElementById('tm_max_d').value,
+        document.getElementById('tm_max_h').value
+    );
+
+    if (minH === 0 && maxH === 0) return alert("Ingrese los límites.");
+
+    // Promedio
+    const promedioHoras = (minH + maxH) / 2;
+    
+    document.getElementById('resTM').innerHTML = 
+        `<b>Término Medio:</b> <br> ${desglosarHoras(promedioHoras)}`;
+}
+
+function calcularConcursoIdeal() {
+    if (!validarAccesoPremium()) return; 
+    const totalHoras = aHoras(
+        document.getElementById('ideal_a').value,
+        document.getElementById('ideal_m').value,
+        document.getElementById('ideal_d').value,
+        document.getElementById('ideal_h').value
+    );
+    
+    const porcentaje = parseFloat(document.getElementById('sliderIncremento').value);
+    
+    if (totalHoras <= 0) return alert("Ingrese una pena base.");
+    
+    const aumento = totalHoras * (porcentaje / 100);
+    const totalFinal = totalHoras + aumento;
+
+    document.getElementById('resIdeal').innerHTML = 
+        `Pena Base: ${desglosarHoras(totalHoras)}<br>` +
+        `+ Aumento: ${desglosarHoras(aumento)}<br>` +
+        `<strong>TOTAL: ${desglosarHoras(totalFinal)}</strong>`;
+}
+
+function calcularAdmision() {
+    if (!validarAccesoPremium()) return;
+    const totalHoras = aHoras(
+        document.getElementById('adm_a').value,
+        document.getElementById('adm_m').value,
+        document.getElementById('adm_d').value,
+        document.getElementById('adm_h').value
+    );
+    
+    const porcentajeRebaja = parseFloat(document.getElementById('sliderRebaja').value);
+    
+    if (totalHoras <= 0) return alert("Ingrese una pena.");
+    
+    const rebaja = totalHoras * (porcentajeRebaja / 100);
+    const totalFinal = totalHoras - rebaja;
+
+    document.getElementById('resAdmision').innerHTML = 
+        `<small>Pena Original: ${desglosarHoras(totalHoras)}</small><br>` +
+        `<small>Rebaja: -${desglosarHoras(rebaja)}</small><hr>` +
+        `<div style="font-size: 1.2em; color: #27ae60; font-weight: bold;">Final: ${desglosarHoras(totalFinal)}</div>`;
+}
 </script>
 </body>
 </html>
