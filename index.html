@@ -401,23 +401,18 @@ border-radius: 8px;
 </div>
 
 <div class="modulo">
-<h2>Concurso Real de Delitos</h2>
-<p><small>Regla: Pena mayor + mitad de la suma de las penas restantes.</small></p>
-<div id="listaPenasReal">
-<div class="grid-3" style="margin-bottom: 8px;">
-<input type="number" class="ra" placeholder="Años">
-<input type="number" class="rm" placeholder="Meses">
-<input type="number" class="rd" placeholder="Días">
-</div>
-<div class="grid-3" style="margin-bottom: 8px;">
-<input type="number" class="ra" placeholder="Años">
-<input type="number" class="rm" placeholder="Meses">
-<input type="number" class="rd" placeholder="Días">
-</div>
-</div>
-<button class="btn-add" onclick="agregarFilaPenaReal()">+ Agregar otra condena</button>
-<button class="btn-principal" style="padding:10px; background:#8e44ad; margin-top: 15px;" onclick="calcularConcursoReal()">Calcular Pena Resultante </button>
-<div id="resReal" class="calc-res" style="border-left: 5px solid #8e44ad;"></div>
+    <h2>Concurso Real de Delitos</h2>
+    <p><small>Regla: Pena mayor + mitad de la suma de las penas restantes.</small></p>
+    <div id="listaPenasReal">
+        <div class="grid-4" style="margin-bottom: 8px;">
+            <input type="number" class="ra" placeholder="Años">
+            <input type="number" class="rm" placeholder="Meses">
+            <input type="number" class="rd" placeholder="Días">
+            <input type="number" class="rh" placeholder="Horas"> </div>
+    </div>
+    <button class="btn-add" onclick="agregarFilaPenaReal()">+ Agregar otra condena</button>
+    <button class="btn-principal" style="padding:10px; background:#8e44ad; margin-top: 15px;" onclick="calcularConcursoReal()">Calcular Pena Resultante</button>
+    <div id="resReal" class="calc-res" style="border-left: 5px solid #8e44ad;"></div>
 </div>
 
 <div class="modulo">
@@ -1781,22 +1776,48 @@ function actualizarLabelIncremento(valor) {
 }
 
 function agregarFilaPenaReal() {
-const div = document.createElement('div'); div.className = 'grid-red'; div.style.marginTop = '8px';
-div.innerHTML = `<input type="number" class="ra" placeholder="A"><input type="number" class="rm" placeholder="M"><input type="number" class="rd" placeholder="D"><button class="btn-delete" onclick="this.parentElement.remove()">🗑️</button>`;
-document.getElementById('listaPenasReal').appendChild(div);
+    const div = document.createElement('div');
+    div.className = 'grid-4'; // Cambiado a grid-4
+    div.style.marginBottom = '8px';
+    div.innerHTML = `
+        <input type="number" class="ra" placeholder="Años">
+        <input type="number" class="rm" placeholder="Meses">
+        <input type="number" class="rd" placeholder="Días">
+        <input type="number" class="rh" placeholder="Horas">
+    `;
+    document.getElementById('listaPenasReal').appendChild(div);
 }
 
 function calcularConcursoReal() {
-if (!validarAccesoPremium()) return; // <--- Bloqueo
-const anos = document.getElementsByClassName('ra'), meses = document.getElementsByClassName('rm'), dds = document.getElementsByClassName('rd');
-let penasEnDias = [];
-for (let i = 0; i < anos.length; i++) { let t = (parseInt(anos[i].value || 0) * 360) + (parseInt(meses[i].value || 0) * 30) + (parseInt(dds[i].value || 0)); if (t > 0) penasEnDias.push(t); }
-if (penasEnDias.length < 2) return alert("Ingrese al menos dos penas.");
-const penaMayor = Math.max(...penasEnDias); const indexMayor = penasEnDias.indexOf(penaMayor); penasEnDias.splice(indexMayor, 1);
-const sumaRestantes = penasEnDias.reduce((acc, curr) => acc + curr, 0);
-const totalFinal = penaMayor + (sumaRestantes / 2);
-document.getElementById('resReal').innerHTML = `<div style="font-size: 0.85em; color: #666;">Pena Mayor: ${desglosar(penaMayor)}</div><div style="font-size: 0.85em; color: #666;">Aumento (mitad de las otras): ${desglosar(sumaRestantes / 2)}</div><hr><div style="color: #8e44ad;">Total Pena:</div><strong>${desglosar(totalFinal)}</strong>`;
+    // Asumiendo que usas una función aHoras para convertir todo a una unidad común
+    const filas = document.querySelectorAll('#listaPenasReal .grid-4');
+    let penasEnHoras = [];
+
+    filas.forEach(fila => {
+        const a = fila.querySelector('.ra').value || 0;
+        const m = fila.querySelector('.rm').value || 0;
+        const d = fila.querySelector('.rd').value || 0;
+        const h = fila.querySelector('.rh').value || 0;
+        
+        // Convertir a horas (usando tu lógica de aHoras)
+        penasEnHoras.push(aHoras(a, m, d, h));
+    });
+
+    if (penasEnHoras.length === 0) return;
+
+    // Ordenar de mayor a menor
+    penasEnHoras.sort((a, b) => b - a);
+
+    const penaMayor = penasEnHoras[0];
+    const sumasRestantes = penasEnHoras.slice(1).reduce((acc, curr) => acc + curr, 0);
+    
+    // Regla: Pena mayor + mitad de la suma de las restantes
+    const totalFinalHoras = penaMayor + (sumasRestantes / 2);
+
+    document.getElementById('resReal').innerHTML = 
+        `Pena Resultante: ${desglosarHoras(totalFinalHoras)}`; // Usando tu función desglosarHoras
 }
+
 
 function exportarTodaLaDataExcel() {
     if (casos.length === 0) return alert("No hay expedientes para exportar.");
@@ -1911,14 +1932,6 @@ async function cargarUsuariosAdmin() {
         tbody.innerHTML = "";
         
         snapshot.forEach(doc => {
-          const casoNubeDecodificado = {
-    ...dataNube,
-    id: idNube,
-    // Forzamos la desencriptación usando el UID del usuario actual
-    nombre: encryptionHelper.decrypt(dataNube.nombre, userId),
-    cedula: encryptionHelper.decrypt(dataNube.cedula, userId),
-    origen: 'nube'
-};
             const u = doc.data();
             const uid = doc.id;
             const hoy = new Date();
@@ -1981,56 +1994,40 @@ function aHoras(a, m, d, h) {
            (parseInt(d||0) * H_DIA) + 
            parseInt(h||0);
 }
-
-// Convierte un total de horas de vuelta a formato legible
 function desglosarHoras(totalHoras) {
-    totalHoras = Math.round(totalHoras); // Redondear para evitar decimales
+    totalHoras = Math.round(totalHoras); 
     if (totalHoras <= 0) return "0 horas";
-
     let a = Math.floor(totalHoras / H_ANO);
     let resto = totalHoras % H_ANO;
-
     let m = Math.floor(resto / H_MES);
     resto = resto % H_MES;
-
     let d = Math.floor(resto / H_DIA);
     let h = Math.floor(resto % H_DIA);
-
     let txt = [];
     if(a > 0) txt.push(a + "a");
     if(m > 0) txt.push(m + "m");
     if(d > 0) txt.push(d + "d");
     if(h > 0) txt.push(h + "h");
-    
     return txt.join(" ");
 }
-
 function calcularTerminoMedio() {
-    // Convertir Limite Inferior a horas
     const minH = aHoras(
         document.getElementById('tm_min_a').value,
         document.getElementById('tm_min_m').value,
         document.getElementById('tm_min_d').value,
         document.getElementById('tm_min_h').value
     );
-
-    // Convertir Limite Superior a horas
     const maxH = aHoras(
         document.getElementById('tm_max_a').value,
         document.getElementById('tm_max_m').value,
         document.getElementById('tm_max_d').value,
         document.getElementById('tm_max_h').value
     );
-
     if (minH === 0 && maxH === 0) return alert("Ingrese los límites.");
-
-    // Promedio
     const promedioHoras = (minH + maxH) / 2;
-    
     document.getElementById('resTM').innerHTML = 
         `<b>Término Medio:</b> <br> ${desglosarHoras(promedioHoras)}`;
 }
-
 function calcularConcursoIdeal() {
     if (!validarAccesoPremium()) return; 
     const totalHoras = aHoras(
@@ -2039,20 +2036,15 @@ function calcularConcursoIdeal() {
         document.getElementById('ideal_d').value,
         document.getElementById('ideal_h').value
     );
-    
     const porcentaje = parseFloat(document.getElementById('sliderIncremento').value);
-    
     if (totalHoras <= 0) return alert("Ingrese una pena base.");
-    
     const aumento = totalHoras * (porcentaje / 100);
     const totalFinal = totalHoras + aumento;
-
     document.getElementById('resIdeal').innerHTML = 
         `Pena Base: ${desglosarHoras(totalHoras)}<br>` +
         `+ Aumento: ${desglosarHoras(aumento)}<br>` +
         `<strong>TOTAL: ${desglosarHoras(totalFinal)}</strong>`;
 }
-
 function calcularAdmision() {
     if (!validarAccesoPremium()) return;
     const totalHoras = aHoras(
@@ -2061,14 +2053,11 @@ function calcularAdmision() {
         document.getElementById('adm_d').value,
         document.getElementById('adm_h').value
     );
-    
     const porcentajeRebaja = parseFloat(document.getElementById('sliderRebaja').value);
-    
     if (totalHoras <= 0) return alert("Ingrese una pena.");
     
     const rebaja = totalHoras * (porcentajeRebaja / 100);
     const totalFinal = totalHoras - rebaja;
-
     document.getElementById('resAdmision').innerHTML = 
         `<small>Pena Original: ${desglosarHoras(totalHoras)}</small><br>` +
         `<small>Rebaja: -${desglosarHoras(rebaja)}</small><hr>` +
