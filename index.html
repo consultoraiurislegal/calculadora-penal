@@ -114,26 +114,41 @@ border-radius: 8px;
 </style>
 </head>
 <body>
-
 <div id="auth-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#1a2a40; z-index:9999; display:flex; align-items:center; justify-content:center; color:white; font-family:sans-serif;">
-<div style="background:white; padding:30px; border-radius:20px; width:85%; max-width:350px; text-align:center; color:#333;">
-<h2 style="margin:0; color:#1a73e8;">IURIS PENAL</h2>
-<p id="auth-title" style="margin-bottom:20px; font-size:0.9em; color:#666;">Inicie Sesión para continuar</p>
+    
+    <div style="background:white; padding:30px; border-radius:20px; width:85%; max-width:350px; text-align:center; color:#333;">
+        <h2 style="margin:0; color:#1a73e8;">IURIS PENAL</h2>
+        <p id="auth-title" style="margin-bottom:20px; font-size:0.9em; color:#666;">Inicie Sesión para continuar</p>
 
-<input type="email" id="f_email" placeholder="Correo electrónico" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:8px;">
-<input type="password" id="f_pass" placeholder="Contraseña (mín. 6 caracteres)" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:8px;">
+        <input type="email" id="f_email" placeholder="Correo electrónico" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:8px;">
+        <input type="password" id="f_pass" placeholder="Contraseña (mín. 6 caracteres)" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:8px;">
 
-<button id="btn-login" onclick="loginFirebase()" style="width:100%; padding:15px; background:#1a73e8; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-top:10px;">ENTRAR</button>
-<p style="margin-top:10px;"><a href="#" onclick="olvideClave()" style="color:#1a73e8; font-size:0.8em; text-decoration:none;">¿Olvidó su contraseña?</a></p>
+        <div id="bloque-login">
+            <button id="btn-login" onclick="loginFirebase()" style="width:100%; padding:15px; background:#1a73e8; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-top:10px;">ENTRAR</button>
+            <p style="margin-top:10px;"><a href="#" onclick="olvideClave()" style="color:#1a73e8; font-size:0.8em; text-decoration:none;">¿Olvidó su contraseña?</a></p>
+            
+            <div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
+                <p style="font-size:0.8em; color:#666;">¿No tienes cuenta?</p>
+                <button onclick="toggleModoRegistro(true)" style="background:none; border:none; color:#34a853; font-weight:bold; cursor:pointer; font-size:1em;">Crear Cuenta Nueva</button>
+            </div>
+        </div>
 
-<div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
-<p style="font-size:0.8em; color:#666;">¿No tienes cuenta?</p>
-<input type="text" id="f_referido" placeholder="¿Quién lo refirió? (Opcional)" style="width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:8px; background: #fffde7;">
-<button onclick="registroFirebase()" style="width:100%; padding:10px; background:#34a853; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">CREAR CUENTA NUEVA</button>
-</div>
+        <div id="bloque-registro" style="display:none;">
+            <div style="text-align:left; font-size:0.75em; color:#666; margin-top:10px; margin-left:5px;">
+                Si viene recomendado, ingrese el <b>correo</b> de su colega:
+            </div>
+            <input type="email" id="f_referido" placeholder="ejemplo@correo.com (Opcional)" style="width:100%; padding:12px; margin:5px 0 15px 0; border:1px solid #ddd; border-radius:8px; background: #fffde7;">
+            
+            <button onclick="registroFirebase()" style="width:100%; padding:15px; background:#34a853; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">REGISTRARME</button>
+            
+            <div style="margin-top:15px;">
+                <button onclick="toggleModoRegistro(false)" style="background:none; border:none; color:#1a73e8; font-size:0.9em; cursor:pointer;">← Volver al Login</button>
+            </div>
+        </div>
 
-<p id="f_error" style="color:red; font-size:12px; margin-top:15px; min-height:15px;"></p>
-</div>
+        <p id="f_error" style="color:red; font-size:12px; margin-top:15px; min-height:15px;"></p>
+    </div>
+
 </div>
 
 <div id="app-container">
@@ -498,26 +513,55 @@ border-radius: 8px;
 
 <div id="adminPanel" class="tab-content">
     <div class="modulo">
-        <h2>👥 Gestión de Usuarios y Suscripciones</h2>
-        <button class="btn-principal" onclick="cargarUsuariosAdmin()" style="background:#4b5563; margin-bottom:15px;">🔄 Refrescar Lista de Usuarios</button>
+        <h2>🛡️ Panel de Control Inteligente</h2>
         
+        <div style="background:#f8f9fa; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:20px;">
+            <label style="margin-top:0;">🔎 Buscar abonado por correo:</label>
+            <div class="grid-2">
+                <input type="email" id="adminSearchEmail" placeholder="cliente@correo.com" style="margin-top:5px;">
+                <button class="btn-principal" onclick="buscarUsuarioAdmin()" style="margin-top:5px; background:#4b5563;">
+                    BUSCAR
+                </button>
+            </div>
+        </div>
+
+        <div style="background:#e6ffed; padding:15px; border-radius:10px; border:1px solid #b7eb8f; text-align:center;">
+            <p style="color:#2e7d32; font-weight:bold; margin-top:0;">⚡ Novedades</p>
+            <p id="lblUltimaRev" style="font-size:0.8em; color:#555; margin-bottom:10px;">
+                Nunca has revisado las novedades.
+            </p>
+            
+            <button class="btn-principal" onclick="verNuevosRegistros()" style="background:#2e7d32; padding: 12px;">
+                VER QUIÉN SE REGISTRÓ DESDE MI ÚLTIMA VISITA
+            </button>
+            
+            <div style="margin-top:10px;">
+                <small style="cursor:pointer; color:#1a73e8; text-decoration:underline;" onclick="resetearFechaAdmin()">
+                    (Resetear contador y ver los últimos 10 históricos)
+                </small>
+            </div>
+        </div>
+        
+        <h3 style="margin-top:20px; border-bottom:2px solid #eee;">Resultados:</h3>
         <div style="overflow-x: auto;">
-            <table class="report-table" id="tablaUsuarios">
+            <table class="report-table">
                 <thead>
                     <tr>
-                        <th>Email / Registro</th>
-                        <th>Referido por</th>
+                        <th>Usuario / Registro</th>
+                        <th>Referido Por</th>
                         <th>Estado</th>
                         <th>Vencimiento</th>
                         <th>Acción</th>
                     </tr>
                 </thead>
                 <tbody id="bodyUsuariosAdmin">
-                    </tbody>
+                    <tr><td colspan="5" style="text-align:center; color:#999; padding:20px;">Seleccione una opción arriba</td></tr>
+                </tbody>
             </table>
         </div>
     </div>
 </div>
+
 
 <div class="modulo no-print" style="text-align: center;">
 <p style="margin-bottom: 5px; font-weight: bold; color: #1a73e8;">Consulta legal, Soporte Tecnico, Pagos</p>
@@ -885,15 +929,53 @@ auth.sendPasswordResetEmail(email)
 .catch(e => alert("Error: Asegúrese de que el correo sea válido."));
 }
 
+// Función visual para alternar pantallas
+function toggleModoRegistro(mostrarRegistro) {
+    const loginBlock = document.getElementById('bloque-login');
+    const regBlock = document.getElementById('bloque-registro');
+    const titulo = document.getElementById('auth-title');
+    document.getElementById('f_error').innerText = ""; // Limpiar errores
+
+    if (mostrarRegistro) {
+        loginBlock.style.display = 'none';
+        regBlock.style.display = 'block';
+        titulo.innerText = "Crear Nueva Cuenta";
+    } else {
+        loginBlock.style.display = 'block';
+        regBlock.style.display = 'none';
+        titulo.innerText = "Inicie Sesión para continuar";
+    }
+}
+
+// Función de Registro Blindada
 function registroFirebase() {
-    const email = document.getElementById('f_email').value;
+    const email = document.getElementById('f_email').value.trim();
     const pass = document.getElementById('f_pass').value;
-    const referidoPor = document.getElementById('f_referido').value;
+    const referidoInput = document.getElementById('f_referido').value.trim();
     const errorDom = document.getElementById('f_error');
 
-    if(!email || !pass) return errorDom.innerText = "Ingrese correo y clave.";
+    if(!email || !pass) return errorDom.innerText = "Ingrese correo y contraseña.";
     if(pass.length < 6) return errorDom.innerText = "Mínimo 6 caracteres.";
 
+    // --- AQUÍ ESTÁ LA VALIDACIÓN CLAVE ---
+    let referidoFinal = "Ninguno";
+
+    if (referidoInput !== "") {
+        // 1. Verificar que parezca un correo real
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(referidoInput)) {
+            return errorDom.innerText = "⚠️ El referido debe ser un CORREO válido (ej: abogado@gmail.com).";
+        }
+        
+        // 2. Verificar que no sea él mismo
+        if (referidoInput.toLowerCase() === email.toLowerCase()) {
+            return errorDom.innerText = "⚠️ No puede colocarse a sí mismo como referido.";
+        }
+
+        referidoFinal = referidoInput.toLowerCase();
+    }
+
+    // Crear usuario
     auth.createUserWithEmailAndPassword(email, pass)
     .then(async (userCredential) => {
         const uid = userCredential.user.uid;
@@ -901,19 +983,19 @@ function registroFirebase() {
             email: email,
             vencimiento: new Date(Date.now() + (15 * 24 * 60 * 60 * 1000)).toISOString(),
             rol: 'prueba',
-            referidoPor: referidoPor || "Ninguno",
+            referidoPor: referidoFinal, 
+            premioEntregado: false,
             fechaRegistro: new Date().toISOString()
         });
-        console.log("Usuario registrado con referido");
+        alert("¡Bienvenido! Su cuenta ha sido creada.");
     })
     .catch(e => {
-        if(e.code === 'auth/email-already-in-use') {
-            errorDom.innerText = "El correo ya está registrado.";
-        } else {
-            errorDom.innerText = "Error al registrar.";
-        }
+        if(e.code === 'auth/email-already-in-use') errorDom.innerText = "El correo ya existe. Inicie sesión.";
+        else if(e.code === 'auth/invalid-email') errorDom.innerText = "Correo inválido.";
+        else errorDom.innerText = "Error: " + e.message;
     });
 }
+
 
 function aceptarTerminos() {
 localStorage.setItem('terminosAceptados', 'true');
@@ -1935,45 +2017,125 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
-async function cargarUsuariosAdmin() {
-    const tbody = document.getElementById('bodyUsuariosAdmin');
-    tbody.innerHTML = "<tr><td colspan='5'>Cargando usuarios...</td></tr>";
-    
-    try {
-        const snapshot = await db.collection('usuarios').get();
-        tbody.innerHTML = "";
-        
-        snapshot.forEach(doc => {
-            const u = doc.data();
-            const uid = doc.id;
-            const hoy = new Date();
-            const fechaVenc = new Date(u.vencimiento);
-            const esVigente = fechaVenc > hoy;
-            
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>
-                    <b>${u.email}</b><br>
-                    <small>${u.fechaRegistro ? new Date(u.fechaRegistro).toLocaleDateString() : 'S/F'}</small>
-                </td>
-                <td>${u.referidoPor || 'Directo'}</td>
-                <td style="color: ${esVigente ? 'green' : 'red'}; font-weight: bold;">
-                    ${esVigente ? 'VIGENTE' : 'VENCIDO'}
-                </td>
-                <td>
-                    <input type="date" id="venc-${uid}" value="${u.vencimiento ? u.vencimiento.split('T')[0] : ''}" style="padding:5px; font-size:0.8em;">
-                </td>
-                <td>
-                    <button onclick="actualizarSuscripcionManual('${uid}')" style="background:#1a73e8; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer;">💾</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    } catch (e) {
-        console.error("Error cargando usuarios:", e);
-        alert("No tienes permisos para ver esta lista.");
+// Variable para almacenar la clave del localStorage
+const KEY_LAST_CHECK = 'admin_ultima_revision';
+
+// Al cargar la página, mostramos la fecha guardada
+document.addEventListener('DOMContentLoaded', () => {
+    actualizarLabelFecha();
+});
+
+function actualizarLabelFecha() {
+    const lastCheck = localStorage.getItem(KEY_LAST_CHECK);
+    const lbl = document.getElementById('lblUltimaRev');
+    if (lbl) {
+        if (lastCheck) {
+            const fecha = new Date(lastCheck).toLocaleString();
+            lbl.innerText = `Última revisión: ${fecha}`;
+        } else {
+            lbl.innerText = "Aún no has revisado novedades.";
+        }
     }
 }
+
+// --- FUNCIÓN PRINCIPAL: VER SOLO LO NUEVO ---
+async function verNuevosRegistros() {
+    const tbody = document.getElementById('bodyUsuariosAdmin');
+    tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Consultando novedades... ⏳</td></tr>";
+
+    // 1. Recuperar la fecha de la última vez que diste clic
+    // Si no existe (es la primera vez), usamos una fecha muy antigua (año 2020)
+    let lastCheck = localStorage.getItem(KEY_LAST_CHECK) || '2020-01-01T00:00:00.000Z';
+
+    try {
+        // 2. Consulta INTELIGENTE: Dame solo los que se registraron DESPUÉS de lastCheck
+        const snapshot = await db.collection('usuarios')
+            .where('fechaRegistro', '>', lastCheck)
+            .orderBy('fechaRegistro', 'desc')
+            .get();
+
+        if (snapshot.empty) {
+            tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:#2e7d32; font-weight:bold;'>✅ Estás al día. No hay nuevos registros desde tu última visita.</td></tr>";
+            // Aunque no haya nuevos, actualizamos la fecha para que la próxima vez compare desde hoy
+            guardarFechaActual();
+            return;
+        }
+
+        // 3. Si hay nuevos, los mostramos
+        renderizarTablaAdmin(snapshot, tbody);
+        
+        // 4. Guardamos la fecha de HOY como la nueva "última revisión"
+        guardarFechaActual();
+        alert(`Se encontraron ${snapshot.size} usuarios nuevos.`);
+
+    } catch (e) {
+        console.error(e);
+        if (e.message.includes("index")) {
+            // Esto saldrá la primera vez: Firebase te pedirá crear un índice
+            const link = e.message.match(/https:\/\/[^\s]+/)[0];
+            tbody.innerHTML = `<tr><td colspan='5' style='color:red; font-size:0.9em;'>
+                <b>⚠️ CONFIGURACIÓN REQUERIDA:</b><br>
+                Firebase necesita un índice para ordenar por fecha.<br>
+                <a href="${link}" target="_blank" style="color:blue;">HAGA CLIC AQUÍ PARA CREARLO AUTOMÁTICAMENTE</a><br>
+                (Espere 2 minutos después de crearlo y vuelva a intentar).
+            </td></tr>`;
+        } else {
+            tbody.innerHTML = `<tr><td colspan='5' style='color:red;'>Error: ${e.message}</td></tr>`;
+        }
+    }
+}
+
+function guardarFechaActual() {
+    localStorage.setItem(KEY_LAST_CHECK, new Date().toISOString());
+    actualizarLabelFecha();
+}
+
+// Opción para reiniciar si quieres ver los últimos 10 sin importar la fecha
+function resetearFechaAdmin() {
+    if(confirm("¿Desea borrar la memoria de última visita y cargar los 10 últimos registros históricos?")) {
+        localStorage.removeItem(KEY_LAST_CHECK);
+        actualizarLabelFecha();
+        cargarUltimosRegistros(); // Llamamos a la función que te di en la respuesta anterior (los 10 últimos)
+    }
+}
+
+// MANTENEMOS TU FUNCIÓN DE BÚSQUEDA (Es vital tenerla aparte)
+async function buscarUsuarioAdmin() {
+    const emailBusqueda = document.getElementById('adminSearchEmail').value.trim();
+    const tbody = document.getElementById('bodyUsuariosAdmin');
+    if (!emailBusqueda) return alert("Escriba un correo.");
+    tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Buscando...</td></tr>";
+
+    try {
+        const snapshot = await db.collection('usuarios').where('email', '==', emailBusqueda).limit(1).get();
+        if (snapshot.empty) {
+            tbody.innerHTML = "<tr><td colspan='5' style='color:red; text-align:center;'>No encontrado.</td></tr>";
+        } else {
+            renderizarTablaAdmin(snapshot, tbody);
+        }
+    } catch(e) { alert(e.message); }
+}
+
+// Función auxiliar de pintado (Reutilizable)
+function renderizarTablaAdmin(snapshot, tbody) {
+    tbody.innerHTML = "";
+    snapshot.forEach(doc => {
+        const u = doc.data();
+        const uid = doc.id;
+        const esVigente = new Date(u.vencimiento) > new Date();
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><b>${u.email}</b><br><small>${new Date(u.fechaRegistro).toLocaleDateString()} ${new Date(u.fechaRegistro).toLocaleTimeString()}</small></td>
+            <td>${u.referidoPor && u.referidoPor!=="Ninguno" ? `<b style="color:#d93025">${u.referidoPor}</b>` : 'Ninguno'}</td>
+            <td style="color:${esVigente?'green':'red'}"><b>${esVigente?'ACTIVO':'VENCIDO'}</b></td>
+            <td><input type="date" id="venc-${uid}" value="${u.vencimiento?u.vencimiento.split('T')[0]:''}" style="width:110px;"></td>
+            <td><button onclick="actualizarSuscripcionManual('${uid}')">💾</button></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
 
 async function actualizarSuscripcionManual(uid) {
     const nuevaFecha = document.getElementById(`venc-${uid}`).value;
@@ -2056,24 +2218,6 @@ function calcularConcursoIdeal() {
         `Pena Base: ${desglosarHoras(totalHoras)}<br>` +
         `+ Aumento: ${desglosarHoras(aumento)}<br>` +
         `<strong>TOTAL: ${desglosarHoras(totalFinal)}</strong>`;
-}
-function calcularAdmision() {
-    if (!validarAccesoPremium()) return;
-    const totalHoras = aHoras(
-        document.getElementById('adm_a').value,
-        document.getElementById('adm_m').value,
-        document.getElementById('adm_d').value,
-        document.getElementById('adm_h').value
-    );
-    const porcentajeRebaja = parseFloat(document.getElementById('sliderRebaja').value);
-    if (totalHoras <= 0) return alert("Ingrese una pena.");
-    
-    const rebaja = totalHoras * (porcentajeRebaja / 100);
-    const totalFinal = totalHoras - rebaja;
-    document.getElementById('resAdmision').innerHTML = 
-        `<small>Pena Original: ${desglosarHoras(totalHoras)}</small><br>` +
-        `<small>Rebaja: -${desglosarHoras(rebaja)}</small><hr>` +
-        `<div style="font-size: 1.2em; color: #27ae60; font-weight: bold;">Final: ${desglosarHoras(totalFinal)}</div>`;
 }
 </script>
 </body>
