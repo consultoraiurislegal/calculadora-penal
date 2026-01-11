@@ -1023,23 +1023,19 @@ listarCasos(); listarCasosGestion(); alert("Éxito.");
 reader.readAsText(event.target.files[0]);
 }
 
-// --- FUNCIÓN DE GUARDADO UNIFICADA ---
-// --- FUNCIÓN DE GUARDADO MEJORADA ---
+// --- FUNCIÓN DE GUARDADO MEJORADA CON CIFRADO DE BITÁCORA ---
 async function guardarCasoCompleto() {
     if (!validarAccesoPremium()) return;
     const userId = auth.currentUser.uid;
     
-    // 1. Identificar o generar ID
     let idActivo = document.getElementById('casoActivoId').value || document.getElementById('idCasoGestion').value;
     if (!idActivo) idActivo = "local_" + Date.now();
 
-    // 2. Captura de datos unificada
     const nombre = document.getElementById('gNombre').value || document.getElementById('pNombre').value;
     const cedula = document.getElementById('gCedula').value || document.getElementById('pCedula').value;
     
     if(!nombre || !cedula) return alert("Nombre y Cédula son obligatorios.");
 
-    // Objeto con la información recolectada
     const datosCasoBase = {
         id: idActivo,
         nombre: nombre,
@@ -1058,42 +1054,37 @@ async function guardarCasoCompleto() {
         esDrogas: document.getElementById('gEsDrogas').value,
         pTipoDroga: document.getElementById('gTipoDroga').value,
         pCantDroga: document.getElementById('gCantDroga').value,
-        // Datos de cómputo
         cAno: document.getElementById('cAno').value,
         cMes: document.getElementById('cMes').value,
         cDia: document.getElementById('cDia').value,
         esAcum: document.getElementById('esAcum').value,
         fDetencionActual: document.getElementById('fDetencionActual').value,
-        eventos: eventosTemporales,
+        eventos: eventosTemporales, // Se guarda localmente normal
         fechaMod: Date.now()
     };
 
-    // 3. ACTUALIZACIÓN DE LA VARIABLE GLOBAL Y LOCALSTORAGE
-    // Buscamos si ya existe para reemplazarlo o añadirlo
     const index = casos.findIndex(c => c.id === idActivo);
-    if (index !== -1) {
-        casos[index] = datosCasoBase;
-    } else {
-        casos.push(datosCasoBase);
-    }
-
-    // Guardamos el array global actualizado en el almacenamiento local
+    if (index !== -1) { casos[index] = datosCasoBase; } else { casos.push(datosCasoBase); }
     localStorage.setItem('casosIuris', JSON.stringify(casos));
 
-    // 4. GUARDADO EN LA NUBE (Opcional según interruptor)
     const syncActiva = document.getElementById('syncToggle').checked;
     if (syncActiva) {
         try {
+            // CIFRAMOS LOS EVENTOS PARA LA NUBE
+            const eventosCifrados = eventosTemporales.map(ev => ({
+                ...ev,
+                minuta: encryptionHelper.encrypt(ev.minuta, userId) // Ciframos la descripción del evento
+            }));
+
             const datosCifrados = {
                 ...datosCasoBase,
                 nombre: encryptionHelper.encrypt(nombre, userId),
-                cedula: encryptionHelper.encrypt(cedula, userId)
-                // Aquí podrías cifrar más campos si lo deseas
+                cedula: encryptionHelper.encrypt(cedula, userId),
+                eventos: eventosCifrados // Subimos la bitácora cifrada
             };
 
             if(idActivo.startsWith("local_")) {
                 const docRef = await db.collection('usuarios').doc(userId).collection('expedientes').add(datosCifrados);
-                // Actualizamos el ID real de Firebase en nuestro objeto local
                 datosCasoBase.id = docRef.id;
                 actualizarIdEnPantalla(docRef.id);
                 localStorage.setItem('casosIuris', JSON.stringify(casos));
@@ -1103,16 +1094,15 @@ async function guardarCasoCompleto() {
             alert("Sincronizado con la nube ✅");
         } catch(e) {
             console.error(e);
-            alert("Error de conexión. Guardado solo en este dispositivo.");
+            alert("Error de conexión. Guardado local.");
         }
     } else {
-        alert("Guardado localmente con éxito 💾");
+        alert("Guardado local exitoso 💾");
     }
-
-    // 5. Refrescar las listas visuales
     listarCasos();
     listarCasosGestion();
 }
+
 
 
 function actualizarIdEnPantalla(nuevoId) {
@@ -1120,67 +1110,58 @@ function actualizarIdEnPantalla(nuevoId) {
     document.getElementById('idCasoGestion').value = nuevoId;
 }
 
-
-
+// --- SINCRONIZACIÓN CON DESCIFRADO DE BITÁCORA ---
 async function sincronizarConNube() {
     const userId = auth.currentUser.uid;
     const estaSincronizado = document.getElementById('syncToggle').checked;
 
-    // Si el usuario NO quiere sincronizar, solo cargamos lo local
     if (!estaSincronizado) {
         casos = JSON.parse(localStorage.getItem('casosIuris')) || [];
-        listarCasos();
-        listarCasosGestion();
+        listarCasos(); listarCasosGestion();
         return;
     }
 
     try {
-        const snap = await db.collection('usuarios').doc(userId).collection('expedientes').get();
+        const ultimaSync = parseInt(localStorage.getItem('ultimaSyncExito')) || 0;
+        const snap = await db.collection('usuarios').doc(userId).collection('expedientes')
+            .where('fechaMod', '>', ultimaSync).get();
+
         let casosLocales = JSON.parse(localStorage.getItem('casosIuris')) || [];
         const mapCasos = new Map();
-
-        // 1. Cargamos primero lo local al mapa
         casosLocales.forEach(c => mapCasos.set(c.id, c));
 
-        // 2. Procesamos lo de la nube
-        snap.forEach(doc => {
-            const dataNube = doc.data();
-            const idNube = doc.id;
-            
-            // Desencriptamos datos sensibles
-            const casoNubeDecodificado = {
-                ...dataNube,
-                id: idNube,
-                nombre: encryptionHelper.decrypt(dataNube.nombre, userId),
-                cedula: encryptionHelper.decrypt(dataNube.cedula, userId),
-                origen: 'nube'
-            };
+        if (!snap.empty) {
+            snap.forEach(doc => {
+                const dataNube = doc.data();
+                
+                // DESCIFRAMOS LA BITÁCORA AL DESCARGAR
+                const eventosDescifrados = (dataNube.eventos || []).map(ev => ({
+                    ...ev,
+                    minuta: encryptionHelper.decrypt(ev.minuta, userId)
+                }));
 
-            if (mapCasos.has(idNube)) {
-                // SI EL CASO EXISTE EN AMBOS: Comparamos fecha de modificación
-                const casoLocal = mapCasos.get(idNube);
-                if ((dataNube.fechaMod || 0) > (casoLocal.fechaMod || 0)) {
-                    mapCasos.set(idNube, casoNubeDecodificado); // Gana la nube por ser más reciente
-                }
-            } else {
-                // SI SOLO EXISTE EN LA NUBE: Lo agregamos
-                mapCasos.set(idNube, casoNubeDecodificado);
-            }
-        });
+                const casoNubeDecodificado = {
+                    ...dataNube,
+                    id: doc.id,
+                    nombre: encryptionHelper.decrypt(dataNube.nombre, userId),
+                    cedula: encryptionHelper.decrypt(dataNube.cedula, userId),
+                    eventos: eventosDescifrados
+                };
+                mapCasos.set(doc.id, casoNubeDecodificado);
+            });
 
-        // 3. Guardamos la unión final
-        casos = Array.from(mapCasos.values());
-        localStorage.setItem('casosIuris', JSON.stringify(casos));
-        
+            casos = Array.from(mapCasos.values());
+            localStorage.setItem('casosIuris', JSON.stringify(casos));
+            localStorage.setItem('ultimaSyncExito', Date.now());
+        }
+
         listarCasos();
         listarCasosGestion();
-        console.log("Sincronización inteligente completada.");
+        console.log(`Sync Incremental: ${snap.size} cambios.`);
     } catch(e) {
-        console.error("Error en sincronización, operando en modo local:", e);
+        console.error("Error en sync:", e);
     }
 }
-
-
 
 
 function listarCasos() {
