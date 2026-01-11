@@ -1025,9 +1025,10 @@ reader.readAsText(event.target.files[0]);
 
 // --- FUNCIÓN DE GUARDADO MEJORADA CON CIFRADO DE BITÁCORA ---
 async function guardarCasoCompleto() {
-    if (!validarAccesoPremium()) return;
+    if (!validarAccesoPremium()) return; // Mantiene tu validación de suscripción
     const userId = auth.currentUser.uid;
     
+    // Mantiene tu lógica de identificación de caso activo
     let idActivo = document.getElementById('casoActivoId').value || document.getElementById('idCasoGestion').value;
     if (!idActivo) idActivo = "local_" + Date.now();
 
@@ -1036,6 +1037,7 @@ async function guardarCasoCompleto() {
     
     if(!nombre || !cedula) return alert("Nombre y Cédula son obligatorios.");
 
+    // Mantiene tu lógica de recolección de datos para uso LOCAL (Sin cifrar en el teléfono)
     const datosCasoBase = {
         id: idActivo,
         nombre: nombre,
@@ -1059,28 +1061,43 @@ async function guardarCasoCompleto() {
         cDia: document.getElementById('cDia').value,
         esAcum: document.getElementById('esAcum').value,
         fDetencionActual: document.getElementById('fDetencionActual').value,
-        eventos: eventosTemporales, // Se guarda localmente normal
-        fechaMod: Date.now()
+        eventos: eventosTemporales, 
+        fechaMod: Date.now() // Importante para la sincronización incremental
     };
 
+    // Mantiene tu lógica de actualización del array global y localStorage
     const index = casos.findIndex(c => c.id === idActivo);
     if (index !== -1) { casos[index] = datosCasoBase; } else { casos.push(datosCasoBase); }
     localStorage.setItem('casosIuris', JSON.stringify(casos));
 
+    // --- NUEVO MÓDULO DE SINCRONIZACIÓN CON CIFRADO TOTAL ---
     const syncActiva = document.getElementById('syncToggle').checked;
     if (syncActiva) {
         try {
-            // CIFRAMOS LOS EVENTOS PARA LA NUBE
+            // CIFRAMOS LOS EVENTOS (BITÁCORA)
             const eventosCifrados = eventosTemporales.map(ev => ({
                 ...ev,
-                minuta: encryptionHelper.encrypt(ev.minuta, userId) // Ciframos la descripción del evento
+                minuta: encryptionHelper.encrypt(ev.minuta, userId)
             }));
 
+            // CIFRAMOS TODOS LOS CAMPOS SENSIBLES PARA LA NUBE
             const datosCifrados = {
                 ...datosCasoBase,
                 nombre: encryptionHelper.encrypt(nombre, userId),
                 cedula: encryptionHelper.encrypt(cedula, userId),
-                eventos: eventosCifrados // Subimos la bitácora cifrada
+                delito: encryptionHelper.encrypt(datosCasoBase.delito, userId),
+                fase: encryptionHelper.encrypt(datosCasoBase.fase, userId),
+                expJud: encryptionHelper.encrypt(datosCasoBase.expJud, userId),
+                expFis: encryptionHelper.encrypt(datosCasoBase.expFis, userId),
+                expCar: encryptionHelper.encrypt(datosCasoBase.expCar, userId),
+                numFis: encryptionHelper.encrypt(datosCasoBase.numFis, userId),
+                tribunal: encryptionHelper.encrypt(datosCasoBase.tribunal, userId),
+                lugar: encryptionHelper.encrypt(datosCasoBase.lugar, userId),
+                familiar: encryptionHelper.encrypt(datosCasoBase.familiar, userId),
+                tel: encryptionHelper.encrypt(datosCasoBase.tel, userId),
+                pTipoDroga: encryptionHelper.encrypt(datosCasoBase.pTipoDroga, userId),
+                pCantDroga: encryptionHelper.encrypt(datosCasoBase.pCantDroga, userId),
+                eventos: eventosCifrados 
             };
 
             if(idActivo.startsWith("local_")) {
@@ -1091,7 +1108,7 @@ async function guardarCasoCompleto() {
             } else {
                 await db.collection('usuarios').doc(userId).collection('expedientes').doc(idActivo).set(datosCifrados);
             }
-            alert("Sincronizado con la nube ✅");
+            alert("Sincronizado con cifrado total ✅");
         } catch(e) {
             console.error(e);
             alert("Error de conexión. Guardado local.");
@@ -1099,6 +1116,8 @@ async function guardarCasoCompleto() {
     } else {
         alert("Guardado local exitoso 💾");
     }
+    
+    // Mantiene el refresco de tus listas
     listarCasos();
     listarCasosGestion();
 }
@@ -1134,17 +1153,30 @@ async function sincronizarConNube() {
             snap.forEach(doc => {
                 const dataNube = doc.data();
                 
-                // DESCIFRAMOS LA BITÁCORA AL DESCARGAR
+                // DESCIFRAMOS LA BITÁCORA
                 const eventosDescifrados = (dataNube.eventos || []).map(ev => ({
                     ...ev,
                     minuta: encryptionHelper.decrypt(ev.minuta, userId)
                 }));
 
+                // DESCIFRAMOS TODOS LOS CAMPOS AL DESCARGAR
                 const casoNubeDecodificado = {
                     ...dataNube,
                     id: doc.id,
                     nombre: encryptionHelper.decrypt(dataNube.nombre, userId),
                     cedula: encryptionHelper.decrypt(dataNube.cedula, userId),
+                    delito: encryptionHelper.decrypt(dataNube.delito, userId),
+                    fase: encryptionHelper.decrypt(dataNube.fase, userId),
+                    expJud: encryptionHelper.decrypt(dataNube.expJud, userId),
+                    expFis: encryptionHelper.decrypt(dataNube.expFis, userId),
+                    expCar: encryptionHelper.decrypt(dataNube.expCar, userId),
+                    numFis: encryptionHelper.decrypt(dataNube.numFis, userId),
+                    tribunal: encryptionHelper.decrypt(dataNube.tribunal, userId),
+                    lugar: encryptionHelper.decrypt(dataNube.lugar, userId),
+                    familiar: encryptionHelper.decrypt(dataNube.familiar, userId),
+                    tel: encryptionHelper.decrypt(dataNube.tel, userId),
+                    pTipoDroga: encryptionHelper.decrypt(dataNube.pTipoDroga, userId),
+                    pCantDroga: encryptionHelper.decrypt(dataNube.pCantDroga, userId),
                     eventos: eventosDescifrados
                 };
                 mapCasos.set(doc.id, casoNubeDecodificado);
@@ -1157,7 +1189,6 @@ async function sincronizarConNube() {
 
         listarCasos();
         listarCasosGestion();
-        console.log(`Sync Incremental: ${snap.size} cambios.`);
     } catch(e) {
         console.error("Error en sync:", e);
     }
