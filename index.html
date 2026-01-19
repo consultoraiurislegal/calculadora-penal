@@ -81,9 +81,44 @@ input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-ra
 .modal-content { background-color: white; margin: 5% auto; padding: 20px; border-radius: 15px; width: 90%; max-width: 600px; line-height: 1.5; font-size: 0.85em; position: relative; }
 .close-modal { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
 
-.tabs-container { display: flex; background: #fff; margin-bottom: 20px; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-.tab-button { flex: 1; padding: 15px; border: none; background: #eee; cursor: pointer; font-weight: bold; color: #666; transition: 0.3s; font-size: 0.8em; }
-.tab-button.active { background: #1a73e8; color: white; }
+/* --- PEGAR ESTO EN LUGAR DE LO QUE BORRASTE (LÍNEAS 84-86 APROX) --- */
+
+.tabs-container {
+    display: flex;              /* Pone los botones en fila */
+    overflow-x: auto;           /* Permite deslizar si no caben */
+    white-space: nowrap;        /* Evita que bajen de línea */
+    background: #fff;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    -webkit-overflow-scrolling: touch; /* Suavidad en móviles */
+    scrollbar-width: none;      /* Oculta barra scroll (Firefox) */
+}
+
+/* Oculta barra scroll (Chrome/Android) */
+.tabs-container::-webkit-scrollbar {
+    display: none;
+}
+
+.tab-button {
+    flex: 0 0 auto;             /* IMPORTANTE: Mantiene el tamaño del botón */
+    padding: 15px 20px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: bold;
+    color: #666;
+    transition: 0.3s;
+    font-size: 0.85em;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-button.active {
+    color: #1a73e8;
+    background: #f8f9fa;
+    border-bottom: 3px solid #1a73e8;
+}
+
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 .calc-res { background: #fff3cd; padding: 10px; border-radius: 8px; margin-top: 10px; border-left: 5px solid #ffc107; font-weight: bold; color: #856404; }
@@ -163,9 +198,12 @@ border-radius: 8px;
 </div>
 
 <div class="tabs-container no-print">
-<button class="tab-button active" onclick="openTab(event, 'gestion')">📁 Gestión de Expedientes</button>
-<button class="tab-button" onclick="openTab(event, 'principal')">Cómputo de Pena</button>
-<button class="tab-button" onclick="openTab(event, 'calculadora')">Herramientas para Dosimetría y Cómputo</button>
+<button class="tab-button active" onclick="openTab(event, 'gestion')">📁 Expedientes</button>
+<button class="tab-button" onclick="openTab(event, 'principal')">​📅Cómputo</button>
+<button class="tab-button" onclick="openTab(event, 'calculadora')">​🧑‍⚖️ Dosimetría</button>
+<button class="tab-button" onclick="openTab(event, 'prescripciones')">⚖️ Prescripciones </button>
+<button class="tab-button" onclick="openTab(event, 'conversiones')">🔄 Conversiones</button>
+<button class="tab-button" onclick="openTab(event, 'herramientas')">🛠️ Herramientas</button>
 <button id="tab-admin" class="tab-button" style="display:none; background: #991b1b; color: white;" onclick="openTab(event, 'adminPanel')">🛡️ Admin</button>
 </div>
 
@@ -370,196 +408,579 @@ border-radius: 8px;
 </div>
 
 <div id="calculadora" class="tab-content">
-<div class="modulo">
-    <h2>Cálculo de Término Medio (Dosimetría)</h2>
-    
-    <label>Límite Mínimo (Límite Inferior):</label>
-    <div class="grid-4">
-        <input type="number" id="tm_min_a" placeholder="Años">
-        <input type="number" id="tm_min_m" placeholder="Meses">
-        <input type="number" id="tm_min_d" placeholder="Días">
-        <input type="number" id="tm_min_h" placeholder="Horas">
-    </div>
 
-    <label style="margin-top:10px;">Límite Máximo (Límite Superior):</label>
-    <div class="grid-4">
-        <input type="number" id="tm_max_a" placeholder="Años">
-        <input type="number" id="tm_max_m" placeholder="Meses">
-        <input type="number" id="tm_max_d" placeholder="Días">
-        <input type="number" id="tm_max_h" placeholder="Horas">
-    </div>
+    <div class="modulo" style="border-left: 5px solid #1a73e8; background: #fdfdfd;">
+        <h2 style="color: #1565c0;">🧮 Dosimetría Penal </h2>
+        <p style="font-size: 0.9em; color: #666;">Protocolo de Cálculo Automático:
+​1. Selección: Escoja el delito o delitos imputados del catálogo.
+​2. Individualización: Aplique atenuantes/agravantes (Art. 37 CP) y fije la pena base.
+​3. Iter Criminis: Determine el grado de ejecución (Tentativa / Frustración).
+​4. Participación: Establezca el grado de intervención (Autoría / Complicidad).
+​5. Pluralidad: El sistema detectará y aplicará reglas de Concurso (Real / Ideal).
+​6. Procedimiento: Aplique rebaja por Admisión de los Hechos si corresponde.
+​🏁 Resultado: Pena Definitiva Lista..</p>
+        
+        <div id="contenedorDelitosDosimetria"></div>
 
-    <button class="btn-principal" style="padding:10px; background:#1a73e8; margin-top:10px;" onclick="calcularTerminoMedio()">Calcular Término Medio</button>
-    <div id="resTM" class="calc-res"></div>
+        <button class="btn-add" style="width: 100%; padding: 15px; font-size: 1em; background: #1a73e8;" onclick="agregarBloqueDelito()">
+            + AGREGAR DELITO AL CALCULO
+        </button>
+
+        <div id="seccionConcurso" style="display:none; margin-top: 20px; border: 2px solid #e67e22; padding: 15px; border-radius: 10px; background: #fffbf0;">
+            <h3 style="color: #e67e22; margin-top: 0;">🔗 Reglas de Concurso</h3>
+            
+            <label>Tipo de Concurso:</label>
+           <select id="tipoConcurso" onchange="actualizarUIConcurso()">
+    <option value="Real">Concurso Real (Art. 86 CP)</option>
+    <option value="Ideal">Concurso Ideal (Art. 87 CP)</option>
+    <option value="SinConcurso">Sin Concurso (Suma Aritmética)</option> </select>
+
+
+            <div id="uiConcursoIdeal" style="display:none; margin-top: 10px; background: #fff; padding: 10px; border-radius: 5px;">
+                <label>Aumento por Concurso Ideal (Fracción):</label>
+                <input type="text" id="fraccionIdeal" placeholder="Ej: 1/6">
+                <small>Se aplicará a la pena más grave.</small>
+            </div>
+        </div>
+
+        <div class="modulo" style="margin-top: 20px; border-left: 5px solid #27ae60; background: #fff;">
+            <h3>🤝 Procedimiento Especial</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="margin:0;">¿Aplica Admisión de los Hechos?</label>
+                <div class="switch-container" style="padding: 2px; margin:0; border:none; background:none;">
+                    <label class="switch">
+                        <input type="checkbox" id="chkAdmision">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div id="uiAdmision" style="margin-top: 10px;">
+                <label>Rebaja a aplicar:</label>
+                <input type="text" id="fraccionAdmision" placeholder="Ej: 1/3">
+            </div>
+        </div>
+
+        <button class="btn-principal" onclick="calcularDosimetriaFinal()">CALCULAR SENTENCIA DEFINITIVA</button>
+
+        <div id="resDosimetria" class="modulo" style="display:none; margin-top: 20px; border-top: 5px solid #2e7d32; background: #fff;">
+            <h2 style="color:#2e7d32;">⚖️ Sentencia Estimada</h2>
+            
+            <div class="grid-2">
+                <div style="text-align:center;">
+                    <span style="font-size: 0.9em; color: #666;">Pena Total:</span><br>
+                    <b id="lblPenaFinal" style="font-size: 1.5em;">--</b>
+                </div>
+                <div style="text-align:center;">
+                    <span style="font-size: 0.9em; color: #666;">Fecha Cumplimiento:</span><br>
+                    <b id="lblFechaFinal" style="color: #d93025;">--</b>
+                </div>
+            </div>
+
+            <h3>📝 Iter Procesal (Fundamentación)</h3>
+            <div id="iterDosimetria" style="font-family: 'Courier New', Courier, monospace; font-size: 0.85em; background: #333; color: #fff; padding: 15px; border-radius: 8px; white-space: pre-wrap;"></div>
+        </div>
+    </div>
+   
+
+
 </div>
 
-<div class="modulo">
-    <h2>Concurso Ideal de Delitos</h2>
-    <p><small>Pena del delito más grave:</small></p>
-    <div class="grid-4">
-        <input type="number" id="ideal_a" placeholder="Años">
-        <input type="number" id="ideal_m" placeholder="Meses">
-        <input type="number" id="ideal_d" placeholder="Días">
-        <input type="number" id="ideal_h" placeholder="Horas">
-    </div>
+<div id="prescripciones" class="tab-content">
     
-    <label style="margin-top:20px;">Deslice para ajustar el incremento:</label>
-    <div style="padding: 10px 0;">
-        <input type="range" id="sliderIncremento" min="0" max="50" step="0.01" value="16.66" style="width: 100%;" oninput="actualizarLabelIncremento(this.value)">
-        <div style="text-align: center; margin-top: 10px; font-weight: bold; color: #e67e22;">
-            Aumento: <span id="labelProporcionInc">1/6</span> (<span id="labelPorcentajeInc">16.66</span>%)
+      <div class="modulo">
+        <h2>1. Selección del Delito</h2>
+        
+        <style>
+            /* ESTO PERMITE QUE EL TEXTO BAJE DE LÍNEA */
+.opcion-multilinea {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 8px 5px; /* Un poco más de espacio */
+    font-size: 0.9em;
+    line-height: 1.2; /* Mejor lectura en varias líneas */
+}
+
+/* ESTO HACE QUE LA CAJA SEA GRANDE SIEMPRE */
+#selDelitoPresc {
+    height: auto !important;
+    min-height: 250px !important; /* Altura fija grande */
+    overflow-y: auto;
+}
+
+        </style>
+
+        <label>Buscar delito:</label>
+        <input type="text" id="inputBusquedaDelito" placeholder="Escriba para filtrar (ej: robo...)" 
+               onkeyup="filtrarDelitosUI()" style="margin-bottom:5px; background:#f0f8ff;">
+        
+        <select id="selDelitoPresc" onchange="cargarDatosDelitoSeleccionado()" size="7" style="height: auto; min-height: 180px;">
+            <option value="">-- Resultados de la búsqueda --</option>
+        </select>
+        <small style="color:#666; display:block; margin-top:2px;">👆 Seleccione el delito en la lista</small>
+
+        <div id="infoDelito" style="background:#e8f0fe; padding:10px; margin-top:10px; border-radius:8px; font-size:0.9em; display:none; border: 1px solid #b6d4fe;">
+            <div class="grid-2">
+                <div><b>Ley:</b> <span id="lblLey"></span></div>
+                <div><b>Artículo:</b> <span id="lblArticulo"></span></div>
+            </div>
+            
+            <div style="margin-top:5px; padding-top:5px; border-top:1px dashed #ccc;">
+                <b>Tipo de Pena:</b> <span id="lblSancion" style="color:#d93025; font-weight:bold; text-transform: uppercase;"></span>
+            </div>
+
+            <div class="grid-2" style="margin-top:5px;">
+                <div><b>Acción:</b> <span id="lblAccion"></span></div>
+                <div><b>Condición:</b> <span id="lblCondicion" style="font-weight:bold;"></span></div>
+            </div>
+
+            <div style="margin-top:5px; border-top:1px dashed #ccc; padding-top:5px;">
+                <b>Límites:</b> <span id="lblRango"></span> <br>
+                <b>Término Medio:</b> <span id="lblMediaBase" style="color:#1a73e8; font-weight:bold;"></span>
+                <br><small>(Base para el cálculo de prescripción)</small>
+            </div>
+            
+            <span id="lblMin" style="display:none;"></span>
+            <span id="lblMax" style="display:none;"></span>
+            <span id="lblTiempoPresc" style="display:none;"></span>
         </div>
     </div>
 
-    <button class="btn-principal" style="padding:10px; background:#e67e22;" onclick="calcularConcursoIdeal()">Calcular Pena Resultante</button>
-    <div id="resIdeal" class="calc-res" style="border-left: 5px solid #e67e22;"></div>
+
+    <div id="moduloAccionPenal" class="modulo">
+        <h2>2. Prescripción de la Acción Penal</h2>
+        
+        <label>Grado de Ejecución:</label>
+        <select id="selGradoEjecucion" onchange="actualizarInterfazRebajas()">
+            <option value="Consumado">Delito Consumado (Sin rebaja)</option>
+            <option value="Frustrado">Delito Frustrado (Rebaja 1/3)</option>
+            <option value="Tentativa">Tentativa (Rebaja de 1/2 a 2/3)</option>
+        </select>
+
+        <div id="divFraccionManual" style="display:none; background:#fff3cd; padding:10px; border-radius:5px; margin-top:5px;">
+            <label>Fracción de rebaja a aplicar:</label>
+            <div class="grid-2">
+                <input type="text" id="fraccionEjecucion" placeholder="Ej: 1/3">
+                <small style="align-self:center; color:#666;">(Puede editar ej: 1/2, 1/3, 2/3)</small>
+            </div>
+        </div>
+
+        <label style="margin-top:15px;">Grado de Intervención:</label>
+        <select id="selGradoIntervencion">
+            <option value="Perpetrador">Autor / Coautor / Coop. Inmediato (Igual pena)</option>
+            <option value="Complice">Cómplice Simple / Facilitador (Rebaja 1/2)</option>
+        </select>
+
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
+
+       <div class="modulo-fechas">
+    <label>Fecha de Comisión del Hecho / ultimo acto de ejecucion / cese de continuacion o permanencia del hecho/ interrupcion:</label>
+    <input type="date" id="fHechoPresc">
+
+    <div style="background: #fff3cd; padding: 10px; border-radius: 8px; margin-top: 15px; border: 1px solid #ffeeba;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label style="margin:0; color:#856404;">¿Existió Suspensión del Lapso?</label>
+            <div class="switch-container" style="padding: 2px; margin:0; border:none; background:none;">
+                <label class="switch">
+                    <input type="checkbox" id="chkSuspension" onchange="document.getElementById('divFechasSuspension').style.display = this.checked ? 'block' : 'none'">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div id="divFechasSuspension" style="display:none; margin-top: 10px; border-top: 1px solid #eec;">
+            <p style="font-size:0.8em; color:#666; margin-bottom:5px;">Ingrese el periodo donde el proceso estuvo detenido (Ej. Esperando antejuicio de mérito, extradición, etc.):</p>
+            <div class="grid-2">
+                <div><label>Inicio Suspensión:</label><input type="date" id="fSuspInicio"></div>
+                <div><label>Fin Suspensión:</label><input type="date" id="fSuspFin"></div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="modulo">
-    <h2>Concurso Real de Delitos</h2>
-    <p><small>Regla: Pena mayor + mitad de la suma de las penas restantes.</small></p>
-    <div id="listaPenasReal">
-        <div class="grid-4" style="margin-bottom: 8px;">
-            <input type="number" class="ra" placeholder="Años">
-            <input type="number" class="rm" placeholder="Meses">
-            <input type="number" class="rd" placeholder="Días">
-            <input type="number" class="rh" placeholder="Horas"> </div>
-    </div>
-    <button class="btn-add" onclick="agregarFilaPenaReal()">+ Agregar otra condena</button>
-    <button class="btn-principal" style="padding:10px; background:#8e44ad; margin-top: 15px;" onclick="calcularConcursoReal()">Calcular Pena Resultante</button>
-    <div id="resReal" class="calc-res" style="border-left: 5px solid #8e44ad;"></div>
-</div>
+<button class="btn-principal" style="margin-top: 15px;" onclick="calcularPrescripcionInteligente()">CALCULAR PRESCRIPCIÓN</button>
 
-<div class="modulo">
-    <h2>Rebaja por Admisión de los Hechos</h2>
-    <label>Pena impuesta o estimada:</label>
-    <div class="grid-4">
-        <input type="number" id="adm_a" placeholder="Años">
-        <input type="number" id="adm_m" placeholder="Meses">
-        <input type="number" id="adm_d" placeholder="Días">
-        <input type="number" id="adm_h" placeholder="Horas">
     </div>
+
+ <div class="modulo" style="border-top: 5px solid #d93025;">
+    <h2>3. Prescripción de la Pena (Art. 112 C.P.)</h2>
     
-    <label style="margin-top:20px;">Deslice para ajustar la rebaja:</label>
-    <div style="padding: 10px 0;">
-        <input type="range" id="sliderRebaja" min="0" max="50" step="0.01" value="33.33" style="width: 100%;" oninput="actualizarLabelRebaja(this.value)">
-        <div style="text-align: center; margin-top: 10px; font-weight: bold; color: #1a73e8;">
-            Proporción: <span id="labelProporcion">1/3</span> (<span id="labelPorcentaje">33.33</span>%)
+    <div style="background: #fff5f5; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9em; color: #555;">
+        <b>Instrucciones:</b> Ingrese la pena impuesta  en la sentencia definitivamente firme, o lo que falte por cumplirse, de acuerdo al ultimo computo. No requiere seleccionar el delito del catálogo.
+    </div>
+
+    <label>Pena Impuesta (Sentencia Firme):</label>
+    <div class="grid-3">
+        <input type="number" id="pen_a" placeholder="Años">
+        <input type="number" id="pen_m" placeholder="Meses">
+        <input type="number" id="pen_d" placeholder="Días">
+    </div>
+
+    <div class="grid-2">
+        <div>
+            <label>Tipo de Sanción:</label>
+            <select id="pen_tipo">
+                <option value="Presidio">Presidio (+ 1/2)</option>
+                <option value="Prisión">Prisión (+ 1/2)</option>
+                <option value="Arresto">Arresto (+ 1/2)</option>
+                <option value="Relegación">Relegación (+ 1/3)</option>
+                <option value="Confinamiento">Confinamiento (+ 1/3)</option>
+            </select>
+        </div>
+        <div>
+            <label>Inicio del Cómputo:</label>
+            <input type="date" id="pen_inicio" placeholder="Fecha Sentencia Firme o Quebrantamiento">
+            <small style="color:#666; font-size:0.75em;">(Fecha Sentencia Firme o Quebrantamiento)</small>
         </div>
     </div>
 
-    <button class="btn-principal" style="padding:10px; background:#27ae60;" onclick="calcularAdmision()">Calcular Pena con Rebaja</button>
-    <div id="resAdmision" class="calc-res"></div>
+    <div style="background: #e3f2fd; padding: 10px; border-radius: 8px; margin-top: 15px; border: 1px solid #bbdefb;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <b style="color:#1565c0;">¿Sentencia por Varios Delitos?</b><br>
+                <small style="color:#555;">(Concurso Real o Ideal -> Suma 1/4 a la prescripción)</small>
+            </div>
+            <div class="switch-container" style="padding: 2px; margin:0; border:none; background:none;">
+                <label class="switch">
+                    <input type="checkbox" id="chkConcursoPena">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-principal" style="background: #c62828; margin-top: 15px;" onclick="calcularPrescripcionPena()">CALCULAR PRESCRIPCIÓN DE LA PENA</button>
+
+    <div id="resPenaBox" style="display:none; margin-top: 20px; background: #fff; padding: 15px; border-radius: 10px; border-left: 5px solid #c62828; border: 1px solid #eee;">
+        <h3 style="color:#c62828; margin-top:0;">🛑 Resultado del Cálculo</h3>
+        
+        <div class="grid-2">
+            <div>
+                <b>Tiempo Total Requerido:</b><br>
+                <span id="lblTiempoPena" style="font-size: 1.2em; font-weight: bold;">--</span>
+            </div>
+            <div>
+                <b>Fecha de Prescripción:</b><br>
+                <span id="lblFechaPena" style="font-size: 1.2em; color: #d93025; font-weight: bold;">--</span>
+            </div>
+        </div>
+
+        <h4 style="margin-top: 15px; border-bottom: 1px solid #ddd;">📝 Iter Procesal</h4>
+        <div id="iterPena" style="font-family: 'Courier New', Courier, monospace; font-size: 0.85em; background: #333; color: #fff; padding: 10px; border-radius: 5px; white-space: pre-wrap;">
+        </div>
+
+        <div style="margin-top: 10px; background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; font-size: 0.85em; border: 1px solid #ffeeba;">
+            <b>⚠️ ADVERTENCIA JURISPRUDENCIAL:</b><br>
+            En aquellos delitos donde la acción penal es considerada <b>IMPRESCRIPTIBLE</b> (Ej. Lesa Humanidad, Patrimonio Público, Tráfico de Drogas Mayor Cuantía según criterio), se entiende jurídicamente que la <b>Pena</b> también es imprescriptible. Verifique la naturaleza del delito antes de aplicar este resultado.
+        </div>
+    </div>
 </div>
 
-<div class="modulo">
-<h2>7.1 Calcular lapso entre dos fechas</h2>
-<div class="grid-2">
-<div><label>Fecha Inicial:</label><input type="date" id="calc71_inicio"></div>
-<div><label>Fecha Final:</label><input type="date" id="calc71_fin"></div>
+
+    <div id="resPrescripcion" class="modulo" style="display:none; border-top: 5px solid #2e7d32;">
+        <h2 style="color:#2e7d32;">⚖️ Dictamen Jurídico</h2>
+        
+        <div style="background:#f1f8e9; padding:15px; border-radius:10px; margin-bottom:15px;">
+            <div class="grid-2">
+                <div>
+                    <b>Lapso Ordinario:</b><br>
+                    <span id="resLapsoOrd" style="font-size:1.2em;">--</span>
+                </div>
+                <div>
+                    <b>Fecha Prescribe:</b><br>
+                    <span id="resFechaOrd" style="font-size:1.2em; font-weight:bold; color:#d93025;">--</span>
+                </div>
+            </div>
+            <div id="resExtraordinarioBox" style="margin-top:10px; border-top:1px solid #c8e6c9; padding-top:10px;">
+                <b>Lapso Extraordinario (Judicial):</b> <span id="resLapsoExtra">--</span><br>
+                <b>Fecha Tope:</b> <span id="resFechaExtra" style="color:#d93025; font-weight:bold;">--</span>
+            </div>
+        </div>
+
+        <h3>📝 Iter Procesal (Explicación del Cálculo)</h3>
+        <div id="iterProcesal" style="font-family: 'Courier New', Courier, monospace; font-size: 0.85em; background: #333; color: #fff; padding: 15px; border-radius: 8px; white-space: pre-wrap;">
+            Aquí aparecerá el desglose paso a paso...
+        </div>
+    </div>
 </div>
-<button class="btn-principal" style="padding:10px;" onclick="calc71()">Calcular Lapso</button>
-<div id="res71" class="calc-res"></div>
+<div id="conversiones" class="tab-content">
+    
+    <div class="modulo" style="border-top: 5px solid #e67e22;">
+        <h2 style="color:#e67e22;">⚖️ Equivalencias entre Penas</h2>
+        <p style="font-size:0.9em; color:#666;">Calcule la conversión de tiempo físico según las reglas de proporción del Código Penal.</p>
+
+        <label>Tiempo a Convertir:</label>
+        <div class="grid-3">
+            <input type="number" id="conv_a" placeholder="Años">
+            <input type="number" id="conv_m" placeholder="Meses">
+            <input type="number" id="conv_d" placeholder="Días">
+        </div>
+
+                <label>Tipo de Conversión (Regla):</label>
+        <select id="tipoConversion">
+            <optgroup label="Hacia PRISIÓN">
+                <option value="arr_pri">Arresto → Prisión (2 días Arresto = 1 Prisión)</option>
+                <option value="rel_pri">Releg/Conf/Exp → Prisión (2 días = 1 Prisión)</option>
+            </optgroup>
+            <optgroup label="Hacia PRESIDIO">
+                <option value="arr_pres">Arresto → Presidio (3 días Arresto = 1 Presidio)</option>
+                <option value="rel_pres">Relegación → Presidio (4 días Releg. = 1 Presidio)</option>
+                <option value="conf_pres">Conf/Exp → Presidio (5 días Conf. = 1 Presidio)</option>
+                <option value="pri_pres">Prisión → Presidio (2 días Prisión = 1 Presidio)</option>
+            </optgroup>
+        </select>
+
+
+        <button class="btn-principal" style="background:#e67e22; margin-top:15px;" onclick="calcularEquivalencia()">CALCULAR EQUIVALENCIA</button>
+        
+        <div id="resEquivalencia" class="calc-res" style="border-left: 5px solid #e67e22; display:none;"></div>
+    </div>
+
+    <div class="modulo" style="border-top: 5px solid #2980b9;">
+        <h2 style="color:#2980b9;">🔄 Conmutación de Penas</h2>
+        <p style="font-size:0.9em; color:#666;">Cálculo del aumento de pena al cambiar la naturaleza de la sanción.</p>
+
+        <label>Pena Original:</label>
+        <div class="grid-3">
+            <input type="number" id="conm_a" placeholder="Años">
+            <input type="number" id="conm_m" placeholder="Meses">
+            <input type="number" id="conm_d" placeholder="Días">
+        </div>
+
+        <label>Operación de Conmutación:</label>
+        <select id="tipoConmutacion">
+            <option value="pres_a_pri">Presidio ➔ Prisión (Aumento de 1/3)</option>
+            <option value="pri_a_arr">Prisión ➔ Arresto (Aumento de 1/4)</option>
+            <option value="pri_a_conf">Prisión ➔ Confinamiento (Aumento de 1/3)</option>
+        </select>
+
+        <button class="btn-principal" style="background:#2980b9; margin-top:15px;" onclick="calcularConmutacion()">CALCULAR CONMUTACIÓN</button>
+        
+        <div id="resConmutacion" class="calc-res" style="border-left: 5px solid #2980b9; display:none;"></div>
+    </div>
+
+</div>
+<div id="herramientas" class="tab-content">
+    
+    <div class="modulo" style="border-top: 5px solid #607d8b;">
+        <h2>📅 Calcular lapso entre dos fechas</h2>
+        <div class="grid-2">
+            <div><label>Fecha Inicial:</label><input type="date" id="calc71_inicio"></div>
+            <div><label>Fecha Final:</label><input type="date" id="calc71_fin"></div>
+        </div>
+        <button class="btn-principal" style="padding:10px; background:#607d8b;" onclick="calc71()">Calcular Lapso</button>
+        <div id="res71" class="calc-res"></div>
+    </div>
+
+    <div class="modulo" style="border-top: 5px solid #607d8b;">
+        <h2>➕ Sumar lapsos de tiempo</h2>
+        <div id="listaLapsosSuma">
+            <div class="grid-3"><input type="number" class="sa" placeholder="Años"><input type="number" class="sm" placeholder="M"><input type="number" class="sd" placeholder="D"></div>
+        </div>
+        <button class="btn-add" onclick="agregarFilaSuma()">+ Agregar otro lapso</button>
+        <button class="btn-principal" style="padding:10px; background:#607d8b;" onclick="calc72()">Sumar Lapsos</button>
+        <div id="res72" class="calc-res"></div>
+    </div>
+
+    <div class="modulo" style="border-top: 5px solid #607d8b;">
+        <h2>➖ Restar dos lapsos</h2>
+        <p><small>Ingrese el lapso mayor arriba y el que desea restar abajo</small></p>
+        <div class="grid-3">
+            <input type="number" id="r1a" placeholder="Años">
+            <input type="number" id="r1m" placeholder="Meses">
+            <input type="number" id="r1d" placeholder="Días">
+        </div>
+        <div style="text-align:center; margin: 5px 0; font-weight:bold; color:#607d8b;">MENOS</div>
+        <div class="grid-3">
+            <input type="number" id="r2a" placeholder="Años">
+            <input type="number" id="r2m" placeholder="Meses">
+            <input type="number" id="r2d" placeholder="Días">
+        </div>
+        <button class="btn-principal" style="padding:10px; background:#607d8b;" onclick="calc73()">Restar Lapsos</button>
+        <div id="res73" class="calc-res"></div>
+    </div>
+
+    <div class="modulo" style="border-top: 5px solid #607d8b;">
+        <h2>📅 Sumar/Restar Lapso a una Fecha</h2>
+        <label>Fecha Base:</label><input type="date" id="fBase745">
+        <div class="grid-3"><input type="number" id="la745" placeholder="Años"><input type="number" id="lm745" placeholder="Meses"><input type="number" id="ld745" placeholder="Días"></div>
+        <div class="grid-2">
+            <button class="btn-principal" style="padding:10px; background:#e67e22;" onclick="calc745('restar')">Restar Lapso</button>
+            <button class="btn-principal" style="padding:10px; background:#27ae60;" onclick="calc745('sumar')">Sumar Lapso</button>
+        </div>
+        <div id="res745" class="calc-res"></div>
+    </div>
+
+    <div class="modulo" style="border-top: 5px solid #607d8b;">
+        <h2>🍰 Fragmentar una pena (Solo Fracción)</h2>
+        <div class="grid-3"><input type="number" id="fra" placeholder="Años"><input type="number" id="frm" placeholder="Meses"><input type="number" id="frd" placeholder="Días"></div>
+        <label>Fracción (Ejemplo: 1/3 o 3/4):</label>
+        <input type="text" id="fraccion" placeholder="1/2">
+        <button class="btn-principal" style="padding:10px; background:#607d8b;" onclick="calc76()">Calcular Fracción</button>
+        <div id="res76" class="calc-res"></div>
+    </div>
+
+    <div class="modulo" style="border-top: 5px solid #8e44ad;">
+        <h2 style="color:#8e44ad;">🧮 Operar Fracción sobre Lapso</h2>
+        <p><small>Ej: A 4 años, restarle su cuarta parte (1/4).</small></p>
+        
+        <label>Lapso Base:</label>
+        <div class="grid-3">
+            <input type="number" id="op_a" placeholder="Años">
+            <input type="number" id="op_m" placeholder="Meses">
+            <input type="number" id="op_d" placeholder="Días">
+        </div>
+
+        <div class="grid-2">
+            <div>
+                <label>Fracción (Ej: 1/4):</label>
+                <input type="text" id="op_frac" placeholder="1/4">
+            </div>
+            <div>
+                <label>Acción:</label>
+                <select id="op_tipo">
+                    <option value="sumar">Sumar (+)</option>
+                    <option value="restar">Restar (-)</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn-principal" style="background:#8e44ad; margin-top:10px;" onclick="calcularOperacionFraccion()">CALCULAR RESULTADO</button>
+        <div id="resOperacionFrac" class="calc-res" style="border-left: 5px solid #8e44ad;"></div>
+    </div>
+
 </div>
 
-<div class="modulo">
-<h2>7.2 Sumar lapsos de tiempo</h2>
-<div id="listaLapsosSuma">
-<div class="grid-3"><input type="number" class="sa" placeholder="Años"><input type="number" class="sm" placeholder="M"><input type="number" class="sd" placeholder="D"></div>
-</div>
-<button class="btn-add" onclick="agregarFilaSuma()">+ Agregar otro lapso</button>
-<button class="btn-principal" style="padding:10px;" onclick="calc72()">Sumar Lapsos</button>
-<div id="res72" class="calc-res"></div>
-</div>
-
-<div class="modulo">
-<h2>7.3 Restar dos lapsos</h2>
-<p><small>Ingrese el lapso mayor arriba y el que desea restar abajo</small></p>
-<div class="grid-3">
-<input type="number" id="r1a" placeholder="Años">
-<input type="number" id="r1m" placeholder="Meses">
-<input type="number" id="r1d" placeholder="Días">
-</div>
-<div style="text-align:center; margin: 5px 0; font-weight:bold; color:#1a73e8;">MENOS</div>
-<div class="grid-3">
-<input type="number" id="r2a" placeholder="Años">
-<input type="number" id="r2m" placeholder="Meses">
-<input type="number" id="r2d" placeholder="Días">
-</div>
-<button class="btn-principal" style="padding:10px;" onclick="calc73()">Restar Lapsos</button>
-<div id="res73" class="calc-res"></div>
-</div>
-
-<div class="modulo">
-<h2>7.4 y 7.5 Sumar/Restar Lapso a una Fecha</h2>
-<label>Fecha Base:</label><input type="date" id="fBase745">
-<div class="grid-3"><input type="number" id="la745" placeholder="Años"><input type="number" id="lm745" placeholder="Meses"><input type="number" id="ld745" placeholder="Días"></div>
-<div class="grid-2">
-<button class="btn-principal" style="padding:10px; background:#e67e22;" onclick="calc745('restar')">Restar Lapso</button>
-<button class="btn-principal" style="padding:10px; background:#27ae60;" onclick="calc745('sumar')">Sumar Lapso</button>
-</div>
-<div id="res745" class="calc-res"></div>
-</div>
-
-<div class="modulo">
-<h2>7.6 Fragmentar una pena</h2>
-<div class="grid-3"><input type="number" id="fra" placeholder="Años"><input type="number" id="frm" placeholder="Meses"><input type="number" id="frd" placeholder="Días"></div>
-<label>Fracción (Ejemplo: 1/3 o 3/4):</label>
-<input type="text" id="fraccion" placeholder="1/2">
-<button class="btn-principal" style="padding:10px;" onclick="calc76()">Calcular Fracción</button>
-<div id="res76" class="calc-res"></div>
-</div>
-</div>
 
 <div id="adminPanel" class="tab-content">
-    <div class="modulo">
-        <h2>🛡️ Panel de Control Inteligente</h2>
+    
+    <div class="modulo" style="border-top: 5px solid #8e44ad;">
+        <h2>⚖️ Gestión del Catálogo de Delitos</h2>
         
-        <div style="background:#f8f9fa; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:20px;">
-            <label style="margin-top:0;">🔎 Buscar abonado por correo:</label>
-            <div class="grid-2">
-                <input type="email" id="adminSearchEmail" placeholder="cliente@correo.com" style="margin-top:5px;">
-                <button class="btn-principal" onclick="buscarUsuarioAdmin()" style="margin-top:5px; background:#4b5563;">
-                    BUSCAR
-                </button>
+        <div class="grid-2">
+            <div><label>Nombre del Delito:</label><input type="text" id="admDelitoNombre" placeholder="Ej: Robo Agravado"></div>
+            <div><label>Ley:</label><input type="text" id="admDelitoLey" placeholder="Ej: Código Penal"></div>
+        </div>
+
+        <div class="grid-3">
+            <div><label>Artículo:</label><input type="text" id="admDelitoArt"></div>
+            <div><label>Pena Mínima (Años):</label><input type="number" id="admDelitoMin" step="0.01"></div>
+            <div><label>Pena Máxima (Años):</label><input type="number" id="admDelitoMax" step="0.01"></div>
+        </div>
+
+        <div class="grid-3">
+            <div>
+                <label>Tipo de Sanción:</label>
+                <select id="admDelitoSancion">
+                    <option value="Presidio">Presidio</option>
+                    <option value="Prisión">Prisión</option>
+                    <option value="Arresto">Arresto</option>
+                    <option value="Confinamiento">Confinamiento</option>
+                    <option value="Multa">Multa</option>
+                </select>
+            </div>
+            <div>
+                <label>Tipo de Acción:</label>
+                <select id="admDelitoTipo">
+                    <option value="Pública">Pública</option>
+                    <option value="Privada">Privada</option>
+                </select>
+            </div>
+            <div>
+                <label>Condición:</label>
+                <select id="admDelitoCondicion">
+                    <option value="Prescriptible">Prescriptible</option>
+                    <option value="Imprescriptible">Imprescriptible</option>
+                </select>
             </div>
         </div>
 
-        <div style="background:#e6ffed; padding:15px; border-radius:10px; border:1px solid #b7eb8f; text-align:center;">
-            <p style="color:#2e7d32; font-weight:bold; margin-top:0;">⚡ Novedades</p>
-            <p id="lblUltimaRev" style="font-size:0.8em; color:#555; margin-bottom:10px;">
-                Nunca has revisado las novedades.
-            </p>
-            
-            <button class="btn-principal" onclick="verNuevosRegistros()" style="background:#2e7d32; padding: 12px;">
-                VER QUIÉN SE REGISTRÓ DESDE MI ÚLTIMA VISITA
-            </button>
-            
-            <div style="margin-top:10px;">
-                <small style="cursor:pointer; color:#1a73e8; text-decoration:underline;" onclick="resetearFechaAdmin()">
-                    (Resetear contador y ver los últimos 10 históricos)
-                </small>
-            </div>
-        </div>
-        
-        <h3 style="margin-top:20px; border-bottom:2px solid #eee;">Resultados:</h3>
-        <div style="overflow-x: auto;">
-            <table class="report-table">
-                <thead>
-                    <tr>
-                        <th>Usuario / Registro</th>
-                        <th>Referido Por</th>
-                        <th>Estado</th>
-                        <th>Vencimiento</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="bodyUsuariosAdmin">
-                    <tr><td colspan="5" style="text-align:center; color:#999; padding:20px;">Seleccione una opción arriba</td></tr>
-                </tbody>
-            </table>
+        <button class="btn-principal" style="background: #4a148c; margin-top:20px;" onclick="guardarDelitoAvanzado()">+ GUARDAR EN CATÁLOGO</button>
+        <div class="modulo" style="border-top: 5px solid #107c41; margin-top: 20px; background: #f0fff4;">
+    <h3 style="color: #107c41;">📗 Importación Masiva desde Excel</h3>
+    <p style="font-size: 0.9em;">
+        <b>Paso 1:</b> Descargue la plantilla obligatoria.<br>
+        <b>Paso 2:</b> Llene los datos en Excel (No cambie los títulos).<br>
+        <b>Paso 3:</b> Suba el archivo aquí.
+    </p>
+
+    <div class="grid-2">
+        <button class="btn-principal" onclick="descargarPlantillaDelitos()" style="background: #fff; color: #107c41; border: 1px solid #107c41;">
+            📥 Descargar Plantilla.xlsx
+        </button>
+        <div style="position: relative; overflow: hidden; display: inline-block;">
+            <button class="btn-principal" style="background: #107c41;">📂 Subir Excel Lleno</button>
+            <input type="file" id="inputExcelDelitos" accept=".xlsx, .xls" onchange="procesarExcelDelitos()" style="font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer;">
         </div>
     </div>
+    <small id="statusExcel" style="color: #666; font-weight: bold;"></small>
+</div>
+
+        <div style="margin-top: 30px; border-top: 2px dashed #ccc; padding-top: 20px;">
+    <h3 style="color: #d93025;">🚀 Zona de Publicación Masiva</h3>
+    <p style="font-size: 0.9em;">
+        Use este botón después de agregar o borrar delitos. 
+        Empaqueta todo el catálogo en un solo archivo para que los usuarios lo descarguen con <b>1 sola lectura</b>.
+    </p>
+    <button class="btn-principal" onclick="publicarCatalogoMaestro()" style="background: #d93025; font-weight: bold;">
+        📦 PUBLICAR CATÁLOGO MAESTRO (JSON)
+    </button>
+</div>
+
+        <h3 style="margin-top: 20px;">Lista de Delitos Registrados</h3>
+
+<div style="text-align: center; margin-bottom: 10px;">
+    <button class="btn-principal" style="background: #6c757d; padding: 12px; font-size: 0.9em;" onclick="cargarDelitosEnAdmin()">
+        📂 VER/EDITAR LISTA DE DELITOS (Clic aquí)
+    </button>
+    <small style="color: #666; font-size: 0.8em;">(Presione solo si necesita editar. Consume lecturas de la base de datos)</small>
+</div>
+
+<div id="listaDelitosAdmin" style="max-height: 300px; overflow-y: auto; background: #fff; padding: 10px; border: 1px solid #ddd; display: none;">
+    </div>
+
+
+    <div style="background:#f8f9fa; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:20px;">
+        <label style="margin-top:0;">🔎 Buscar abonado por correo:</label>
+        <div class="grid-2">
+            <input type="email" id="adminSearchEmail" placeholder="cliente@correo.com" style="margin-top:5px;">
+            <button class="btn-principal" onclick="buscarUsuarioAdmin()" style="margin-top:5px; background:#4b5563;">BUSCAR</button>
+        </div>
+    </div>
+
+    <div style="background:#e6ffed; padding:15px; border-radius:10px; border:1px solid #b7eb8f; text-align:center;">
+        <p style="color:#2e7d32; font-weight:bold; margin-top:0;">⚡ Novedades</p>
+        <p id="lblUltimaRev" style="font-size:0.8em; color:#555; margin-bottom:10px;">Nunca has revisado las novedades.</p>
+        
+        <button class="btn-principal" onclick="verNuevosRegistros()" style="background:#2e7d32; padding: 12px;">
+            VER QUIÉN SE REGISTRÓ DESDE MI ÚLTIMA VISITA
+        </button>
+        
+        <div style="margin-top:10px;">
+            <small style="cursor:pointer; color:#1a73e8; text-decoration:underline;" onclick="resetearFechaAdmin()">
+                (Resetear contador y ver los últimos 10 históricos)
+            </small>
+        </div>
+    </div>
+    
+    <h3 style="margin-top:20px; border-bottom:2px solid #eee;">Resultados de Búsqueda:</h3>
+    <div style="overflow-x: auto;">
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Usuario / Registro</th>
+                    <th>Referido Por</th>
+                    <th>Estado</th>
+                    <th>Vencimiento</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="bodyUsuariosAdmin">
+                <tr><td colspan="5" style="text-align:center; color:#999; padding:20px;">Seleccione una opción arriba</td></tr>
+            </tbody>
+        </table>
+    </div>
+
 </div>
 
 
@@ -679,6 +1100,8 @@ Estos T&C se rigen e interpretan de conformidad con las leyes de la República B
 </div>
 
 <script>
+  let idDelitoEnEdicion = null; // null = Nuevo, "ID" = Editando
+
 // FUNCIÓN DE AYUDA PARA FORMATO DE FECHA LATINO
 function formatFechaLatina(fechaStr) {
     if(!fechaStr) return "";
@@ -1074,14 +1497,26 @@ const DIAS_AÑO = 360;
 const DIAS_MES = 30;
 
 function openTab(evt, tabName) {
-let i, tabcontent, tablinks;
-tabcontent = document.getElementsByClassName("tab-content");
-for (i = 0; i < tabcontent.length; i++) tabcontent[i].style.display = "none";
-tablinks = document.getElementsByClassName("tab-button");
-for (i = 0; i < tablinks.length; i++) tablinks[i].className = tablinks[i].className.replace(" active", "");
-document.getElementById(tabName).style.display = "block";
-evt.currentTarget.className += " active";
+    let i, tabcontent, tablinks;
+    
+    tabcontent = document.getElementsByClassName("tab-content");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    
+    tablinks = document.getElementsByClassName("tab-button");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+
+    // ¡HEMOS ELIMINADO LA CARGA AUTOMÁTICA DEL ADMIN AQUÍ!
+    // Ahora es manual con el botón.
 }
+
+
 
 function exportarDB() {
 if (casos.length === 0) return alert("No hay expedientes.");
@@ -2219,6 +2654,1471 @@ function calcularConcursoIdeal() {
         `+ Aumento: ${desglosarHoras(aumento)}<br>` +
         `<strong>TOTAL: ${desglosarHoras(totalFinal)}</strong>`;
 }
+function calcularAdmision() {
+    if (!validarAccesoPremium()) return;
+    const totalHoras = aHoras(
+        document.getElementById('adm_a').value,
+        document.getElementById('adm_m').value,
+        document.getElementById('adm_d').value,
+        document.getElementById('adm_h').value
+    );
+    const porcentajeRebaja = parseFloat(document.getElementById('sliderRebaja').value);
+    if (totalHoras <= 0) return alert("Ingrese una pena.");
+    
+    const rebaja = totalHoras * (porcentajeRebaja / 100);
+    const totalFinal = totalHoras - rebaja;
+    document.getElementById('resAdmision').innerHTML = 
+        `<small>Pena Original: ${desglosarHoras(totalHoras)}</small><br>` +
+        `<small>Rebaja: -${desglosarHoras(rebaja)}</small><hr>` +
+        `<div style="font-size: 1.2em; color: #27ae60; font-weight: bold;">Final: ${desglosarHoras(totalFinal)}</div>`;
+}
+// ==========================================
+// MÓDULO DE GESTIÓN DE DELITOS Y PRESCRIPCIÓN
+// ==========================================
+
+// 1. CARGAR LISTA DE DELITOS AL INICIAR
+// --- CÓDIGO NUEVO (OPTIMIZADO) ---
+// 1. CARGAR LISTA DE DELITOS AL INICIAR
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // === CÓDIGO DE AUTO-LIMPIEZA PARA TUS 40 USUARIOS ===
+    // Cada vez que tengas un problema así, solo cambias "v1" por "v2", "v3", etc.
+    const VERSION_ACTUAL = "v1_limpieza_delitos"; 
+    
+    // Si el usuario no tiene esta marca "v1", significa que tiene la basura vieja
+    if (localStorage.getItem('version_cache_seguridad') !== VERSION_ACTUAL) {
+        console.log("⚠️ Detectada versión antigua. Ejecutando limpieza automática...");
+        
+        // 1. Borramos la memoria corrupta/vieja
+        localStorage.removeItem('catalogoDelitosCache');
+        localStorage.removeItem('catalogoFecha');
+        
+        // 2. Le ponemos la "vacuna" para que no se borre cada vez que entra, solo hoy
+        localStorage.setItem('version_cache_seguridad', VERSION_ACTUAL);
+    }
+    // ====================================================
+
+    cargarDelitosEnSelect(); // Ahora descargará la lista limpia
+    actualizarLabelFecha();  
+});
+
+
+
+// Variable global para almacenar delitos en memoria y no gastar lecturas de Firebase
+let catalogoDelitos = [];
+
+// --- FUNCIONES DEL ADMINISTRADOR ---
+
+// ==========================================
+// NUEVA LÓGICA DE PRESCRIPCIÓN (ART. 108 CP)
+// ==========================================
+
+// 1. GUARDAR DELITO (ADMIN ACTUALIZADO)
+async function guardarDelitoAvanzado() {
+    const nombre = document.getElementById('admDelitoNombre').value;
+    const ley = document.getElementById('admDelitoLey').value;
+    const art = document.getElementById('admDelitoArt').value;
+    const min = parseFloat(document.getElementById('admDelitoMin').value);
+    const max = parseFloat(document.getElementById('admDelitoMax').value);
+    const sancion = document.getElementById('admDelitoSancion').value;
+    const tipo = document.getElementById('admDelitoTipo').value;
+    const condicion = document.getElementById('admDelitoCondicion').value;
+
+    if (!nombre || isNaN(min) || isNaN(max)) return alert("Complete Nombre y Penas (Min/Max).");
+
+    const datosDelito = {
+        nombre: nombre,
+        ley: ley,
+        articulo: art,
+        min: min,
+        max: max,
+        tipoSancion: sancion,
+        tipoAccion: tipo,
+        condicion: condicion,
+        fechaModificacion: Date.now()
+    };
+
+    try {
+        if (idDelitoEnEdicion === null) {
+            // MODO CREAR NUEVO
+            datosDelito.fechaCreacion = Date.now();
+            await db.collection('configuracion_global').doc('catalogo_delitos').collection('lista').add(datosDelito);
+            alert("Delito GUARDADO correctamente.");
+        } else {
+            // MODO EDITAR EXISTENTE
+            await db.collection('configuracion_global').doc('catalogo_delitos').collection('lista').doc(idDelitoEnEdicion).update(datosDelito);
+            alert("Delito ACTUALIZADO correctamente.");
+            
+            // Resetear modo edición
+            idDelitoEnEdicion = null;
+            document.querySelector('#adminPanel h2').innerText = "⚖️ Gestión del Catálogo (Nuevo Delito)";
+            document.querySelector('#btnGuardarDelito').innerText = "+ GUARDAR EN CATÁLOGO";
+            document.querySelector('#btnGuardarDelito').style.background = "#4a148c"; // Volver a morado
+        }
+
+        // Limpiar campos
+        limpiarFormularioAdmin();
+        cargarDelitosEnAdmin();
+        
+    } catch (e) {
+        console.error(e);
+        alert("Error: " + e.message);
+    }
+}
+
+// Función auxiliar para limpiar
+function limpiarFormularioAdmin() {
+    document.getElementById('admDelitoNombre').value = "";
+    document.getElementById('admDelitoLey').value = "";
+    document.getElementById('admDelitoArt').value = "";
+    document.getElementById('admDelitoMin').value = "";
+    document.getElementById('admDelitoMax').value = "";
+    idDelitoEnEdicion = null;
+}
+
+
+// 2. FILTRADO RÁPIDO DE DELITOS (TIPO GOOGLE)
+function filtrarDelitosUI() {
+    const input = document.getElementById('inputBusquedaDelito');
+    const select = document.getElementById('selDelitoPresc');
+    
+    // Usamos 'normalizarTexto' para quitar acentos y pasar a minúsculas
+    const textoBusqueda = normalizarTexto(input.value); 
+    
+    select.innerHTML = "";
+
+    // Filtramos la lista global
+    const filtrados = catalogoDelitos.filter(d => 
+        normalizarTexto(d.nombre).includes(textoBusqueda)
+    );
+
+    if(filtrados.length === 0) {
+        const opt = document.createElement('option');
+        opt.text = "No se encontraron delitos";
+        select.appendChild(opt);
+    } else {
+        filtrados.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.text = d.nombre;
+            opt.className = "opcion-multilinea"; // <--- IMPORTANTE
+            select.appendChild(opt);
+        });
+    }
+}
+function actualizarInterfazRebajas() {
+    const ejecucion = document.getElementById('selGradoEjecucion').value;
+    const divManual = document.getElementById('divFraccionManual');
+    const inputFraccion = document.getElementById('fraccionEjecucion');
+
+    if (ejecucion === 'Frustrado') {
+        divManual.style.display = 'block';
+        inputFraccion.value = "1/3"; // Defecto
+    } else if (ejecucion === 'Tentativa') {
+        divManual.style.display = 'block';
+        inputFraccion.value = "1/2"; // Defecto (puede ser hasta 2/3)
+    } else {
+        divManual.style.display = 'none';
+        inputFraccion.value = "";
+    }
+}
+
+// 4. CÁLCULO INTELIGENTE (EL CORAZÓN DEL SISTEMA)
+// ==========================================
+// CÁLCULO ACTUALIZADO (REGLAS 1-6 + SUSPENSIÓN)
+// ==========================================
+
+function calcularPrescripcionInteligente() {
+    // 1. VALIDACIONES BÁSICAS
+    const idDelito = document.getElementById('selDelitoPresc').value;
+    const fechaHecho = document.getElementById('fHechoPresc').value;
+    
+    if (!idDelito) return alert("Por favor, seleccione un delito primero.");
+    if (!fechaHecho) return alert("Ingrese la fecha de comisión del hecho.");
+
+    const delito = catalogoDelitos.find(d => d.id === idDelito);
+    
+    // Iniciar Iter Procesal (Recibo de explicación)
+    let iter = `>>> ANÁLISIS JURÍDICO DE PRESCRIPCIÓN <<<\n`;
+    iter += `1. DATOS DEL DELITO\n`;
+    iter += `   - Tipo: ${delito.nombre}\n`;
+    iter += `   - Sanción Principal: ${delito.tipoSancion}\n`;
+    iter += `   - Rango de Pena: ${delito.min} a ${delito.max} años.\n`;
+
+    // 2. VERIFICAR IMPRESCRIPTIBILIDAD
+    if (delito.condicion === 'Imprescriptible') {
+        mostrarResultadoImprescriptible(iter);
+        return;
+    }
+
+    // 3. CÁLCULO DE LA PENA APLICABLE (TERM MEDIO + REBAJAS)
+    let terminoMedio = (delito.min + delito.max) / 2;
+    let penaParaCalculo = terminoMedio;
+    iter += `   - Término Medio Base: ${terminoMedio.toFixed(2)} años.\n\n`;
+
+    // A. Grado de Ejecución
+    const ejecucion = document.getElementById('selGradoEjecucion').value;
+    if (ejecucion !== 'Consumado') {
+        const fraccionStr = document.getElementById('fraccionEjecucion').value || "0";
+        const [num, den] = fraccionStr.split('/').map(Number);
+        if (den > 0) {
+            const rebaja = terminoMedio * (num / den);
+            penaParaCalculo -= rebaja;
+            iter += `2. GRADO DE EJECUCIÓN (${ejecucion})\n   - Rebaja aplicada: ${fraccionStr} (-${rebaja.toFixed(2)} años)\n   - Subtotal: ${penaParaCalculo.toFixed(2)} años.\n`;
+        }
+    }
+
+    // B. Grado de Intervención
+    const intervencion = document.getElementById('selGradoIntervencion').value;
+    if (intervencion === 'Complice') {
+        const rebajaComplice = penaParaCalculo / 2;
+        penaParaCalculo -= rebajaComplice;
+        iter += `3. GRADO DE INTERVENCIÓN (Cómplice/Facilitador)\n   - Rebaja legal: 1/2 (-${rebajaComplice.toFixed(2)} años)\n`;
+    }
+    
+    iter += `   >>> PENA APLICABLE FINAL: ${penaParaCalculo.toFixed(2)} AÑOS <<<\n\n`;
+
+    // 4. DETERMINACIÓN DEL LAPSO (LAS 6 REGLAS)
+    let lapsoPrescripcion = 0;
+    const s = delito.tipoSancion; // Presidio, Prisión, Arresto...
+    const p = penaParaCalculo;    // Pena numérica
+
+    iter += `4. REGLAS DE PRESCRIPCIÓN (CÓDIGO PENAL)\n`;
+
+    // LÓGICA DE LAS REGLAS
+    if (s === 'Presidio') {
+        if (p > 10) {
+            lapsoPrescripcion = 15;
+            iter += `   - Regla 1: Presidio > 10 años.\n   - PLAZO: 15 AÑOS.\n`;
+        } else if (p > 7 && p <= 10) {
+            lapsoPrescripcion = 10;
+            iter += `   - Regla 2: Presidio > 7 y <= 10 años.\n   - PLAZO: 10 AÑOS.\n`;
+        } else {
+            lapsoPrescripcion = 7;
+            iter += `   - Regla 3: Presidio <= 7 años.\n   - PLAZO: 7 AÑOS.\n`;
+        }
+    } else if (s === 'Prisión') {
+        if (p > 3) {
+            lapsoPrescripcion = 5;
+            iter += `   - Regla 4: Prisión > 3 años.\n   - PLAZO: 5 AÑOS.\n`;
+        } else {
+            lapsoPrescripcion = 3;
+            iter += `   - Regla 5: Prisión <= 3 años.\n   - PLAZO: 3 AÑOS.\n`;
+        }
+    } else if (['Arresto', 'Relegación', 'Confinamiento', 'Expulsión'].includes(s)) {
+        // Arresto: Hay que diferenciar si es > 6 meses (0.5 años) o entre 1-6 meses
+        if (s === 'Arresto' && p > 0.5) {
+            lapsoPrescripcion = 3;
+            iter += `   - Regla 5: Arresto > 6 meses.\n   - PLAZO: 3 AÑOS.\n`;
+        } else if (s === 'Arresto' && p <= 0.5) {
+            lapsoPrescripcion = 1;
+            iter += `   - Regla 6: Arresto 1 a 6 meses.\n   - PLAZO: 1 AÑO.\n`;
+        } else {
+            // Relegación, Confinamiento, Expulsión caen en Regla 5
+            lapsoPrescripcion = 3;
+            iter += `   - Regla 5: ${s}.\n   - PLAZO: 3 AÑOS.\n`;
+        }
+    } else {
+        // Multas, Suspensiones, Faltas (Regla 6)
+        lapsoPrescripcion = 1;
+        iter += `   - Regla 6: Multa, Suspensión o Faltas.\n   - PLAZO: 1 AÑO.\n`;
+    }
+
+    // 5. CÁLCULO DE FECHAS CON SUSPENSIÓN
+    const fechaBase = new Date(fechaHecho + "T12:00:00"); // Usamos mediodía para evitar errores de zona horaria
+    
+    // A. Calcular tiempo de suspensión (Si existe)
+    let diasSuspendidos = 0;
+    const haySuspension = document.getElementById('chkSuspension').checked;
+    
+    if (haySuspension) {
+        const fSusIni = document.getElementById('fSuspInicio').value;
+        const fSusFin = document.getElementById('fSuspFin').value;
+        
+        if (fSusIni && fSusFin) {
+            const d1 = new Date(fSusIni + "T12:00:00");
+            const d2 = new Date(fSusFin + "T12:00:00");
+            const diffTime = d2 - d1;
+            diasSuspendidos = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            
+            iter += `\n5. SUSPENSIÓN DEL LAPSO\n`;
+            iter += `   - Desde: ${formatFechaLatina(fSusIni)} Hasta: ${formatFechaLatina(fSusFin)}\n`;
+            iter += `   - Total días suspendidos: ${diasSuspendidos} días.\n`;
+            iter += `   (Este tiempo se suma a la fecha final).\n`;
+        }
+    }
+
+    // B. Calcular Fechas Finales
+    // Ordinaria
+    const fOrdinaria = new Date(fechaBase);
+    fOrdinaria.setFullYear(fOrdinaria.getFullYear() + lapsoPrescripcion);
+    fOrdinaria.setDate(fOrdinaria.getDate() + diasSuspendidos); // Sumamos la suspensión
+
+    // Extraordinaria (Judicial) = Lapso + Mitad
+    const lapsoExtraNumerico = lapsoPrescripcion * 1.5;
+    const fExtraordinaria = new Date(fechaBase);
+    
+    // Sumar años enteros y meses para precisión matemática
+    const anosEnteros = Math.floor(lapsoExtraNumerico);
+    const mesesRestantes = (lapsoExtraNumerico - anosEnteros) * 12;
+    
+    fExtraordinaria.setFullYear(fExtraordinaria.getFullYear() + anosEnteros);
+    fExtraordinaria.setMonth(fExtraordinaria.getMonth() + mesesRestantes);
+    fExtraordinaria.setDate(fExtraordinaria.getDate() + diasSuspendidos); // Sumamos la suspensión
+
+    // 6. RENDERIZAR RESULTADOS
+    document.getElementById('resPrescripcion').style.display = 'block';
+    document.getElementById('resExtraordinarioBox').style.display = 'block';
+
+    document.getElementById('resLapsoOrd').innerHTML = `${lapsoPrescripcion} AÑOS <br><small>+ ${diasSuspendidos} días susp.</small>`;
+    document.getElementById('resFechaOrd').innerText = fOrdinaria.toLocaleDateString();
+
+    document.getElementById('resLapsoExtra').innerHTML = `${lapsoExtraNumerico} AÑOS <br><small>+ ${diasSuspendidos} días susp.</small>`;
+    document.getElementById('resFechaExtra').innerText = fExtraordinaria.toLocaleDateString();
+
+    document.getElementById('iterProcesal').innerText = iter;
+    document.getElementById('resPrescripcion').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function mostrarResultadoImprescriptible(iter) {
+    document.getElementById('resPrescripcion').style.display = 'block';
+    document.getElementById('resLapsoOrd').innerText = "IMPRESCRIPTIBLE";
+    document.getElementById('resFechaOrd').innerText = "NUNCA";
+    document.getElementById('resExtraordinarioBox').style.display = 'none';
+    document.getElementById('iterProcesal').innerText = iter + "   - CONDICIÓN: El delito es de Lesa Humanidad o contra el Patrimonio Público (Imprescriptible).";
+    document.getElementById('resPrescripcion').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+
+async function cargarDelitosEnAdmin() {
+    const div = document.getElementById('listaDelitosAdmin');
+    if(!div) return;
+    div.style.display = 'block';
+    div.innerHTML = "Cargando...";
+    
+    try {
+        const snapshot = await db.collection('configuracion_global').doc('catalogo_delitos').collection('lista')
+                                 .orderBy('nombre', 'asc').get();
+        
+        div.innerHTML = "";
+        if (snapshot.empty) {
+            div.innerHTML = "No hay delitos registrados.";
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const d = doc.data();
+            // Creamos un string JSON seguro para pasar los datos a la función
+            const datosJson = JSON.stringify(d).replace(/"/g, '&quot;');
+            
+            const item = document.createElement('div');
+            item.style.borderBottom = "1px solid #eee";
+            item.style.padding = "8px";
+            item.style.display = "flex";
+            item.style.justifyContent = "space-between";
+            item.style.alignItems = "center";
+            
+            item.innerHTML = `
+                <div style="font-size:0.9em;">
+                    <b>${d.nombre}</b><br>
+                    <span style="color:#666;">${d.min}-${d.max} años | ${d.ley}</span>
+                </div>
+                <div>
+                    <button onclick="prepararEdicion('${doc.id}', ${datosJson})" style="margin-right:10px; cursor:pointer; background:#fff3cd; border:1px solid #ffeeba; border-radius:4px; padding:5px;">
+                        ✏️
+                    </button>
+                    <button onclick="borrarDelito('${doc.id}')" style="color:white; background:#dc3545; border:none; border-radius:4px; padding:5px 10px; cursor:pointer;">
+                        X
+                    </button>
+                </div>
+            `;
+            div.appendChild(item);
+        });
+    } catch (e) {
+        console.error(e);
+        div.innerHTML = "Error al cargar lista.";
+    }
+}
+
+
+async function borrarDelito(id) {
+    if(confirm("¿Eliminar este delito del catálogo?")) {
+        await db.collection('configuracion_global').doc('catalogo_delitos').collection('lista').doc(id).delete();
+        cargarDelitosEnAdmin();
+        cargarDelitosEnSelect();
+    }
+}
+
+// --- FUNCIONES DEL USUARIO (PESTAÑA PRESCRIPCIÓN) ---
+
+// ==========================================
+// OPTIMIZACIÓN: CARGA DE DELITOS CON CACHÉ
+// ==========================================
+
+// ==========================================
+// CARGA OPTIMIZADA (MODO ARCHIVO MAESTRO)
+// ==========================================
+// ==========================================
+// CARGA OPTIMIZADA: CACHÉ INMEDIATO + ACTUALIZACIÓN SILENCIOSA
+// ==========================================
+// ==========================================
+// FUNCIÓN DE DIAGNÓSTICO Y CARGA FORZADA
+// ==========================================
+// ==========================================
+// CARGA DEFINITIVA (MODO SILENCIOSO / PRODUCCIÓN)
+// ==========================================
+async function cargarDelitosEnSelect(forzar = false) {
+    const selectPresc = document.getElementById('selDelitoPresc');
+    const selectsDosim = document.querySelectorAll('.sel-delito-dosim');
+    
+    // 1. CARGA RÁPIDA (CACHÉ): Mostrar lo guardado inmediatamente
+    // Esto hace que la app parezca instantánea
+    const memoriaLocal = localStorage.getItem('catalogoDelitosCache');
+    if (memoriaLocal) {
+        catalogoDelitos = JSON.parse(memoriaLocal);
+        actualizarTodosLosSelects(selectPresc, selectsDosim);
+        console.log("⚡ Carga rápida desde memoria local.");
+    }
+
+    // 2. VERIFICACIÓN EN SEGUNDO PLANO (SIN AVISOS)
+    try {
+        // Consultamos la nube calladitos
+        const doc = await db.collection('configuracion_global').doc('catalogo_maestro').get();
+
+        if (doc.exists && doc.data().contenido) {
+            const jsonNube = doc.data().contenido;
+            
+            // Si la nube es diferente a lo que tiene el celular, actualizamos
+            if (jsonNube !== memoriaLocal || forzar) {
+                catalogoDelitos = JSON.parse(jsonNube);
+                localStorage.setItem('catalogoDelitosCache', jsonNube); // Guardamos lo nuevo
+                
+                // Refrescamos la lista visualmente sin interrumpir
+                actualizarTodosLosSelects(selectPresc, selectsDosim);
+                console.log("☁️ Base de datos actualizada en segundo plano.");
+            } else {
+                console.log("✅ El usuario ya tiene la última versión.");
+            }
+        } else {
+            // PLAN B: Si falla el maestro, buscamos la lista individual (En silencio)
+            console.warn("⚠️ Maestro no disponible. Usando lista individual...");
+            const snap = await db.collection('configuracion_global').doc('catalogo_delitos').collection('lista').get();
+            
+            if (!snap.empty) {
+                catalogoDelitos = [];
+                snap.forEach(d => { 
+                    let data = d.data(); 
+                    data.id = d.id; 
+                    catalogoDelitos.push(data); 
+                });
+                
+                // Guardamos y actualizamos
+                localStorage.setItem('catalogoDelitosCache', JSON.stringify(catalogoDelitos));
+                actualizarTodosLosSelects(selectPresc, selectsDosim);
+            }
+        }
+    } catch (error) {
+        console.error("Error de conexión:", error);
+        // NO mostramos alerta. Si falla internet, el usuario sigue feliz con la memoria local (Paso 1).
+    }
+}
+
+
+
+function actualizarTodosLosSelects(selPresc, listaDosim) {
+    // A. Actualizar Pestaña Prescripciones
+    if (selPresc) {
+        selPresc.innerHTML = ''; // Limpiamos
+        
+        // Opción por defecto
+        const defaultOpt = document.createElement('option');
+        defaultOpt.text = "-- Busque o seleccione un delito --";
+        selPresc.appendChild(defaultOpt);
+
+        // Agregamos los delitos con la clase CSS correcta
+        catalogoDelitos.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.text = d.nombre;
+            opt.className = "opcion-multilinea"; // <--- ESTO ARREGLA EL TEXTO CORTADO
+            selPresc.appendChild(opt);
+        });
+    }
+
+    // B. Actualizar Pestaña Dosimetría (Mantiene tu lógica existente)
+    if (listaDosim) {
+        listaDosim.forEach(sel => {
+            const valorPrevio = sel.value; 
+            sel.innerHTML = '<option value="">-- Resultados de la búsqueda --</option>' + generarOpcionesDelitos();
+            sel.value = valorPrevio;
+        });
+    }
+}
+
+
+// Función auxiliar para dibujar (no cuenta como lectura)
+function renderizarOpcionesDelito(selectElement) {
+    if(!selectElement) return;
+    selectElement.innerHTML = '<option value="">-- Busque o seleccione un delito --</option>';
+    
+    catalogoDelitos.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.text = d.nombre;
+        selectElement.appendChild(opt);
+    });
+}
+
+// Función para poner en un botón si el usuario quiere actualizar manual
+function forzarActualizacionDelitos() {
+    if(confirm("¿Desea descargar la lista más reciente de delitos desde la nube?")) {
+        cargarDelitosEnSelect(true); // 'true' obliga a descargar
+    }
+}
+
+
+function cargarDatosDelitoSeleccionado() {
+    const idSeleccionado = document.getElementById('selDelitoPresc').value;
+    const infoDiv = document.getElementById('infoDelito');
+    
+    if (!idSeleccionado) {
+        infoDiv.style.display = 'none';
+        return;
+    }
+
+    const delito = catalogoDelitos.find(d => d.id === idSeleccionado);
+    
+    if (delito) {
+        infoDiv.style.display = 'block';
+
+        // Llenar datos básicos
+        document.getElementById('lblLey').innerText = delito.ley || "N/A";
+        document.getElementById('lblArticulo').innerText = delito.articulo || "N/A";
+        document.getElementById('lblSancion').innerText = delito.tipoSancion || "No especificada";
+        document.getElementById('lblAccion').innerText = delito.tipoAccion || "Pública";
+        document.getElementById('lblCondicion').innerText = delito.condicion || "Prescriptible";
+        
+        // Llenar datos ocultos necesarios para el cálculo matemático
+        document.getElementById('lblMin').innerText = delito.min;
+        document.getElementById('lblMax').innerText = delito.max;
+        document.getElementById('lblTiempoPresc').innerText = delito.prescripcionAnos;
+
+        // Mostrar Rango Visual
+        document.getElementById('lblRango').innerText = `${delito.min} a ${delito.max} años`;
+
+        // CALCULAR Y MOSTRAR TÉRMINO MEDIO DESGLOSADO (Igual que Dosimetría)
+        const mediaAnos = (delito.min + delito.max) / 2;
+        // Usamos tu función 'desglosar' multiplicando por 360 días
+        document.getElementById('lblMediaBase').innerText = desglosar(mediaAnos * 360);
+    }
+}
+
+
+function calcularPrescripcionExacta() {
+    // 1. Validaciones
+    const idSeleccionado = document.getElementById('selDelitoPresc').value;
+    const fechaHechoStr = document.getElementById('fHechoPresc').value;
+    
+    if (!idSeleccionado) return alert("Por favor, seleccione un delito de la lista.");
+    if (!fechaHechoStr) return alert("Ingrese la fecha de inicio ");
+
+    const delito = catalogoDelitos.find(d => d.id === idSeleccionado);
+    const anosBase = parseFloat(delito.prescripcionAnos);
+
+    // 2. Manejo de Fechas
+    // Truco: Usar UTC para evitar problemas de zona horaria al sumar años puros
+    let fechaInicio = new Date(fechaHechoStr + "T00:00:00"); 
+
+    // 3. Verificar Suspensión
+    let diasSuspension = 0;
+    const tieneSuspension = document.getElementById('chkSuspension').checked;
+    
+    if (tieneSuspension) {
+        const fSuspIniStr = document.getElementById('fSuspIni').value;
+        const fSuspFinStr = document.getElementById('fSuspFin').value;
+        
+        if (fSuspIniStr && fSuspFinStr) {
+            const fSi = new Date(fSuspIniStr);
+            const fSf = new Date(fSuspFinStr);
+            const diffTime = Math.abs(fSf - fSi);
+            diasSuspension = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        }
+    }
+
+    // 4. Cálculo Ordinario
+    // Fecha Base + Años de Prescripción + Días de Suspensión
+    let fOrdinaria = new Date(fechaInicio);
+    fOrdinaria.setFullYear(fOrdinaria.getFullYear() + anosBase); // Sumar años
+    fOrdinaria.setDate(fOrdinaria.getDate() + diasSuspension); // Sumar suspensión
+
+    // 5. Cálculo Extraordinario (Judicial)
+    // Lapso es Base + Mitad (1.5)
+    const anosExtra = anosBase * 1.5;
+    const anosEnteros = Math.floor(anosExtra);
+    const mesesRestantes = (anosExtra - anosEnteros) * 12; // Si es 7.5, son 7 años y 6 meses
+
+    let fExtraordinaria = new Date(fechaInicio);
+    fExtraordinaria.setFullYear(fExtraordinaria.getFullYear() + anosEnteros);
+    fExtraordinaria.setMonth(fExtraordinaria.getMonth() + mesesRestantes);
+    fExtraordinaria.setDate(fExtraordinaria.getDate() + diasSuspension); // Sumar suspensión también aquí
+
+    // 6. Mostrar Resultados
+    document.getElementById('resPrescripcion').style.display = 'block';
+    
+    // Formatear fechas para mostrar
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+
+    document.getElementById('resAnosOrd').innerText = anosBase;
+    document.getElementById('resFechaOrd').innerText = fOrdinaria.toLocaleDateString('es-ES', options);
+
+    document.getElementById('resAnosExtra').innerText = anosExtra;
+    document.getElementById('resFechaExtra').innerText = fExtraordinaria.toLocaleDateString('es-ES', options);
+
+    // Nota de suspensión
+    const divNota = document.getElementById('resNotaSusp');
+    if (diasSuspension > 0) {
+        divNota.innerHTML = `⚠️ <b>Nota:</b> Se han sumado <b>${diasSuspension} días</b> a las fechas de prescripción debido al periodo de suspensión indicado.`;
+    } else {
+        divNota.innerHTML = "";
+    }
+}
+// ==========================================
+// MÓDULO 3: CÁLCULO DE PRESCRIPCIÓN DE LA PENA
+// ==========================================
+
+function calcularPrescripcionPena() {
+    // 1. OBTENER DATOS
+    const a = parseInt(document.getElementById('pen_a').value || 0);
+    const m = parseInt(document.getElementById('pen_m').value || 0);
+    const d = parseInt(document.getElementById('pen_d').value || 0);
+    const tipo = document.getElementById('pen_tipo').value;
+    const esConcurso = document.getElementById('chkConcursoPena').checked;
+    const fInicioStr = document.getElementById('pen_inicio').value;
+
+    // Validaciones
+    if (a === 0 && m === 0 && d === 0) return alert("Ingrese el tiempo de la pena (Años, Meses o Días).");
+    if (!fInicioStr) return alert("Ingrese la fecha de inicio del cómputo (Sentencia firme o Quebrantamiento).");
+
+    // 2. CONVERTIR PENA A UNIDAD FLOTANTE (AÑOS DECIMALES) PARA CÁLCULO MATEMÁTICO
+    // Usamos: 1 año = 1, 1 mes = 1/12, 1 día = 1/360 (Aprox estándar penal para proporciones)
+    let penaBaseDecimal = a + (m / 12) + (d / 360);
+    
+    // Preparar el Iter Procesal
+    let iter = `>>> ANÁLISIS DE PRESCRIPCIÓN DE PENA (ART. 112 C.P.) <<<\n`;
+    iter += `1. PENA IMPUESTA: ${a} años, ${m} meses, ${d} días.\n`;
+    iter += `   - Tipo de Sanción: ${tipo}\n\n`;
+
+    // 3. APLICAR REGLAS DEL ART. 112 (FRACCIONES)
+    let tiempoOrdinario = 0;
+    let explicacionRegla = "";
+
+    if (['Presidio', 'Prisión', 'Arresto'].includes(tipo)) {
+        // Regla: Pena + Mitad (1.5)
+        tiempoOrdinario = penaBaseDecimal * 1.5;
+        explicacionRegla = "Se suma la MITAD (1/2) de la pena.";
+    } else {
+        // Relegación, Confinamiento: Pena + Tercera Parte (1.3333)
+        tiempoOrdinario = penaBaseDecimal + (penaBaseDecimal / 3);
+        explicacionRegla = "Se suma la TERCERA PARTE (1/3) de la pena.";
+    }
+
+    iter += `2. CÁLCULO ORDINARIO\n`;
+    iter += `   - Regla aplicada: ${explicacionRegla}\n`;
+    iter += `   - Subtotal Ordinario: ${decimalAAñosMesesDias(tiempoOrdinario)}\n\n`;
+
+    // 4. APLICAR CONCURSO DE DELITOS (INTERRUPTOR)
+    let tiempoFinal = tiempoOrdinario;
+
+    if (esConcurso) {
+        // Regla Concursal: Al ordinario se le suma una cuarta parte (1/4)
+        const incrementoConcurso = tiempoOrdinario / 4;
+        tiempoFinal = tiempoOrdinario + incrementoConcurso;
+        
+        iter += `3. REGLA DE CONCURSO (VARIOS DELITOS)\n`;
+        iter += `   - Se suma 1/4 parte a la prescripción ordinaria.\n`;
+        iter += `   - Incremento: +${decimalAAñosMesesDias(incrementoConcurso)}\n`;
+        iter += `   - TOTAL FINAL: ${decimalAAñosMesesDias(tiempoFinal)}\n\n`;
+    } else {
+        iter += `3. CONCURSO: No aplica (Delito único).\n   - TOTAL FINAL: ${decimalAAñosMesesDias(tiempoFinal)}\n\n`;
+    }
+
+    // 5. CALCULAR FECHA FINAL
+    // Convertimos el tiempo final (años decimales) a días totales para sumar a la fecha
+    // Nota: Para precisión calendario, sumamos Años enteros, luego Meses, luego Días.
+    
+    const objTiempo = desglosarDecimal(tiempoFinal); // Devuelve {a, m, d}
+    const fechaInicio = new Date(fInicioStr + "T12:00:00");
+    const fechaFinal = new Date(fechaInicio);
+
+    fechaFinal.setFullYear(fechaFinal.getFullYear() + objTiempo.a);
+    fechaFinal.setMonth(fechaFinal.getMonth() + objTiempo.m);
+    fechaFinal.setDate(fechaFinal.getDate() + objTiempo.d);
+
+    iter += `4. CÓMPUTO DE FECHAS\n`;
+    iter += `   - Inicio (Firmeza/Quebrantamiento): ${new Date(fInicioStr).toLocaleDateString()}\n`;
+    iter += `   - Tiempo a transcurrir: ${objTiempo.a}a, ${objTiempo.m}m, ${objTiempo.d}d.\n`;
+    
+    // 6. MOSTRAR RESULTADOS
+    document.getElementById('resPenaBox').style.display = 'block';
+    
+    document.getElementById('lblTiempoPena').innerText = `${objTiempo.a} Años, ${objTiempo.m} Meses, ${objTiempo.d} Días`;
+    document.getElementById('lblFechaPena').innerText = fechaFinal.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    
+    document.getElementById('iterPena').innerText = iter;
+    
+    // Scroll automático al resultado
+    document.getElementById('resPenaBox').scrollIntoView({ behavior: 'smooth' });
+}
+
+// --- FUNCIONES AUXILIARES MATEMÁTICAS ---
+
+function desglosarDecimal(anosDecimales) {
+    const a = Math.floor(anosDecimales);
+    const restoAnos = anosDecimales - a;
+    
+    const mesesDecimales = restoAnos * 12;
+    const m = Math.floor(mesesDecimales);
+    
+    const diasDecimales = (mesesDecimales - m) * 30;
+    const d = Math.round(diasDecimales);
+    
+    return { a, m, d };
+}
+
+function decimalAAñosMesesDias(val) {
+    const o = desglosarDecimal(val);
+    return `${o.a}a, ${o.m}m, ${o.d}d`;
+}
+// ==========================================
+// CÓDIGO JS PARA LA NUEVA DOSIMETRÍA AVANZADA
+// ==========================================
+
+let modificadoresTemporales = []; // Para el admin
+let contadorDelitosUI = 0; // Para generar IDs únicos
+
+// --- B. INTERFAZ DE USUARIO (DOSIMETRÍA DINÁMICA) ---
+
+function agregarBloqueDelito() {
+    contadorDelitosUI++;
+    const idBloque = `delitoUI_${contadorDelitosUI}`;
+    const idSelect = `sel_${contadorDelitosUI}`; 
+    const contenedor = document.getElementById('contenedorDelitosDosimetria');
+    
+    const div = document.createElement('div');
+    div.className = "sub-modulo";
+    div.style.display = "block"; 
+    div.style.borderLeft = "5px solid #1a73e8";
+    div.style.marginBottom = "15px";
+    div.id = idBloque;
+
+    div.innerHTML = `
+        <style>
+            .opcion-multilinea {
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                border-bottom: 1px solid #f0f0f0;
+                padding: 6px;
+                font-size: 0.9em;
+            }
+        </style>
+
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0;">Delito #${contadorDelitosUI}</h3>
+            <button onclick="document.getElementById('${idBloque}').remove(); verificarConcursoUI();" style="color:red; border:none; background:none; font-weight:bold; cursor:pointer;">🗑️ Eliminar</button>
+        </div>
+        
+        <label>Buscar delito:</label>
+        <input type="text" placeholder="Escriba para filtrar (ej: robo...)" 
+               onkeyup="filtrarDelitosDosimetria(this, '${idSelect}')" 
+               style="margin-bottom:5px; background:#f0f8ff;">
+        
+        <select id="${idSelect}" class="sel-delito-dosim" onchange="cargarInfoDelitoDosimetria(this, '${idBloque}')" size="7" style="height: auto; min-height: 180px;">
+            <option value="">-- Resultados de la búsqueda --</option>
+            ${generarOpcionesDelitos()} 
+        </select>
+        <small style="color:#666; display:block; margin-top:2px;">👆 Seleccione el delito en la lista</small>
+
+        <div class="info-base-dosim" style="background:#e8f0fe; padding:10px; margin-top:10px; border-radius:8px; font-size:0.9em; display:none; border: 1px solid #b6d4fe;">
+            <div class="grid-2">
+                <div><b>Ley:</b> <span class="lbl-ley"></span></div>
+                <div><b>Artículo:</b> <span class="lbl-art"></span></div>
+            </div>
+            
+            <div style="margin-top:5px; padding-top:5px; border-top:1px dashed #ccc;">
+                <b>Tipo de Pena:</b> <span class="lbl-sancion" style="color:#d93025; font-weight:bold; text-transform: uppercase;"></span>
+            </div>
+
+            <div style="margin-top:5px;">
+                <b>Límites:</b> <span class="lbl-rango"></span> <br>
+                <b>Término Medio:</b> <span class="lbl-media" style="color:#1a73e8; font-weight:bold;"></span>
+            </div>
+        </div>
+
+        <div style="margin-top:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
+            <label style="color:#333; font-weight:bold;">1. Pena Base Individualizada (Art. 37 CP):</label>
+            <div class="grid-3">
+                <input type="number" class="pi-a" placeholder="Años">
+                <input type="number" class="pi-m" placeholder="Meses">
+                <input type="number" class="pi-d" placeholder="Días">
+            </div>
+            <small style="color:#666;">(Resultado tras compensar atenuantes/agravantes genéricas y especificas)</small>
+        </div>
+
+        <div style="margin-top:10px; background:#f9f9f9; padding:10px; border-radius:8px;">
+            
+            <div class="area-modificadores" style="display:none; margin-bottom:15px;">
+                <label style="color:#6a1b9a;">Circunstancias Ley Especial:</label>
+                <div class="lista-checks-mod"></div>
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <label>Grado de Ejecución:</label>
+                <select class="sel-ejecucion" onchange="toggleFraccionTentativa(this)">
+                    <option value="Consumado">Delito Consumado (Sin rebaja)</option>
+                    <option value="Frustrado">Delito Frustrado (Rebaja 1/3)</option>
+                    <option value="Tentativa">Tentativa (Rebaja Variable)</option>
+                </select>
+
+                <div class="box-tentativa" style="display:none; background:#fff3cd; padding:10px; margin-top:5px; border-radius:5px; border:1px solid #ffeeba;">
+                    <label style="color:#856404; font-size:0.9em; margin-top:0;">Fracción de rebaja a aplicar:</label>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input type="text" class="input-fraccion-tentativa" value="1/2" placeholder="Ej: 1/2" style="background:white;">
+                        <small style="color:#666; line-height:1.2;">(Edite ej: 1/2, 1/3, 2/3)</small>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label>Grado de Intervención:</label>
+                <select class="sel-participacion" onchange="toggleFraccionParticipacion(this)">
+                    <option value="Perpetrador">Autor / Coautor / Coop. Inmediato (Igual pena)</option>
+                    <option value="Complice">Cómplice Simple / Facilitador (Rebaja 1/2)</option>
+                    <option value="Variable">Complicidad Correspectiva / Otro (Rebaja Variable)</option>
+                </select>
+
+                <div class="box-participacion-var" style="display:none; background:#d1e7dd; padding:10px; margin-top:5px; border-radius:5px; border:1px solid #badbcc;">
+                    <label style="color:#0f5132; font-size:0.9em; margin-top:0;">Fracción de rebaja por Participación:</label>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input type="text" class="input-fraccion-part" value="1/2" placeholder="Ej: 1/4" style="background:white;">
+                        <small style="color:#666; line-height:1.2;">(Ingrese fracción ej: 1/4, 1/6)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    contenedor.appendChild(div);
+    verificarConcursoUI();
+}
+
+// === AGREGA ESTA PEQUEÑA FUNCIÓN NUEVA DEBAJO DE LA ANTERIOR ===
+function toggleFraccionParticipacion(select) {
+    const parentDiv = select.parentNode;
+    const box = parentDiv.querySelector('.box-participacion-var');
+    if (select.value === 'Variable') {
+        box.style.display = 'block';
+    } else {
+        box.style.display = 'none';
+    }
+}
+
+// ==========================================
+// HELPER PARA BÚSQUEDAS (Ignora acentos y mayúsculas)
+// ==========================================
+function normalizarTexto(texto) {
+    if (!texto) return "";
+    return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+
+
+function generarOpcionesDelitos() {
+    // Agregamos la clase 'opcion-multilinea' para que el CSS funcione
+    return catalogoDelitos.map(d => `<option value="${d.id}" class="opcion-multilinea">${d.nombre}</option>`).join('');
+}
+
+
+function cargarInfoDelitoDosimetria(select, idBloque) {
+    const bloque = document.getElementById(idBloque);
+    const idDelito = select.value;
+    const delito = catalogoDelitos.find(d => d.id === idDelito);
+    
+    if(!delito) return;
+
+    bloque.querySelector('.info-base-dosim').style.display = 'block';
+    
+    // AQUÍ MOSTRAMOS LOS DATOS NUEVOS
+    bloque.querySelector('.lbl-ley').innerText = delito.ley || "N/A";
+    bloque.querySelector('.lbl-art').innerText = delito.articulo || "N/A";
+    
+    // CAMBIO: MOSTRAR EL TIPO DE SANCIÓN (Presidio, Prisión, etc.)
+    bloque.querySelector('.lbl-sancion').innerText = delito.tipoSancion || "No especificada";
+
+    bloque.querySelector('.lbl-rango').innerText = `${delito.min} a ${delito.max} años`;
+    
+    // Convertimos años a días (* 360) y usamos 'desglosar'
+    const mediaAnos = (delito.min + delito.max) / 2;
+    bloque.querySelector('.lbl-media').innerText = desglosar(mediaAnos * 360);
+
+    // Carga de modificadores específicos
+    const areaMod = bloque.querySelector('.area-modificadores');
+    const listaMod = bloque.querySelector('.lista-checks-mod');
+    listaMod.innerHTML = "";
+    
+    if(delito.modificadores && delito.modificadores.length > 0) {
+        areaMod.style.display = 'block';
+        delito.modificadores.forEach((m, i) => {
+            const divCheck = document.createElement('div');
+            divCheck.innerHTML = `
+                <label style="display:inline; font-weight:normal;">
+                    <input type="checkbox" class="chk-mod" data-tipo="${m.tipo}" data-fraccion="${m.fraccion}" data-nombre="${m.nombre}">
+                    ${m.nombre} (${m.tipo === 'Aumento' ? '+' : '-'}${m.fraccion})
+                </label>
+            `;
+            listaMod.appendChild(divCheck);
+        });
+    } else {
+        areaMod.style.display = 'none';
+    }
+}
+
+
+function verificarConcursoUI() {
+    const num = document.getElementById('contenedorDelitosDosimetria').childElementCount;
+    document.getElementById('seccionConcurso').style.display = (num > 1) ? 'block' : 'none';
+}
+
+function actualizarUIConcurso() {
+    const tipo = document.getElementById('tipoConcurso').value;
+    document.getElementById('uiConcursoIdeal').style.display = (tipo === 'Ideal') ? 'block' : 'none';
+}
+
+// --- C. LÓGICA DE CÁLCULO (CON REORDENAMIENTO) ---
+
+function calcularDosimetriaFinal() {
+    const bloques = document.querySelectorAll('#contenedorDelitosDosimetria .sub-modulo');
+    if(bloques.length === 0) return alert("Agregue al menos un delito.");
+
+    let penasIndividuales = [];
+    let iter = ">>> ITER DOSIMÉTRICO <<<\n\n";
+
+    bloques.forEach((bloque, index) => {
+        let nombreDelito = "Delito Desconocido";
+        if(bloque.querySelector('.sel-delito-dosim').selectedIndex > 0) {
+            nombreDelito = bloque.querySelector('.sel-delito-dosim').selectedOptions[0].text;
+        }
+        
+        // A. Obtener pena base manual
+        const a = parseFloat(bloque.querySelector('.pi-a').value) || 0;
+        const m = parseFloat(bloque.querySelector('.pi-m').value) || 0;
+        const d = parseFloat(bloque.querySelector('.pi-d').value) || 0;
+        let penaHoras = aHoras(a, m, d, 0);
+
+        iter += `DELITO ${index+1}: ${nombreDelito.toUpperCase()}\n`;
+        iter += `   [BASE] Art. 37 CP: ${desglosarHoras(penaHoras)}\n`;
+
+        // B. CÁLCULO EN CASCADA
+
+        // 1. Modificadores Específicos
+        const checks = bloque.querySelectorAll('.chk-mod:checked');
+        if(checks.length > 0) {
+            checks.forEach(chk => {
+                const fraccionStr = chk.dataset.fraccion; 
+                const [num, den] = fraccionStr.split('/').map(Number);
+                const cantidad = penaHoras * (num/den); 
+                
+                if(chk.dataset.tipo === 'Aumento') {
+                    penaHoras += cantidad;
+                    iter += `   [MOD] Agravante Esp. (${chk.dataset.nombre}): +${desglosarHoras(cantidad)}\n`;
+                } else {
+                    penaHoras -= cantidad;
+                    iter += `   [MOD] Atenuante Esp. (${chk.dataset.nombre}): -${desglosarHoras(cantidad)}\n`;
+                }
+            });
+        }
+
+        // 2. Grado de Ejecución
+        const ejecucion = bloque.querySelector('.sel-ejecucion').value;
+        if(ejecucion !== 'Consumado') {
+            let rebaja = 0;
+            let desc = "";
+            let fraccionUsada = "";
+
+            if(ejecucion === 'Frustrado') { 
+                fraccionUsada = "1/3";
+                rebaja = penaHoras / 3; 
+                desc = "Frustración"; 
+            } else if (ejecucion === 'Tentativa') { 
+                const inputFraccion = bloque.querySelector('.input-fraccion-tentativa').value || "1/2";
+                const [num, den] = inputFraccion.split('/').map(Number);
+                if (den > 0) {
+                    fraccionUsada = inputFraccion;
+                    rebaja = penaHoras * (num / den);
+                    desc = "Tentativa";
+                }
+            }
+
+            if (rebaja > 0) {
+                penaHoras -= rebaja;
+                iter += `   [EJECUCIÓN] ${desc} (${fraccionUsada}): -${desglosarHoras(rebaja)}\n`;
+            }
+        }
+
+        // 3. Participación (ACTUALIZADO CON OPCIÓN VARIABLE)
+        const part = bloque.querySelector('.sel-participacion').value;
+        if(part !== 'Perpetrador') {
+            let rebaja = 0;
+            let desc = "";
+            let fracVis = "";
+
+            if (part === 'Complice') {
+                // Cómplice Simple (Fijo 1/2)
+                rebaja = penaHoras / 2;
+                desc = "Cómplice Simple";
+                fracVis = "1/2";
+            } else if (part === 'Variable') {
+                // Opción Variable
+                const inputFraccion = bloque.querySelector('.input-fraccion-part').value || "1/2";
+                const [num, den] = inputFraccion.split('/').map(Number);
+                if (den > 0) {
+                    rebaja = penaHoras * (num / den);
+                    desc = "Participación Variable";
+                    fracVis = inputFraccion;
+                } else {
+                    iter += `   [ERROR] Fracción de participación inválida. Se omite.\n`;
+                }
+            }
+
+            if(rebaja > 0) {
+                penaHoras -= rebaja;
+                iter += `   [PARTICIPACIÓN] ${desc} (${fracVis}): -${desglosarHoras(rebaja)}\n`;
+            }
+        }
+
+        iter += `   = SUB-TOTAL ${nombreDelito}: ${desglosarHoras(penaHoras)}\n\n`;
+        penasIndividuales.push(penaHoras);
+    });
+
+    // 2. CONCURSO (ACTUALIZADO CON "SIN CONCURSO")
+    let penaTotalHoras = 0;
+    
+    if(penasIndividuales.length > 1) {
+        penasIndividuales.sort((a, b) => b - a);
+        const penaMayor = penasIndividuales[0];
+        const tipoConcurso = document.getElementById('tipoConcurso').value;
+
+        iter += `--- REGLAS DE CONCURSO (${tipoConcurso.toUpperCase()}) ---\n`;
+
+        if(tipoConcurso === 'Real') {
+            iter += `   - Pena más grave: ${desglosarHoras(penaMayor)}\n`;
+            let sumaOtras = 0;
+            for(let i=1; i < penasIndividuales.length; i++) sumaOtras += penasIndividuales[i];
+            const aumento = sumaOtras / 2;
+            penaTotalHoras = penaMayor + aumento;
+            iter += `   - Aumento (1/2 de restante): +${desglosarHoras(aumento)}\n`;
+        
+        } else if (tipoConcurso === 'SinConcurso') {
+            // SUMA ARITMÉTICA SIMPLE
+            iter += `   - Acumulación Material (Suma Simple):\n`;
+            penasIndividuales.forEach((p, i) => {
+                iter += `     + Delito ${i+1}: ${desglosarHoras(p)}\n`;
+                penaTotalHoras += p;
+            });
+            iter += `   - (Se recuerda el límite constitucional de 30 años)\n`;
+
+        } else {
+            // Concurso Ideal
+            iter += `   - Pena más grave: ${desglosarHoras(penaMayor)}\n`;
+            const fracInput = document.getElementById('fraccionIdeal').value || "0";
+            let aumento = 0;
+            if(fracInput.includes('/')) {
+                const [n, d] = fracInput.split('/').map(Number);
+                if(d>0) aumento = penaMayor * (n/d);
+            }
+            penaTotalHoras = penaMayor + aumento;
+            iter += `   - Aumento Ideal (${fracInput}): +${desglosarHoras(aumento)}\n`;
+        }
+    } else {
+        penaTotalHoras = penasIndividuales[0];
+        iter += `--- DELITO ÚNICO ---\n`;
+    }
+
+    // 3. ADMISIÓN DE HECHOS
+    if(document.getElementById('chkAdmision').checked) {
+        const fracAdm = document.getElementById('fraccionAdmision').value || "1/3";
+        const [n, d] = fracAdm.split('/').map(Number);
+        if(d>0) {
+            const rebaja = penaTotalHoras * (n/d);
+            penaTotalHoras -= rebaja;
+            iter += `--- ADMISIÓN DE LOS HECHOS ---\n`;
+            iter += `   - Rebaja solicitada (${fracAdm}): -${desglosarHoras(rebaja)}\n`;
+        }
+    }
+
+    // 4. RESULTADO
+    document.getElementById('resDosimetria').style.display = 'block';
+    document.getElementById('lblPenaFinal').innerText = desglosarHoras(penaTotalHoras);
+    document.getElementById('iterDosimetria').innerText = iter;
+    
+    const hoy = new Date();
+    const horasEnDias = Math.floor(penaTotalHoras / 24); 
+    hoy.setDate(hoy.getDate() + horasEnDias);
+    document.getElementById('lblFechaFinal').innerText = hoy.toLocaleDateString();
+}
+
+
+// NUEVA FUNCIÓN VISUAL
+function toggleFraccionTentativa(select) {
+    // Buscamos la cajita amarilla que está justo debajo del select
+    const parentDiv = select.parentNode; 
+    const box = parentDiv.querySelector('.box-tentativa');
+    
+    if (select.value === 'Tentativa') {
+        box.style.display = 'block';
+    } else {
+        box.style.display = 'none';
+    }
+}
+// ==========================================
+// FUNCIÓN FALTANTE: FILTRADO EN DOSIMETRÍA
+// ==========================================
+
+function filtrarDelitosDosimetria(input, selectId) {
+    const texto = normalizarTexto(input.value); // <--- USAMOS NORMALIZAR
+    const select = document.getElementById(selectId);
+    if(!select) return;
+    
+    select.innerHTML = "";
+    const filtrados = catalogoDelitos.filter(d => normalizarTexto(d.nombre).includes(texto));
+
+    if(filtrados.length === 0) {
+        const opt = document.createElement('option');
+        opt.text = "No se encontraron coincidencias";
+        select.appendChild(opt);
+    } else {
+        filtrados.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.text = d.nombre;
+            opt.className = "opcion-multilinea"; 
+            select.appendChild(opt);
+        });
+    }
+}
+
+// LÓGICA DE CONVERSIONES Y CONMUTACIONES
+// ==========================================
+
+function calcularEquivalencia() {
+    // 1. Obtener días totales
+    const a = parseInt(document.getElementById('conv_a').value || 0);
+    const m = parseInt(document.getElementById('conv_m').value || 0);
+    const d = parseInt(document.getElementById('conv_d').value || 0);
+    
+    // Usamos 360 y 30 para estandarizar
+    let totalDiasOrigen = (a * 360) + (m * 30) + d;
+
+    if (totalDiasOrigen <= 0) return alert("Ingrese el tiempo a convertir.");
+
+    const regla = document.getElementById('tipoConversion').value;
+    let diasResultantes = 0;
+    let explicacion = "";
+
+    // 2. Aplicar Reglas Matemáticas
+    switch(regla) {
+        // HACIA PRISIÓN
+        case 'arr_pri': // 2 Arresto = 1 Prisión
+            diasResultantes = totalDiasOrigen / 2;
+            explicacion = "Regla: 2 días de Arresto equivalen a 1 de Prisión (Entre 2).";
+            break;
+        case 'rel_pri': // 2 Rel/Conf = 1 Prisión
+            diasResultantes = totalDiasOrigen / 2;
+            explicacion = "Regla: 2 días de Releg/Conf equivalen a 1 de Prisión (Entre 2).";
+            break;
+        
+        // HACIA PRESIDIO
+        case 'arr_pres': // 3 Arresto = 1 Presidio
+            diasResultantes = totalDiasOrigen / 3;
+            explicacion = "Regla: 3 días de Arresto equivalen a 1 de Presidio (Entre 3).";
+            break;
+        case 'rel_pres': // 4 Relegación = 1 Presidio
+            diasResultantes = totalDiasOrigen / 4;
+            explicacion = "Regla: 4 días de Relegación equivalen a 1 de Presidio (Entre 4).";
+            break;
+        case 'conf_pres': // 5 Conf/Exp = 1 Presidio
+            diasResultantes = totalDiasOrigen / 5;
+            explicacion = "Regla: 5 días de Conf/Exp equivalen a 1 de Presidio (Entre 5).";
+            break;
+        case 'pri_pres': // 2 Prisión = 1 Presidio
+            diasResultantes = totalDiasOrigen / 2;
+            explicacion = "Regla: 2 días de Prisión equivalen a 1 de Presidio (Entre 2).";
+            break;
+    }
+
+    // 3. Mostrar Resultado
+    const div = document.getElementById('resEquivalencia');
+    div.style.display = 'block';
+    
+    div.innerHTML = `
+        <strong>Tiempo Origen:</strong> ${desglosar(totalDiasOrigen)}<br>
+        <small>${explicacion}</small><hr>
+        <strong style="color:#e67e22; font-size:1.2em;">EQUIVALE A: ${desglosar(Math.floor(diasResultantes))}</strong>
+        <br><small>(Días exactos: ${diasResultantes.toFixed(2)})</small>
+    `;
+}
+
+
+function calcularConmutacion() {
+    // 1. Obtener días totales
+    const a = parseInt(document.getElementById('conm_a').value || 0);
+    const m = parseInt(document.getElementById('conm_m').value || 0);
+    const d = parseInt(document.getElementById('conm_d').value || 0);
+    
+    let diasBase = (a * 360) + (m * 30) + d;
+    if (diasBase <= 0) return alert("Ingrese la pena original.");
+
+    const tipo = document.getElementById('tipoConmutacion').value;
+    let aumento = 0;
+    let reglaTxt = "";
+
+    // 2. Calcular Aumento
+    if (tipo === 'pres_a_pri') {
+        // Aumento de 1/3
+        aumento = diasBase / 3;
+        reglaTxt = "Aumento de una tercera parte (1/3)";
+    } else if (tipo === 'pri_a_arr') {
+        // Aumento de 1/4
+        aumento = diasBase / 4;
+        reglaTxt = "Aumento de una cuarta parte (1/4)";
+    } else if (tipo === 'pri_a_conf') {
+        // Aumento de 1/3
+        aumento = diasBase / 3;
+        reglaTxt = "Aumento de una tercera parte (1/3)";
+    }
+
+    const totalFinal = diasBase + aumento;
+
+    // 3. Mostrar Resultado
+    const div = document.getElementById('resConmutacion');
+    div.style.display = 'block';
+    
+    div.innerHTML = `
+        <strong>Pena Original:</strong> ${desglosar(diasBase)}<br>
+        <small>${reglaTxt}: +${desglosar(Math.floor(aumento))}</small><hr>
+        <strong style="color:#2980b9; font-size:1.2em;">NUEVA PENA: ${desglosar(Math.floor(totalFinal))}</strong>
+    `;
+}
+
+function calcularOperacionFraccion() {
+    // 1. Obtener Lapso Base
+    const a = parseInt(document.getElementById('op_a').value || 0);
+    const m = parseInt(document.getElementById('op_m').value || 0);
+    const d = parseInt(document.getElementById('op_d').value || 0);
+    
+    // Convertir a días (Base 360)
+    const totalBase = (a * 360) + (m * 30) + d;
+    
+    if (totalBase <= 0) return alert("Ingrese el lapso base.");
+
+    // 2. Obtener Fracción
+    const fracStr = document.getElementById('op_frac').value;
+    if (!fracStr.includes('/')) return alert("Ingrese una fracción válida (Ej: 1/3)");
+    
+    const [num, den] = fracStr.split('/').map(Number);
+    if (!den || den === 0) return alert("Fracción inválida.");
+
+    // 3. Calcular la porción (La fracción del tiempo)
+    const porcionDias = Math.floor(totalBase * (num / den));
+
+    // 4. Realizar la Suma o Resta
+    const operacion = document.getElementById('op_tipo').value;
+    let totalFinal = 0;
+    let signo = "";
+
+    if (operacion === 'sumar') {
+        totalFinal = totalBase + porcionDias;
+        signo = "+ SUMA";
+    } else {
+        totalFinal = totalBase - porcionDias;
+        signo = "- RESTA";
+    }
+
+    // 5. Mostrar Resultado
+    const div = document.getElementById('resOperacionFrac');
+    div.style.display = 'block';
+    
+    div.innerHTML = `
+        <div style="font-size:0.9em;">
+            <b>Base:</b> ${desglosar(totalBase)}<br>
+            <b>El ${fracStr} es:</b> ${desglosar(porcionDias)}
+        </div>
+        <hr>
+        <div style="font-size:1.1em; color:#8e44ad; font-weight:bold;">
+            RESULTADO (${signo}):<br>
+            ${desglosar(totalFinal)}
+        </div>
+    `;
+}
+// ==========================================
+// FUNCIÓN ADMIN: CREAR ARCHIVO MAESTRO
+// ==========================================
+async function publicarCatalogoMaestro() {
+    if(!confirm("¿Desea empaquetar todos los delitos en un Archivo Maestro?\nEsto permitirá que 1000 usuarios descarguen todo gastando solo 1 lectura cada uno.")) return;
+
+    try {
+        console.log("Leyendo todos los delitos individuales...");
+        // 1. Leemos (gastamos lecturas nosotros una sola vez)
+        const snapshot = await db.collection('configuracion_global').doc('catalogo_delitos').collection('lista').get();
+        
+        let listaMaestra = [];
+        snapshot.forEach(doc => {
+            let d = doc.data();
+            d.id = doc.id; // Guardamos el ID original
+            listaMaestra.push(d);
+        });
+
+        console.log(`Empaquetando ${listaMaestra.length} delitos...`);
+
+        // 2. Guardamos el PAQUETE COMPLETO en un solo documento
+        // Usamos JSON.stringify para guardarlo como texto simple (es más barato y rápido)
+        const jsonString = JSON.stringify(listaMaestra);
+
+        await db.collection('configuracion_global').doc('catalogo_maestro').set({
+            contenido: jsonString,
+            fechaPublicacion: Date.now(),
+            totalDelitos: listaMaestra.length
+        });
+
+        alert(`✅ ¡ÉXITO!\nSe ha publicado el Archivo Maestro con ${listaMaestra.length} delitos.\n\nAhora los usuarios descargarán este único archivo en lugar de consultar toda la base de datos.`);
+
+    } catch (e) {
+        console.error(e);
+        alert("Error al publicar: " + e.message);
+    }
+}
+function descargarPlantillaDelitos() {
+    const data = [
+        {
+            "NOMBRE": "Ej: Homicidio Intencional",
+            "LEY": "Código Penal",
+            "ARTICULO": "405",
+            "MIN_ANOS": 12,
+            "MAX_ANOS": 18,
+            "SANCION": "Presidio",   // Opciones: Presidio, Prisión, Arresto
+            "ACCION": "Pública",     // Opciones: Pública, Privada
+            "CONDICION": "Prescriptible" // Opciones: Prescriptible, Imprescriptible
+        }
+    ];
+    
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Plantilla_Delitos");
+    XLSX.writeFile(wb, "Plantilla_Carga_Masiva_Iuris.xlsx");
+}
+async function procesarExcelDelitos() {
+    const input = document.getElementById('inputExcelDelitos');
+    const status = document.getElementById('statusExcel');
+    
+    if(!input.files[0]) return;
+
+    status.innerText = "⏳ Leyendo archivo...";
+    
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+            if(jsonData.length === 0) return alert("El archivo está vacío.");
+
+            if(!confirm(`Se encontraron ${jsonData.length} delitos. ¿Desea subirlos a la base de datos?`)) {
+                input.value = ""; // Limpiar
+                status.innerText = "";
+                return;
+            }
+
+            status.innerText = "🚀 Subiendo a Firebase... Por favor espere.";
+            
+            let contador = 0;
+            const batchSize = 400; // Firebase permite lotes de 500 max
+            let batch = db.batch();
+
+            for (let i = 0; i < jsonData.length; i++) {
+                const row = jsonData[i];
+                
+                // Validamos que tenga al menos nombre
+                if(!row.NOMBRE) continue;
+
+                // Referencia a documento nuevo
+                const docRef = db.collection('configuracion_global').doc('catalogo_delitos').collection('lista').doc();
+                
+                batch.set(docRef, {
+                    nombre: row.NOMBRE || "Sin Nombre",
+                    ley: row.LEY || "N/A",
+                    articulo: row.ARTICULO ? String(row.ARTICULO) : "N/A",
+                    min: parseFloat(row.MIN_ANOS) || 0,
+                    max: parseFloat(row.MAX_ANOS) || 0,
+                    tipoSancion: row.SANCION || "Prisión",
+                    tipoAccion: row.ACCION || "Pública",
+                    condicion: row.CONDICION || "Prescriptible",
+                    fechaCreacion: Date.now()
+                });
+
+                contador++;
+
+                // Si llegamos al límite del lote o es el último, enviamos
+                if (contador % batchSize === 0 || i === jsonData.length - 1) {
+                    await batch.commit();
+                    batch = db.batch(); // Reiniciar lote
+                    status.innerText = `✅ Procesados ${contador} de ${jsonData.length}...`;
+                }
+            }
+
+            alert(`¡Éxito! Se importaron ${contador} delitos correctamente.`);
+            status.innerText = "Carga completada.";
+            input.value = ""; // Limpiar input
+            
+            // Actualizar lista visual
+            cargarDelitosEnAdmin(); 
+
+        } catch (error) {
+            console.error(error);
+            alert("Error al procesar el archivo. Verifique que use la plantilla correcta.");
+            status.innerText = "Error en la carga.";
+        }
+    };
+    reader.readAsArrayBuffer(input.files[0]);
+}
+function prepararEdicion(id, datos) {
+    // 1. Llenar los campos con los datos del delito seleccionado
+    document.getElementById('admDelitoNombre').value = datos.nombre || "";
+    document.getElementById('admDelitoLey').value = datos.ley || "";
+    document.getElementById('admDelitoArt').value = datos.articulo || "";
+    document.getElementById('admDelitoMin').value = datos.min || "";
+    document.getElementById('admDelitoMax').value = datos.max || "";
+    document.getElementById('admDelitoSancion').value = datos.tipoSancion || "Prisión";
+    document.getElementById('admDelitoTipo').value = datos.tipoAccion || "Pública";
+    document.getElementById('admDelitoCondicion').value = datos.condicion || "Prescriptible";
+
+    // 2. Cambiar estado global a "EDITANDO"
+    idDelitoEnEdicion = id;
+
+    // 3. Cambiar visualmente el botón para que se note
+    const btn = document.querySelector('#adminPanel button[onclick="guardarDelitoAvanzado()"]');
+    if(btn) {
+        btn.id = "btnGuardarDelito"; // Asegurar que tenga ID
+        btn.innerText = "💾 ACTUALIZAR DATOS DELITO";
+        btn.style.background = "#e67e22"; // Naranja para indicar edición
+    }
+    
+    // 4. Scroll hacia arriba para ver el formulario
+    document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth' });
+    
+    alert(`Modo Edición Activado para: ${datos.nombre}`);
+}
+
 </script>
 </body>
 </html>
