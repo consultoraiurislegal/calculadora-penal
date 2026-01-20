@@ -83,22 +83,44 @@ input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-ra
 
 /* --- PEGAR ESTO EN LUGAR DE LO QUE BORRASTE (LÍNEAS 84-86 APROX) --- */
 
+/* --- REEMPLAZA TU BLOQUE .tabs-container POR ESTE --- */
 .tabs-container {
-    display: flex;              /* Pone los botones en fila */
-    overflow-x: auto;           /* Permite deslizar si no caben */
-    white-space: nowrap;        /* Evita que bajen de línea */
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
     background: #fff;
     margin-bottom: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    -webkit-overflow-scrolling: touch; /* Suavidad en móviles */
-    scrollbar-width: none;      /* Oculta barra scroll (Firefox) */
+    -webkit-overflow-scrolling: touch;
+    
+    /* Espacio extra a la derecha para que el último botón no quede pegado */
+    padding-right: 40px; 
+    
+    /* Espacio abajo para que quepa la barrita de scroll */
+    padding-bottom: 5px; 
 }
 
-/* Oculta barra scroll (Chrome/Android) */
+/* DISEÑO DE LA BARRA DE SCROLL (Fina y Elegante) */
 .tabs-container::-webkit-scrollbar {
-    display: none;
+    height: 4px; /* Altura de la barra horizontal */
+    display: block; /* Hacemos que se vea */
 }
+
+.tabs-container::-webkit-scrollbar-track {
+    background: transparent; 
+}
+
+.tabs-container::-webkit-scrollbar-thumb {
+    background-color: #e0e0e0; /* Color gris suave */
+    border-radius: 10px;
+}
+
+/* Al pasar el mouse o tocar, se pone azul */
+.tabs-container:hover::-webkit-scrollbar-thumb {
+    background-color: #1a73e8; 
+}
+
 
 .tab-button {
     flex: 0 0 auto;             /* IMPORTANTE: Mantiene el tamaño del botón */
@@ -411,14 +433,50 @@ border-radius: 8px;
 
     <div class="modulo" style="border-left: 5px solid #1a73e8; background: #fdfdfd;">
         <h2 style="color: #1565c0;">🧮 Dosimetría Penal </h2>
-        <p style="font-size: 0.9em; color: #666;">Protocolo de Cálculo Automático:
-​1. Selección: Escoja el delito o delitos imputados del catálogo.
-​2. Individualización: Aplique atenuantes/agravantes (Art. 37 CP) y fije la pena base.
-​3. Iter Criminis: Determine el grado de ejecución (Tentativa / Frustración).
-​4. Participación: Establezca el grado de intervención (Autoría / Complicidad).
-​5. Pluralidad: El sistema detectará y aplicará reglas de Concurso (Real / Ideal).
-​6. Procedimiento: Aplique rebaja por Admisión de los Hechos si corresponde.
-​🏁 Resultado: Pena Definitiva Lista..</p>
+        <div style="background: #f8f9fa; border: 1px solid #e1e4e8; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+    <h4 style="margin: 0 0 10px 0; color: #1a73e8; font-size: 0.95em; text-transform: uppercase; letter-spacing: 0.5px;">
+        📘 Protocolo de Cálculo Automático
+    </h4>
+    
+    <div style="display: grid; gap: 8px; font-size: 0.9em; color: #555;">
+        
+        <div style="display: flex; align-items: start; gap: 10px;">
+            <span style="background: #e8f0fe; color: #1a73e8; font-weight: bold; min-width: 20px; text-align: center; border-radius: 4px;">1</span>
+            <div><b>Selección:</b> Escoja el delito o delitos imputados del catálogo.</div>
+        </div>
+
+        <div style="display: flex; align-items: start; gap: 10px;">
+            <span style="background: #e8f0fe; color: #1a73e8; font-weight: bold; min-width: 20px; text-align: center; border-radius: 4px;">2</span>
+            <div><b>Individualización:</b> Aplique atenuantes/agravantes, genericas y especificas y fije la pena base.</div>
+        </div>
+
+        <div style="display: flex; align-items: start; gap: 10px;">
+            <span style="background: #e8f0fe; color: #1a73e8; font-weight: bold; min-width: 20px; text-align: center; border-radius: 4px;">3</span>
+            <div><b>Iter Criminis:</b> Determine el grado de ejecución (Tentativa / Frustración).</div>
+        </div>
+
+        <div style="display: flex; align-items: start; gap: 10px;">
+            <span style="background: #e8f0fe; color: #1a73e8; font-weight: bold; min-width: 20px; text-align: center; border-radius: 4px;">4</span>
+            <div><b>Participación:</b> Establezca el grado de intervención (Autoría / Complicidad).</div>
+        </div>
+
+        <div style="display: flex; align-items: start; gap: 10px;">
+            <span style="background: #e8f0fe; color: #1a73e8; font-weight: bold; min-width: 20px; text-align: center; border-radius: 4px;">5</span>
+            <div><b>Pluralidad:</b> El sistema detectará y aplicará reglas de Concurso (Real / Ideal).</div>
+        </div>
+
+        <div style="display: flex; align-items: start; gap: 10px;">
+            <span style="background: #e8f0fe; color: #1a73e8; font-weight: bold; min-width: 20px; text-align: center; border-radius: 4px;">6</span>
+            <div><b>Procedimiento:</b> Aplique rebaja por Admisión de los Hechos si corresponde.</div>
+        </div>
+
+    </div>
+
+    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; font-weight: bold; color: #2e7d32; display: flex; align-items: center; gap: 5px;">
+        🏁 Resultado: <span style="font-weight: normal; color: #333;">Sentencia Definitiva Lista.</span>
+    </div>
+</div>
+
         
         <div id="contenedorDelitosDosimetria"></div>
 
@@ -2886,19 +2944,29 @@ function calcularPrescripcionInteligente() {
 
     iter += `4. REGLAS DE PRESCRIPCIÓN (CÓDIGO PENAL)\n`;
 
-    // LÓGICA DE LAS REGLAS
-    if (s === 'Presidio') {
-        if (p > 10) {
-            lapsoPrescripcion = 15;
-            iter += `   - Regla 1: Presidio > 10 años.\n   - PLAZO: 15 AÑOS.\n`;
-        } else if (p > 7 && p <= 10) {
+    // ============================================================
+    // LÓGICA DE LAS REGLAS (CORREGIDA - PRIORIDAD POR GRAVEDAD)
+    // ============================================================
+    
+    // 1. REGLA SUPREMA DE GRAVEDAD (Para evitar errores de etiqueta)
+    // Si la pena excede los 10 años, se asume la prescripción máxima (15 años)
+    // independientemente de si la base de datos dice "Prisión" o "Presidio".
+    if (p > 10) {
+        lapsoPrescripcion = 15;
+        iter += `   - Regla 1 (Prioridad por Cuantía): La pena excede 10 años.\n   - PLAZO: 15 AÑOS.\n`;
+    } 
+    // 2. Si es menor a 10 años, miramos el tipo de sanción
+    else if (s === 'Presidio') {
+        if (p > 7) { 
+            // Nota: Como ya filtramos los mayores a 10 arriba, aquí entran los de 7.01 a 10
             lapsoPrescripcion = 10;
             iter += `   - Regla 2: Presidio > 7 y <= 10 años.\n   - PLAZO: 10 AÑOS.\n`;
         } else {
             lapsoPrescripcion = 7;
             iter += `   - Regla 3: Presidio <= 7 años.\n   - PLAZO: 7 AÑOS.\n`;
         }
-    } else if (s === 'Prisión') {
+    } 
+    else if (s === 'Prisión') {
         if (p > 3) {
             lapsoPrescripcion = 5;
             iter += `   - Regla 4: Prisión > 3 años.\n   - PLAZO: 5 AÑOS.\n`;
@@ -2906,8 +2974,8 @@ function calcularPrescripcionInteligente() {
             lapsoPrescripcion = 3;
             iter += `   - Regla 5: Prisión <= 3 años.\n   - PLAZO: 3 AÑOS.\n`;
         }
-    } else if (['Arresto', 'Relegación', 'Confinamiento', 'Expulsión'].includes(s)) {
-        // Arresto: Hay que diferenciar si es > 6 meses (0.5 años) o entre 1-6 meses
+    } 
+    else if (['Arresto', 'Relegación', 'Confinamiento', 'Expulsión'].includes(s)) {
         if (s === 'Arresto' && p > 0.5) {
             lapsoPrescripcion = 3;
             iter += `   - Regla 5: Arresto > 6 meses.\n   - PLAZO: 3 AÑOS.\n`;
@@ -2915,12 +2983,12 @@ function calcularPrescripcionInteligente() {
             lapsoPrescripcion = 1;
             iter += `   - Regla 6: Arresto 1 a 6 meses.\n   - PLAZO: 1 AÑO.\n`;
         } else {
-            // Relegación, Confinamiento, Expulsión caen en Regla 5
             lapsoPrescripcion = 3;
             iter += `   - Regla 5: ${s}.\n   - PLAZO: 3 AÑOS.\n`;
         }
-    } else {
-        // Multas, Suspensiones, Faltas (Regla 6)
+    } 
+    else {
+        // Multas, etc.
         lapsoPrescripcion = 1;
         iter += `   - Regla 6: Multa, Suspensión o Faltas.\n   - PLAZO: 1 AÑO.\n`;
     }
@@ -2980,6 +3048,7 @@ function calcularPrescripcionInteligente() {
     document.getElementById('iterProcesal').innerText = iter;
     document.getElementById('resPrescripcion').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
 
 function mostrarResultadoImprescriptible(iter) {
     document.getElementById('resPrescripcion').style.display = 'block';
@@ -4119,6 +4188,24 @@ function prepararEdicion(id, datos) {
     
     alert(`Modo Edición Activado para: ${datos.nombre}`);
 }
+// ==========================================
+// UX: ANIMACIÓN "EMPUJONCITO" DEL MENÚ
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    // Esperamos 1.5 segundos a que el usuario se ubique
+    setTimeout(() => {
+        const menu = document.querySelector('.tabs-container');
+        if(menu) {
+            // 1. Deslizar suavemente a la derecha (mostrar que hay más)
+            menu.scrollBy({ left: 80, behavior: 'smooth' });
+            
+            // 2. Regresar al inicio automáticamente
+            setTimeout(() => {
+                menu.scrollBy({ left: -80, behavior: 'smooth' });
+            }, 800);
+        }
+    }, 1500);
+});
 
 </script>
 </body>
