@@ -1570,7 +1570,16 @@ function openTab(evt, tabName) {
     
     document.getElementById(tabName).style.display = "block";
     evt.currentTarget.className += " active";
+ if (analytics) {
+        analytics.logEvent('screen_view', {
+            firebase_screen: tabName, 
+            screen_name: tabName
+        });
+        console.log("Rastreo enviado: " + tabName);
+    }
 
+    // --- 👆 FIN DEL BLOQUE NUEVO 👆 ---
+}
     // ¡HEMOS ELIMINADO LA CARGA AUTOMÁTICA DEL ADMIN AQUÍ!
     // Ahora es manual con el botón.
 }
