@@ -3518,13 +3518,7 @@ function agregarBloqueDelito() {
 
     div.innerHTML = `
         <style>
-            .opcion-multilinea {
-                white-space: normal !important;
-                word-wrap: break-word !important;
-                border-bottom: 1px solid #f0f0f0;
-                padding: 6px;
-                font-size: 0.9em;
-            }
+            .opcion-multilinea { white-space: normal !important; border-bottom: 1px solid #f0f0f0; padding: 6px; font-size: 0.9em; }
         </style>
 
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -3533,9 +3527,7 @@ function agregarBloqueDelito() {
         </div>
         
         <label>Buscar delito:</label>
-        <input type="text" placeholder="Escriba para filtrar..." 
-               onkeyup="filtrarDelitosDosimetria(this, '${idSelect}')" 
-               style="margin-bottom:5px; background:#f0f8ff;">
+        <input type="text" placeholder="Escriba para filtrar..." onkeyup="filtrarDelitosDosimetria(this, '${idSelect}')" style="margin-bottom:5px; background:#f0f8ff;">
         
         <select id="${idSelect}" class="sel-delito-dosim" onchange="cargarInfoDelitoDosimetria(this, '${idBloque}')" size="7" style="height: auto; min-height: 100px;">
             <option value="">-- Resultados de la búsqueda --</option>
@@ -3547,17 +3539,15 @@ function agregarBloqueDelito() {
                 <div><b>Ley:</b> <span class="lbl-ley"></span></div>
                 <div><b>Artículo:</b> <span class="lbl-art"></span></div>
             </div>
-            <div style="margin-top:5px; padding-top:5px; border-top:1px dashed #ccc;">
-                <b>Tipo de Pena:</b> <span class="lbl-sancion" style="color:#d93025; font-weight:bold; text-transform: uppercase;"></span>
-            </div>
             <div style="margin-top:5px;">
-                <b>Límites:</b> <span class="lbl-rango"></span> <br>
+                <b>Pena:</b> <span class="lbl-sancion" style="color:#d93025; font-weight:bold;"></span> 
+                (<span class="lbl-rango"></span>)<br>
                 <b>Término Medio:</b> <span class="lbl-media" style="color:#1a73e8; font-weight:bold;"></span>
             </div>
         </div>
 
         <div style="margin-top:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
-            <label style="color:#333; font-weight:bold;">1. Pena Base Individualizada (Art. 37 CP):</label>
+            <label style="color:#333; font-weight:bold;">1. Pena Base Individualizada:</label>
             <div class="grid-3">
                 <input type="number" class="pi-a" placeholder="Años" oninput="calcularPenaIndividual('${idBloque}')">
                 <input type="number" class="pi-m" placeholder="Meses" oninput="calcularPenaIndividual('${idBloque}')">
@@ -3565,42 +3555,56 @@ function agregarBloqueDelito() {
             </div>
         </div>
 
+        <div style="margin-top:10px; border-bottom:1px solid #eee; padding-bottom:10px; background:#fff8e1; padding:10px; border-radius:5px;">
+            <label style="color:#e67e22; font-weight:bold; margin-top:0;">2. Agravante/Atenuante Específica (Manual):</label>
+            <div class="grid-2">
+                <div>
+                    <label style="font-weight:normal; font-size:0.85em; margin:0;">Fracción (Ej: 1/4):</label>
+                    <input type="text" class="manual-frac" placeholder="1/4" oninput="calcularPenaIndividual('${idBloque}')" style="background:white;">
+                </div>
+                <div>
+                    <label style="font-weight:normal; font-size:0.85em; margin:0;">Acción:</label>
+                    <select class="manual-tipo" onchange="calcularPenaIndividual('${idBloque}')" style="background:white;">
+                        <option value="Aumento">AUMENTAR (+)</option>
+                        <option value="Disminucion">REBAJAR (-)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <div style="margin-top:10px; background:#f9f9f9; padding:10px; border-radius:8px;">
-            
             <div class="area-modificadores" style="display:none; margin-bottom:15px;">
                 <label style="color:#6a1b9a;">Circunstancias Ley Especial:</label>
                 <div class="lista-checks-mod"></div>
             </div>
 
             <div style="margin-bottom:15px;">
-                <label>Grado de Ejecución:</label>
+                <label>3. Grado de Ejecución:</label>
                 <select class="sel-ejecucion" onchange="toggleFraccionTentativa(this); calcularPenaIndividual('${idBloque}')">
-                    <option value="Consumado">Delito Consumado (Sin rebaja)</option>
-                    <option value="Frustrado">Delito Frustrado (Rebaja 1/3)</option>
-                    <option value="Tentativa">Tentativa (Rebaja Variable)</option>
+                    <option value="Consumado">Consumado</option>
+                    <option value="Frustrado">Frustrado (1/3)</option>
+                    <option value="Tentativa">Tentativa (Variable)</option>
                 </select>
-                <div class="box-tentativa" style="display:none; background:#fff3cd; padding:10px; margin-top:5px; border-radius:5px; border:1px solid #ffeeba;">
-                    <label style="color:#856404; font-size:0.9em;">Fracción Tentativa:</label>
-                    <input type="text" class="input-fraccion-tentativa" value="1/2" placeholder="Ej: 1/2" style="background:white;" oninput="calcularPenaIndividual('${idBloque}')">
+                <div class="box-tentativa" style="display:none; margin-top:5px;">
+                    <input type="text" class="input-fraccion-tentativa" value="1/2" placeholder="Ej: 1/2" oninput="calcularPenaIndividual('${idBloque}')">
                 </div>
             </div>
 
             <div>
-                <label>Grado de Intervención:</label>
+                <label>4. Grado de Intervención:</label>
                 <select class="sel-participacion" onchange="toggleFraccionParticipacion(this); calcularPenaIndividual('${idBloque}')">
-                    <option value="Perpetrador">Autor / Coautor (Igual pena)</option>
-                    <option value="Complice">Cómplice Simple (Rebaja 1/2)</option>
-                    <option value="Variable">Otro (Rebaja Variable)</option>
+                    <option value="Perpetrador">Autor / Coautor</option>
+                    <option value="Complice">Cómplice (1/2)</option>
+                    <option value="Variable">Otro (Variable)</option>
                 </select>
-                <div class="box-participacion-var" style="display:none; background:#d1e7dd; padding:10px; margin-top:5px; border-radius:5px; border:1px solid #badbcc;">
-                    <label style="color:#0f5132; font-size:0.9em;">Fracción Participación:</label>
-                    <input type="text" class="input-fraccion-part" value="1/2" placeholder="Ej: 1/4" style="background:white;" oninput="calcularPenaIndividual('${idBloque}')">
+                <div class="box-participacion-var" style="display:none; margin-top:5px;">
+                    <input type="text" class="input-fraccion-part" value="1/2" placeholder="Ej: 1/4" oninput="calcularPenaIndividual('${idBloque}')">
                 </div>
             </div>
 
             <div style="margin-top:15px; border-top:1px dashed #ccc; padding-top:10px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <label style="margin:0; font-weight:bold; color:#2e7d32;">¿Admite los Hechos en este delito?</label>
+                    <label style="margin:0; font-weight:bold; color:#2e7d32;">Admisión de Hechos (Individual)</label>
                     <div class="switch-container" style="padding: 2px; margin:0; border:none; background:none;">
                         <label class="switch">
                             <input type="checkbox" class="chk-admision-ind" onchange="toggleAdmisionIndividual(this); calcularPenaIndividual('${idBloque}')">
@@ -3608,15 +3612,10 @@ function agregarBloqueDelito() {
                         </label>
                     </div>
                 </div>
-                <div class="box-admision-ind" style="display:none; background:#e8f5e9; padding:10px; margin-top:5px; border-radius:5px; border:1px solid #c8e6c9;">
-                    <label style="color:#2e7d32; font-size:0.9em; margin-top:0;">Rebaja por Admisión:</label>
-                    <div style="display:flex; gap:10px; align-items:center;">
-                        <input type="text" class="input-fraccion-adm-ind" value="1/3" placeholder="Ej: 1/3" style="background:white;" oninput="calcularPenaIndividual('${idBloque}')">
-                        <small style="color:#666; line-height:1.2;">(Generalmente 1/3)</small>
-                    </div>
+                <div class="box-admision-ind" style="display:none; margin-top:5px;">
+                    <input type="text" class="input-fraccion-adm-ind" value="1/3" placeholder="Ej: 1/3" oninput="calcularPenaIndividual('${idBloque}')">
                 </div>
             </div>
-
         </div>
 
         <div style="margin-top:10px; background:#e6ffed; padding:10px; border-radius:8px; border: 2px solid #2e7d32; text-align:center;">
@@ -3746,16 +3745,33 @@ function calcularDosimetriaFinal() {
 
         // B. CÁLCULO EN CASCADA
         
-        // 1. Modificadores
+        // --- 1. NUEVO: AJUSTE MANUAL ---
+        const fracManual = bloque.querySelector('.manual-frac').value;
+        const tipoManual = bloque.querySelector('.manual-tipo').value;
+        if(fracManual && fracManual.includes('/')) {
+            const [n, den] = fracManual.split('/').map(Number);
+            if(den > 0) {
+                const cantidad = penaHoras * (n/den);
+                if(tipoManual === 'Aumento') {
+                    penaHoras += cantidad;
+                    iter += `   [AGRAVANTE MANUAL] Aumento de ${fracManual}: +${desglosarHoras(cantidad)}\n`;
+                } else {
+                    penaHoras -= cantidad;
+                    iter += `   [ATENUANTE MANUAL] Rebaja de ${fracManual}: -${desglosarHoras(cantidad)}\n`;
+                }
+            }
+        }
+
+        // 2. Modificadores (Checks)
         const checks = bloque.querySelectorAll('.chk-mod:checked');
         checks.forEach(chk => {
             const [n, den] = chk.dataset.fraccion.split('/').map(Number);
             const cantidad = penaHoras * (n/den);
-            if(chk.dataset.tipo === 'Aumento') { penaHoras += cantidad; iter += `   [AGRAVANTE] ${chk.dataset.nombre}: +${desglosarHoras(cantidad)}\n`; }
-            else { penaHoras -= cantidad; iter += `   [ATENUANTE] ${chk.dataset.nombre}: -${desglosarHoras(cantidad)}\n`; }
+            if(chk.dataset.tipo === 'Aumento') { penaHoras += cantidad; iter += `   [AGRAVANTE LEY] ${chk.dataset.nombre}: +${desglosarHoras(cantidad)}\n`; }
+            else { penaHoras -= cantidad; iter += `   [ATENUANTE LEY] ${chk.dataset.nombre}: -${desglosarHoras(cantidad)}\n`; }
         });
 
-        // 2. Grado de Ejecución
+        // 3. Grado de Ejecución
         const ejecucion = bloque.querySelector('.sel-ejecucion').value;
         if(ejecucion !== 'Consumado') {
             let rebaja = 0;
@@ -3767,7 +3783,7 @@ function calcularDosimetriaFinal() {
             if(rebaja > 0) { penaHoras -= rebaja; iter += `   [EJECUCIÓN] ${ejecucion}: -${desglosarHoras(rebaja)}\n`; }
         }
 
-        // 3. Participación
+        // 4. Participación
         const part = bloque.querySelector('.sel-participacion').value;
         if(part !== 'Perpetrador') {
             let rebaja = 0;
@@ -3781,7 +3797,7 @@ function calcularDosimetriaFinal() {
             if(rebaja > 0) { penaHoras -= rebaja; iter += `   [PARTICIPACIÓN] ${part} (${fracc}): -${desglosarHoras(rebaja)}\n`; }
         }
 
-        // 4. NUEVO: ADMISIÓN DE HECHOS INDIVIDUAL
+        // 5. ADMISIÓN DE HECHOS INDIVIDUAL
         const admiteIndividual = bloque.querySelector('.chk-admision-ind').checked;
         if(admiteIndividual) {
             const fraccAdm = bloque.querySelector('.input-fraccion-adm-ind').value || "1/3";
@@ -3797,14 +3813,12 @@ function calcularDosimetriaFinal() {
         penasIndividuales.push(penaHoras);
     });
 
-    // C. CONCURSO Y TOTALIZACIÓN
+    // C. CONCURSO Y TOTALIZACIÓN (Sin cambios, solo copiando para integridad)
     let penaTotalHoras = 0;
-    
     if(penasIndividuales.length > 1) {
         penasIndividuales.sort((a, b) => b - a);
         const penaMayor = penasIndividuales[0];
         const tipoConcurso = document.getElementById('tipoConcurso').value;
-
         iter += `--- REGLAS DE CONCURSO (${tipoConcurso.toUpperCase()}) ---\n`;
 
         if(tipoConcurso === 'Real') {
@@ -3833,19 +3847,15 @@ function calcularDosimetriaFinal() {
         iter += `--- DELITO ÚNICO (Sin Concurso) ---\n`;
     }
 
-    // D. ADMISIÓN GLOBAL (SOLO SI NO ESTÁ BLOQUEADA)
-    // El 'disabled' previene que el usuario lo toque, pero verificamos 'checked' por seguridad lógica
+    // D. ADMISIÓN GLOBAL
     const switchGlobal = document.getElementById('chkAdmision');
-    
     if(!switchGlobal.disabled && switchGlobal.checked) {
         const fracAdm = document.getElementById('fraccionAdmision').value || "1/3";
         const [n, d] = fracAdm.split('/').map(Number);
         if(d>0) {
             const rebaja = penaTotalHoras * (n/d);
             penaTotalHoras -= rebaja;
-            iter += `\n--- ADMISIÓN DE LOS HECHOS (GLOBAL) ---\n`;
-            iter += `   - Aplicada al total de la pena.\n`;
-            iter += `   - Rebaja (${fracAdm}): -${desglosarHoras(rebaja)}\n`;
+            iter += `\n--- ADMISIÓN DE LOS HECHOS (GLOBAL) ---\n   - Rebaja (${fracAdm}): -${desglosarHoras(rebaja)}\n`;
         }
     } else if (switchGlobal.disabled) {
         iter += `\n[NOTA] La Admisión Global no se aplica porque se detectaron admisiones individuales.\n`;
@@ -3863,46 +3873,6 @@ function calcularDosimetriaFinal() {
     document.getElementById('lblFechaFinal').innerText = hoy.toLocaleDateString();
 }
 
-
-
-// NUEVA FUNCIÓN VISUAL
-function toggleFraccionTentativa(select) {
-    // Buscamos la cajita amarilla que está justo debajo del select
-    const parentDiv = select.parentNode; 
-    const box = parentDiv.querySelector('.box-tentativa');
-    
-    if (select.value === 'Tentativa') {
-        box.style.display = 'block';
-    } else {
-        box.style.display = 'none';
-    }
-}
-// ==========================================
-// FUNCIÓN FALTANTE: FILTRADO EN DOSIMETRÍA
-// ==========================================
-
-function filtrarDelitosDosimetria(input, selectId) {
-    const texto = normalizarTexto(input.value); // <--- USAMOS NORMALIZAR
-    const select = document.getElementById(selectId);
-    if(!select) return;
-    
-    select.innerHTML = "";
-    const filtrados = catalogoDelitos.filter(d => normalizarTexto(d.nombre).includes(texto));
-
-    if(filtrados.length === 0) {
-        const opt = document.createElement('option');
-        opt.text = "No se encontraron coincidencias";
-        select.appendChild(opt);
-    } else {
-        filtrados.forEach(d => {
-            const opt = document.createElement('option');
-            opt.value = d.id;
-            opt.text = d.nombre;
-            opt.className = "opcion-multilinea"; 
-            select.appendChild(opt);
-        });
-    }
-}
 
 // LÓGICA DE CONVERSIONES Y CONMUTACIONES
 // ==========================================
@@ -4306,30 +4276,41 @@ function calcularPenaIndividual(idBloque) {
     const m = parseFloat(bloque.querySelector('.pi-m').value) || 0;
     const d = parseFloat(bloque.querySelector('.pi-d').value) || 0;
     
-    // Si no ha escrito nada, mostramos guiones
     if (a === 0 && m === 0 && d === 0) {
         bloque.querySelector('.lbl-resultado-individual').innerText = "--";
         return;
     }
 
-    // Usamos tu función aHoras para convertir todo a una unidad común
     let penaHoras = aHoras(a, m, d, 0);
 
-    // 2. APLICAR MODIFICADORES (Checks dinámicos)
+    // 2. NUEVO: APLICAR AJUSTE MANUAL (AGRAVANTE/ATENUANTE ESPECÍFICA)
+    const fracManual = bloque.querySelector('.manual-frac').value;
+    const tipoManual = bloque.querySelector('.manual-tipo').value; // 'Aumento' o 'Disminucion'
+
+    if(fracManual && fracManual.includes('/')) {
+        const [n, den] = fracManual.split('/').map(Number);
+        if(den > 0) {
+            const cantidad = penaHoras * (n / den);
+            if(tipoManual === 'Aumento') {
+                penaHoras += cantidad;
+            } else {
+                penaHoras -= cantidad;
+            }
+        }
+    }
+
+    // 3. APLICAR MODIFICADORES AUTO (Checks de Ley Especial)
     const checks = bloque.querySelectorAll('.chk-mod:checked');
     checks.forEach(chk => {
         const [n, den] = chk.dataset.fraccion.split('/').map(Number);
         if (den > 0) {
             const cantidad = penaHoras * (n/den);
-            if(chk.dataset.tipo === 'Aumento') { 
-                penaHoras += cantidad; 
-            } else { 
-                penaHoras -= cantidad; 
-            }
+            if(chk.dataset.tipo === 'Aumento') penaHoras += cantidad; 
+            else penaHoras -= cantidad; 
         }
     });
 
-    // 3. GRADO DE EJECUCIÓN
+    // 4. GRADO DE EJECUCIÓN
     const ejecucion = bloque.querySelector('.sel-ejecucion').value;
     if (ejecucion !== 'Consumado') {
         let rebaja = 0;
@@ -4342,7 +4323,7 @@ function calcularPenaIndividual(idBloque) {
         penaHoras -= rebaja;
     }
 
-    // 4. GRADO DE INTERVENCIÓN
+    // 5. GRADO DE INTERVENCIÓN
     const part = bloque.querySelector('.sel-participacion').value;
     if (part !== 'Perpetrador') {
         let rebaja = 0;
@@ -4355,7 +4336,7 @@ function calcularPenaIndividual(idBloque) {
         penaHoras -= rebaja;
     }
 
-    // 5. ADMISIÓN DE HECHOS INDIVIDUAL
+    // 6. ADMISIÓN INDIVIDUAL
     const admiteIndividual = bloque.querySelector('.chk-admision-ind').checked;
     if (admiteIndividual) {
         const fraccAdm = bloque.querySelector('.input-fraccion-adm-ind').value || "1/3";
@@ -4366,9 +4347,46 @@ function calcularPenaIndividual(idBloque) {
         }
     }
 
-    // 6. MOSTRAR RESULTADO EN LA CAJITA VERDE
-    // Usamos tu función desglosarHoras para que se vea bonito (ej: 5a 6m 0d)
+    // 7. MOSTRAR RESULTADO
     bloque.querySelector('.lbl-resultado-individual').innerText = desglosarHoras(penaHoras);
+}
+
+// ==========================================
+// FUNCIÓN DE BÚSQUEDA FALTANTE (DOSIMETRÍA)
+// ==========================================
+function filtrarDelitosDosimetria(inputElement, idSelect) {
+    const texto = normalizarTexto(inputElement.value);
+    const select = document.getElementById(idSelect);
+    
+    // 1. Limpiamos la lista actual
+    select.innerHTML = "";
+
+    // 2. Filtramos el catálogo global buscando coincidencias
+    const filtrados = catalogoDelitos.filter(d => 
+        normalizarTexto(d.nombre).includes(texto)
+    );
+
+    // 3. Volvemos a llenar el select con los resultados
+    if(filtrados.length === 0) {
+        const opt = document.createElement('option');
+        opt.text = "-- No se encontraron delitos --";
+        select.appendChild(opt);
+    } else {
+        // Si el usuario borró todo, ponemos un título bonito
+        if (texto === "") {
+             const titulo = document.createElement('option');
+             titulo.text = "-- Resultados de la búsqueda --";
+             select.appendChild(titulo);
+        }
+
+        filtrados.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.text = d.nombre;
+            opt.className = "opcion-multilinea"; // Mantiene el estilo de texto ajustado
+            select.appendChild(opt);
+        });
+    }
 }
 
 </script>
