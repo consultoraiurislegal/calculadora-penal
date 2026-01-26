@@ -1592,36 +1592,82 @@ document.getElementById('status-bar').style.none;
 let suscripcionVencida = false;
 
 async function obtenerSuscripcion(uid) {
-try {
-const docRef = db.collection('usuarios').doc(uid);
-const doc = await docRef.get();
-let venc;
-if (doc.exists && doc.data().vencimiento) {
-venc = new Date(doc.data().vencimiento);
-} else {
-const user = auth.currentUser;
-const fechaCreacion = new Date(user.metadata.creationTime);
-venc = new Date(fechaCreacion.getTime() + (10 * 24 * 60 * 60 * 1000));
-await docRef.set({
-email: user.email,
-vencimiento: venc.toISOString(),
-rol: 'prueba',
-fechaRegistro: new Date().toISOString()
-}, { merge: true });
-}
-const hoy = new Date();
-const diff = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
+    try {
+        const docRef = db.collection('usuarios').doc(uid);
+        const doc = await docRef.get();
+        let venc;
+        let esAdmin = false; // Variable local para control
 
-if (diff <= 0) {
-document.getElementById('days-display').innerText = "Suscripción Vencida";
-suscripcionVencida = true; // Marcamos como vencida
-} else {
-document.getElementById('days-display').innerText = "Prueba: " + diff + " días restantes";
-suscripcionVencida = false;
-document.getElementById('modalVencimiento').style.display = 'none';
+        if (doc.exists) {
+            const data = doc.data();
+            
+            // 1. VERIFICAR SI ES ADMIN
+            // (Asegúrate que en Firebase el campo se llame 'rol' y el valor 'admin')
+            if (data.rol === 'admin') {
+                esAdmin = true;
+                window.usuarioEsAdmin = true; // Variable global
+            }
+
+            // 2. OBTENER FECHA
+            if (data.vencimiento) {
+                venc = new Date(data.vencimiento);
+            }
+        }
+
+        // Si no existe fecha o usuario, creamos uno de prueba (Solo si no es admin)
+        if (!venc && !esAdmin) {
+            const user = auth.currentUser;
+            const fechaCreacion = new Date(user.metadata.creationTime);
+            venc = new Date(fechaCreacion.getTime() + (10 * 24 * 60 * 60 * 1000)); // 10 días
+            
+            // Guardamos el usuario nuevo
+            await docRef.set({
+                email: auth.currentUser.email,
+                vencimiento: venc.toISOString(),
+                rol: 'prueba',
+                fechaRegistro: new Date().toISOString()
+            }, { merge: true });
+        }
+
+        // 3. LOGICA VISUAL DEL BOTÓN ADMIN (¡ESTO ES LO QUE FALTABA!)
+        const btnAdmin = document.getElementById('tab-admin');
+        if (btnAdmin) {
+            if (esAdmin) {
+                btnAdmin.style.display = 'inline-block'; // ¡APARECE BOTÓN! 🔓
+                btnAdmin.innerText = "🛡️ ADMIN";
+            } else {
+                btnAdmin.style.display = 'none'; // Se oculta para mortales
+            }
+        }
+
+        // 4. CALCULAR VENCIMIENTO
+        // Si es Admin, nunca vence. Si no, calculamos días.
+        if (esAdmin) {
+            document.getElementById('days-display').innerText = "Modo Dios (Admin)";
+            document.getElementById('days-display').style.color = "#00c853";
+            suscripcionVencida = false;
+            document.getElementById('modalVencimiento').style.display = 'none';
+        } else {
+            const hoy = new Date();
+            const diff = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
+
+            if (diff <= 0) {
+                document.getElementById('days-display').innerText = "Suscripción Vencida";
+                document.getElementById('days-display').style.color = "#ff3d00";
+                suscripcionVencida = true;
+            } else {
+                document.getElementById('days-display').innerText = diff + " días restantes";
+                document.getElementById('days-display').style.color = "#2563eb";
+                suscripcionVencida = false;
+                document.getElementById('modalVencimiento').style.display = 'none';
+            }
+        }
+
+    } catch (e) { 
+        console.error("Error obteniendo suscripción:", e); 
+    }
 }
-} catch (e) { console.error(e); }
-}
+
 
 // Función auxiliar para validar antes de ejecutar tareas premium
 function validarAccesoPremium() {
