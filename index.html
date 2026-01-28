@@ -8588,14 +8588,30 @@ function filtrarListaLeyes(texto) {
 document.addEventListener('DOMContentLoaded', () => {
    if(document.getElementById('selBiblioteca')) filtrarListaLeyes("");
 });
-</script>
-<script type="importmap">
-  {
-    "imports": {
-      "@google/generative-ai": "https://esm.run/@google/generative-ai"
+// ==========================================
+// FUNCIÓN PARA EL BOTÓN DE WHATSAPP
+// ==========================================
+function contactarSoporte() {
+    // 1. Intentamos obtener el correo del usuario actual
+    let usuarioEmail = "No identificado";
+    if (auth.currentUser) {
+        usuarioEmail = auth.currentUser.email;
     }
-  }
-</script>
+
+    // 2. Tu número de teléfono (Formato internacional sin el +)
+    // 0424-7640846 -> 584247640846
+    const telefono = "584247640846";
+
+    // 3. El mensaje automático
+    const mensaje = `Hola Dr. Charles, adjunto mi comprobante de pago para activar la suscripción Iuris Penal.\n\n📧 Mi correo es: ${usuarioEmail}`;
+
+    // 4. Crear el enlace de WhatsApp
+    const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+
+    // 5. Abrir en una nueva pestaña
+    window.open(url, '_blank');
+}
+
 
 
 </script>
