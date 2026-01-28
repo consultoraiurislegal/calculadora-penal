@@ -993,12 +993,7 @@ border-radius: 8px;
         <button class="btn-principal" style="background:#8e44ad; margin-top:10px;" onclick="calcularOperacionFraccion()">CALCULAR RESULTADO</button>
         <div id="resOperacionFrac" class="calc-res" style="border-left: 5px solid #8e44ad;"></div>
     </div>
-    <div class="modulo" style="border-top: 5px solid #d93025; background: #fff5f5;">
-    <h3 style="color: #d93025;">🆘 Rescate de Base de Datos</h3>
-    <p>Use este botón si faltan expedientes después de borrar datos del navegador. Esto descargará ABSOLUTAMENTE TODO lo que esté en su nube.</p>
-    <button class="btn-principal" onclick="forzarDescargaTotal()" style="background: #d93025;">
-        ⬇️ FORZAR DESCARGA TOTAL (REPARAR)
-    </button>
+   
 </div>
 
 </div>
@@ -8610,105 +8605,6 @@ function filtrarListaLeyes(texto) {
 document.addEventListener('DOMContentLoaded', () => {
    if(document.getElementById('selBiblioteca')) filtrarListaLeyes("");
 });
-// ==========================================
-// FUNCIÓN PARA EL BOTÓN DE WHATSAPP
-// ==========================================
-function contactarSoporte() {
-    // 1. Intentamos obtener el correo del usuario actual
-    let usuarioEmail = "No identificado";
-    if (auth.currentUser) {
-        usuarioEmail = auth.currentUser.email;
-    }
-
-    // 2. Tu número de teléfono (Formato internacional sin el +)
-    // 0424-7640846 -> 584247640846
-    const telefono = "584247640846";
-
-    // 3. El mensaje automático
-    const mensaje = `Hola Dr. Charles, adjunto mi comprobante de pago para activar la suscripción Iuris Penal.\n\n📧 Mi correo es: ${usuarioEmail}`;
-
-    // 4. Crear el enlace de WhatsApp
-    const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
-
-    // 5. Abrir en una nueva pestaña
-    window.open(url, '_blank');
-}
-async function forzarDescargaTotal() {
-    if (!auth.currentUser) return alert("Debe iniciar sesión primero.");
-    
-    const userId = auth.currentUser.uid;
-    const btn = event.target;
-    btn.innerHTML = "⏳ Descargando todo... (Espere)";
-    btn.disabled = true;
-
-    try {
-        console.log("Iniciando descarga total sin filtros...");
-        
-        // 1. Pedimos TODO sin filtrar por fecha (Quitamos el .where)
-        const snapshot = await db.collection('usuarios')
-                                 .doc(userId)
-                                 .collection('expedientes')
-                                 .get();
-
-        if (snapshot.empty) {
-            alert("La base de datos en la nube está vacía.");
-            btn.innerHTML = "⬇️ FORZAR DESCARGA TOTAL";
-            btn.disabled = false;
-            return;
-        }
-
-        let cont = 0;
-        let casosRecuperados = [];
-
-        // 2. Procesamos cada documento
-        snapshot.forEach(doc => {
-            const dataNube = doc.data();
-            
-            // Intentamos descifrar si es necesario, o usar el dato crudo
-            let nombre = dataNube.nombre;
-            try {
-                // Si tienes el helper de cifrado activo, intentamos descifrar
-                if(typeof encryptionHelper !== 'undefined') {
-                    const descifrado = encryptionHelper.decrypt(dataNube.nombre, userId);
-                    if(descifrado) nombre = descifrado; // Solo si descifra con éxito
-                }
-            } catch(e) {}
-
-            // Reconstruimos el objeto caso asegurando que tenga ID
-            const casoRecuperado = {
-                ...dataNube,
-                id: doc.id,
-                // Si tus datos viejos no tienen fechaMod, se la ponemos hoy para que no se vuelvan a perder
-                fechaMod: dataNube.fechaMod || Date.now() 
-            };
-            
-            casosRecuperados.push(casoRecuperado);
-            cont++;
-        });
-
-        // 3. Sobrescribimos la memoria local con la Verdad Absoluta de la nube
-        casos = casosRecuperados;
-        localStorage.setItem('casosIuris', JSON.stringify(casos));
-        
-        // Actualizamos la fecha de sincronización para que lo próximo sea incremental
-        localStorage.setItem('ultimaSyncExito', Date.now());
-
-        // 4. Refrescamos la pantalla
-        listarCasos();
-        listarCasosGestion();
-
-        alert(`✅ ¡ÉXITO! Se han recuperado ${cont} expedientes de la nube.`);
-
-    } catch (e) {
-        console.error(e);
-        alert("Error recuperando data: " + e.message);
-    } finally {
-        btn.innerHTML = "⬇️ FORZAR DESCARGA TOTAL (REPARAR)";
-        btn.disabled = false;
-    }
-}
-
-
 
 </script>
 </body>
