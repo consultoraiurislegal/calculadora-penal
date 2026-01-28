@@ -1814,13 +1814,12 @@ const DIAS_MES = 30;
 // FUNCIÓN DE PESTAÑAS (CON BLOQUEO DE FECHA)
 // ==========================================
 function openTab(evt, tabName) {
-    // CORRECCIÓN CRÍTICA: El nombre interno es 'calculadora'
+    // 1. VALIDACIÓN DE SEGURIDAD PREMIUM (Mantiene su lógica original)
     if (tabName === 'calculadora') {
-        // Usamos tu función existente que ya valida y muestra el modal
         if (!validarAccesoPremium()) return; 
     }
 
-    // EL RESTO DEL CÓDIGO SE MANTIENE IGUAL
+    // 2. LÓGICA VISUAL (Ocultar y Mostrar Pestañas)
     var i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tab-content");
     for (i = 0; i < tabcontent.length; i++) {
@@ -1832,6 +1831,31 @@ function openTab(evt, tabName) {
     }
     document.getElementById(tabName).style.display = "block";
     if (evt) evt.currentTarget.className += " active";
+
+    // --- 3. NUEVO: CÓDIGO DE RASTREO PARA GOOGLE ANALYTICS 📊 ---
+    
+    // Traducimos el "ID técnico" a un "Nombre Bonito" para el reporte
+    let nombrePantalla = "Desconocido";
+    
+    if (tabName === 'gestion') nombrePantalla = "Gestión de Expedientes";
+    else if (tabName === 'principal') nombrePantalla = "Cómputo de Pena";
+    else if (tabName === 'calculadora') nombrePantalla = "Dosimetría Penal";
+    else if (tabName === 'prescripciones') nombrePantalla = "Prescripciones";
+    else if (tabName === 'conversiones') nombrePantalla = "Conversiones";
+    else if (tabName === 'herramientas') nombrePantalla = "Herramientas";
+    else if (tabName === 'biblioteca') nombrePantalla = "Biblioteca Jurídica";
+    else if (tabName === 'adminPanel') nombrePantalla = "Panel Admin";
+    else nombrePantalla = tabName; // Por si acaso hay otra nueva
+
+    // Enviamos el aviso a Google
+    if (typeof firebase !== 'undefined' && firebase.analytics) {
+        firebase.analytics().logEvent('screen_view', {
+            firebase_screen: nombrePantalla, 
+            firebase_screen_class: nombrePantalla
+        });
+        
+        console.log("Analytics: Visto pantalla -> " + nombrePantalla);
+    }
 }
 
 
