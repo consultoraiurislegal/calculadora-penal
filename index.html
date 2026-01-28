@@ -1188,15 +1188,97 @@ Estos T&C se rigen e interpretan de conformidad con las leyes de la República B
 </div>
 </div>
 
-<div id="modalVencimiento" class="modal" style="background-color: rgba(0,0,0,0.9);">
-<div class="modal-content" style="text-align: center; margin-top: 15%;">
-<h2 style="color: #d93025;">PERIODO DE PRUEBA FINALIZADO</h2>
-<p>Para continuar utilizando las herramientas de <b>Iuris Penal</b> y mantener el acceso a sus expedientes, por favor contacte al administrador para activar un plan de suscripción.</p>
-<button onclick="abrirWhatsAppSuscripcion()" class="btn-whatsapp">
-📲 Contactar al Dr. Charles Reyes
-</button>
+<div id="modalVencimiento" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+    
+    <div style="background:white; width:90%; max-width:450px; border-radius:15px; overflow:hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display:flex; flex-direction:column; max-height: 90vh;">
+        
+        <div style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); padding:20px; text-align:center; color:white;">
+            <div style="font-size:3rem; margin-bottom:10px;">💎</div>
+            <h2 style="margin:0; font-size:1.4rem;">IURIS PENAL</h2>
+            <p style="margin:5px 0 0; font-size:0.9rem; opacity:0.9;">Tu suscripción ha vencido</p>
+        </div>
+
+        <div style="padding:20px; overflow-y:auto; font-size:0.95rem; color:#333;">
+            
+            <p style="text-align:center; margin-bottom:15px; color:#555;">Elige tu plan y optimiza tu despacho:</p>
+
+            <div style="display:grid; gap:10px; margin-bottom:20px;">
+                <div style="border:1px solid #ddd; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; background:#f8fafc;">
+                    <span>✅ <b>MENSUAL</b></span>
+                    <span style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:4px; font-weight:bold;">$2,99</span>
+                </div>
+                <div style="border:1px solid #bfdbfe; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; background:#eff6ff; border-left: 4px solid #3b82f6;">
+                    <span>✅ <b>TRIMESTRAL</b> <small style="color:green; display:block; font-size:0.75em;">Ahorras 15%</small></span>
+                    <span style="background:#3b82f6; color:white; padding:2px 8px; border-radius:4px; font-weight:bold;">$8</span>
+                </div>
+                <div style="border:1px solid #ffd700; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; background:#fffbeb; border-left: 4px solid #fbbf24;">
+                    <span>✅ <b>ANUAL</b> <small style="color:#b45309; display:block; font-size:0.75em;">Mejor Opción</small></span>
+                    <span style="background:#fbbf24; color:#78350f; padding:2px 8px; border-radius:4px; font-weight:bold;">$30</span>
+                </div>
+            </div>
+
+            <hr style="border:0; border-top:1px dashed #ccc; margin:20px 0;">
+
+            <h3 style="font-size:1rem; margin-bottom:15px; display:flex; align-items:center; gap:5px;">
+                💳 DATOS DE PAGO
+            </h3>
+
+            <div style="margin-bottom:15px;">
+                <strong style="color:#be123c;">🇻🇪 VENEZUELA (Bolívares - Tasa BCV)</strong>
+                <div style="background:#f1f5f9; padding:10px; border-radius:6px; margin-top:5px; font-size:0.9em;">
+                    <b>Pago Móvil ⚡ (Bco Venezuela 0102)</b><br>
+                    C.I: 13.973.743<br>
+                    Tel: 0424-7640846<br><br>
+                    <b>Transferencia (Bco Venezuela)</b><br>
+                    0102-0501-8500-0323-6800<br>
+                    Titular: Charles Reyes
+                </div>
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <strong style="color:#0f766e;">💵 CUENTA EN DÓLARES (BDV)</strong>
+                <div style="background:#f0fdfa; padding:10px; border-radius:6px; margin-top:5px; font-size:0.9em;">
+                    0102-0924-2100-0037-6297<br>
+                    Titular: Charles Reyes<br>
+                    C.I: V-13.973.743
+                </div>
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <strong style="color:#4338ca;">🇺🇸 ZELLE</strong>
+                <div style="background:#e0e7ff; padding:10px; border-radius:6px; margin-top:5px; font-size:0.9em;">
+                    Tel: 303-594-3027<br>
+                    Nombre: Oscar Molina
+                </div>
+            </div>
+
+             <div style="margin-bottom:15px;">
+                <strong style="color:#b91c1c;">🇨🇴 COLOMBIA (Pesos)</strong>
+                <div style="background:#fef2f2; padding:10px; border-radius:6px; margin-top:5px; font-size:0.9em;">
+                    <b>Davivienda (Ahorros)</b><br>
+                    Nro: 066800183452<br>
+                    Titular: Mariana Jimenez<br>
+                    Ref. Mensual: 11.900 COP
+                </div>
+            </div>
+
+            <div style="background:#fdf4ff; border:1px dashed #d946ef; padding:10px; border-radius:8px; text-align:center; font-size:0.9em; margin-top:15px;">
+                🎁 <b>BONO REFERIDOS:</b><br>
+                Si un colega se suscribe con tu código,<br>¡ambos ganan 30 días GRATIS!
+            </div>
+
+        </div>
+
+        <div style="padding:15px; background:#fff; border-top:1px solid #eee; text-align:center;">
+            <p style="font-size:0.8em; color:#666; margin-bottom:10px;">Envía el CAPTURE del pago y tu correo aquí:</p>
+            <button onclick="contactarSoporte()" style="background:#25D366; color:white; border:none; padding:12px 25px; border-radius:50px; font-weight:bold; font-size:1rem; cursor:pointer; width:100%; box-shadow: 0 4px 6px rgba(37, 211, 102, 0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592z"/></svg>
+                ENVIAR CAPTURE AL WHATSAPP
+            </button>
+        </div>
+    </div>
 </div>
-</div>
+
 
 <div id="plantilla-pdf" style="display: none; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333;">
     <div style="text-align: center; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; margin-bottom: 20px;">
@@ -1596,77 +1678,100 @@ async function obtenerSuscripcion(uid) {
         const docRef = db.collection('usuarios').doc(uid);
         const doc = await docRef.get();
         let venc;
-        let esAdmin = false; // Variable local para control
+        let esAdmin = false;
 
         if (doc.exists) {
             const data = doc.data();
             
-            // 1. VERIFICAR SI ES ADMIN
-            // (Asegúrate que en Firebase el campo se llame 'rol' y el valor 'admin')
+            // 1. SI ES ADMIN, TODO BIEN
             if (data.rol === 'admin') {
                 esAdmin = true;
-                window.usuarioEsAdmin = true; // Variable global
+                window.usuarioEsAdmin = true;
             }
 
-            // 2. OBTENER FECHA
+            // 2. RECUPERAMOS FECHA (SI EXISTE)
             if (data.vencimiento) {
                 venc = new Date(data.vencimiento);
             }
         }
 
-        // Si no existe fecha o usuario, creamos uno de prueba (Solo si no es admin)
-        if (!venc && !esAdmin) {
-            const user = auth.currentUser;
-            const fechaCreacion = new Date(user.metadata.creationTime);
-            venc = new Date(fechaCreacion.getTime() + (10 * 24 * 60 * 60 * 1000)); // 10 días
+        // =======================================================
+        // EL MURO DE PAGO (CERO DÍAS DE PRUEBA)
+        // =======================================================
+        // Si no es admin y (es nuevo O no tiene fecha)...
+        if (!esAdmin && !venc) {
             
-            // Guardamos el usuario nuevo
+            // FECHA DRÁSTICA: 1 de Enero de 1970 (Super Vencido)
+            venc = new Date(0); 
+            
+            console.log("Usuario nuevo detectado: Bloqueando acceso...");
+
+            // Lo guardamos en la base de datos como vencido
+            const user = auth.currentUser;
             await docRef.set({
-                email: auth.currentUser.email,
+                email: user.email,
                 vencimiento: venc.toISOString(),
-                rol: 'prueba',
+                rol: 'usuario', 
                 fechaRegistro: new Date().toISOString()
             }, { merge: true });
         }
+        // =======================================================
 
-        // 3. LOGICA VISUAL DEL BOTÓN ADMIN (¡ESTO ES LO QUE FALTABA!)
+
+        // 3. LOGICA VISUAL DEL BOTÓN ADMIN
         const btnAdmin = document.getElementById('tab-admin');
         if (btnAdmin) {
             if (esAdmin) {
-                btnAdmin.style.display = 'inline-block'; // ¡APARECE BOTÓN! 🔓
+                btnAdmin.style.display = 'inline-block';
                 btnAdmin.innerText = "🛡️ ADMIN";
             } else {
-                btnAdmin.style.display = 'none'; // Se oculta para mortales
+                btnAdmin.style.display = 'none';
             }
         }
 
-        // 4. CALCULAR VENCIMIENTO
-        // Si es Admin, nunca vence. Si no, calculamos días.
+        // 4. VEREDICTO FINAL (VIGENTE O VENCIDO)
         if (esAdmin) {
+            // ADMIN PASA
             document.getElementById('days-display').innerText = "Modo Dios (Admin)";
             document.getElementById('days-display').style.color = "#00c853";
             suscripcionVencida = false;
-            document.getElementById('modalVencimiento').style.display = 'none';
+            if(document.getElementById('modalVencimiento')) 
+                document.getElementById('modalVencimiento').style.display = 'none';
         } else {
+            // MORTALES
             const hoy = new Date();
+            // Llevamos la fecha de vencimiento al final del día
+            venc.setHours(23, 59, 59, 999);
+            
             const diff = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
 
-            if (diff <= 0) {
-                document.getElementById('days-display').innerText = "Suscripción Vencida";
+            // Si diff es negativo, está vencido.
+            if (diff < 0) {
+                document.getElementById('days-display').innerText = "SUSCRIPCIÓN VENCIDA";
                 document.getElementById('days-display').style.color = "#ff3d00";
-                suscripcionVencida = true;
+                suscripcionVencida = true; // BLOQUEADO 🚫
+                
+                // Opcional: Si quieres forzar que le salga el modal apenas entre:
+                // if(document.getElementById('modalVencimiento')) 
+                //    document.getElementById('modalVencimiento').style.display = 'flex';
+                
             } else {
+                // Si entra aquí es porque PAGÓ (o es un usuario viejo con fecha vieja)
                 document.getElementById('days-display').innerText = diff + " días restantes";
                 document.getElementById('days-display').style.color = "#2563eb";
-                suscripcionVencida = false;
-                document.getElementById('modalVencimiento').style.display = 'none';
+                suscripcionVencida = false; // PASA ✅
+                if(document.getElementById('modalVencimiento')) 
+                    document.getElementById('modalVencimiento').style.display = 'none';
             }
         }
 
     } catch (e) { 
-        console.error("Error obteniendo suscripción:", e); 
+        console.error("Error suscripción:", e);
+        suscripcionVencida = true; // Ante la duda, bloqueamos
     }
 }
+
+
 
 
 // Función auxiliar para validar antes de ejecutar tareas premium
