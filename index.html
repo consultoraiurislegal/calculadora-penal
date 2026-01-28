@@ -229,7 +229,22 @@ border-radius: 8px;
 </div>
 
 <div id="status-bar" class="user-status-bar" style="display:none;">
-<div>👤 <b id="user-display">Cargando...</b> <button class="btn-logout" onclick="logoutFirebase()">Salir</button></div>
+<div>👤 <b id="user-display">Cargando
+
+...</b><button onclick="document.getElementById('modalVencimiento').style.display='flex'" 
+        style="background: linear-gradient(90deg, #FFD700, #FFA500); 
+               color: #333; 
+               border: none; 
+               padding: 5px 12px; 
+               border-radius: 20px; 
+               font-weight: bold; 
+               font-size: 0.85rem; 
+               cursor: pointer; 
+               margin-left: 10px; 
+               box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+               animation: pulse 2s infinite;">
+    👑 SUSCRIBIRME
+</button> <button class="btn-logout" onclick="logoutFirebase()">Salir</button></div>
 <span>⏳ <b id="days-display">--</b></span>
 </div>
 
