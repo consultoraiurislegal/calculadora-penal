@@ -203,6 +203,16 @@ border-radius: 8px;
                 <button onclick="toggleModoRegistro(true)" style="background:none; border:none; color:#34a853; font-weight:bold; cursor:pointer; font-size:1em;">Crear Cuenta Nueva</button>
             </div>
         </div>
+<div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+    <p style="font-size: 0.9em; color: #666; margin-bottom: 10px;">¿Quieres usar la App sin internet?</p>
+    
+    <button id="btnInstalarInicio" onclick="instalarAppInteligente()" 
+            style="background: #fff; border: 2px solid #333; color: #333; 
+                   padding: 10px 20px; border-radius: 50px; font-weight: bold; 
+                   cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;">
+        📲 INSTALAR APLICACIÓN
+    </button>
+</div>
 
         <div id="bloque-registro" style="display:none;">
             <div style="text-align:left; font-size:0.75em; color:#666; margin-top:10px; margin-left:5px;">
@@ -8631,5 +8641,79 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 </script>
+<script>
+// ==========================================
+// LÓGICA DE INSTALACIÓN (ESTRICTA)
+// ==========================================
+let deferredPrompt; 
+
+// 1. CAPTURAR EL EVENTO DE CHROME (ANDROID/PC)
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault(); // Evitar que Chrome lo lance solo
+    deferredPrompt = e; // Guardar el evento "bala en la recámara"
+    console.log("Sistema listo para instalación automática.");
+});
+
+// 2. FUNCIÓN DEL BOTÓN "INSTALAR"
+async function instalarAppInteligente() {
+    
+    // DETECTAR SI ES IPHONE (iOS)
+    const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+    // --- LÓGICA IPHONE (SOLO AQUÍ SE MUESTRAN INSTRUCCIONES) ---
+    if (esIphone) {
+        const contenido = document.getElementById('contenidoInstrucciones');
+        const modal = document.getElementById('modalInstalacion');
+        
+        if (!contenido || !modal) return alert("Error: Falta el HTML del modal.");
+
+        // Llenamos el modal SOLO con info de iPhone
+        contenido.innerHTML = `
+            <div style="background:#eff6ff; border-radius:12px; padding:15px; border:1px solid #bfdbfe;">
+                <strong style="color:#1e40af; display:block; margin-bottom:10px;">🍏 Para iPhone (Safari):</strong>
+                <div style="display:flex; gap:10px; margin-bottom:8px; align-items:center;">
+                    <span style="font-size:1.2rem;">⬆️</span>
+                    <span style="font-size:0.9rem; color:#333;">Toca el botón <b>Compartir</b></span>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="font-size:1.2rem;">➕</span>
+                    <span style="font-size:0.9rem; color:#333;">Baja y toca <b>"Agregar al Inicio"</b></span>
+                </div>
+            </div>
+        `;
+        // Abrimos el modal
+        modal.style.display = 'flex';
+        return; 
+    }
+
+    // --- LÓGICA ANDROID (AUTOMÁTICO O NADA) ---
+    if (deferredPrompt) {
+        // Si Chrome nos dio permiso, lanzamos la instalación
+        deferredPrompt.prompt();
+
+
+<div id="modalInstalacion" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:11000; justify-content:center; align-items:center; backdrop-filter: blur(8px);">
+    
+    <div style="background:white; width:90%; max-width:380px; border-radius:20px; overflow:hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); position:relative; animation: slideUp 0.3s ease-out;">
+        
+        <button onclick="document.getElementById('modalInstalacion').style.display='none'" style="position:absolute; top:15px; right:15px; background:#f3f4f6; border:none; width:30px; height:30px; border-radius:50%; font-weight:bold; cursor:pointer; color:#555;">✕</button>
+
+        <div style="text-align:center; padding:25px 20px 10px;">
+            <div style="font-size:3rem; margin-bottom:10px;">📲</div>
+            <h2 style="margin:0; color:#1f2937; font-size:1.4rem;">Instalar App</h2>
+            <p style="color:#6b7280; font-size:0.9rem; margin-top:5px;">Guía rápida de instalación</p>
+        </div>
+
+        <div id="contenidoInstrucciones" style="padding:0 25px 25px;">
+            </div>
+
+        <div style="background:#f9fafb; padding:15px; text-align:center; border-top:1px solid #e5e7eb;">
+            <button onclick="document.getElementById('modalInstalacion').style.display='none'" style="background:#1f2937; color:white; border:none; padding:10px 30px; border-radius:10px; font-weight:bold; cursor:pointer; width:100%;">
+                Entendido
+            </button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
