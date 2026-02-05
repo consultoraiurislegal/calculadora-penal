@@ -279,7 +279,7 @@ border-radius: 8px;
                 <span class="slider"></span>
             </label>
         </div>
-        <input type="text" id="busquedaGestion" placeholder="Buscar por nombre o cédula..." onup="listarCasosGestion()">
+        <input type="text" id="busquedaGestion" placeholder="Buscar por nombre o cédula..." onkeyup="listarCasosGestion()">
         
         <div id="listaCasosGestion" style="max-height: 150px; overflow-y: auto; margin-top: 10px;"></div>
         <button class="btn-principal" style="background:#107c41; margin-top:10px; padding: 10px; font-size: 0.85em;" onclick="exportarTodaLaDataExcel()">
@@ -385,7 +385,7 @@ border-radius: 8px;
             
             <input type="text" 
                    placeholder="Filtre aquí (Ej: Penal, COPP...)" 
-                   onup="filtrarListaLeyes(this.value)" 
+                   onkeyup="filtrarListaLeyes(this.value)" 
                    style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
             
             <select id="selBiblioteca" 
@@ -400,7 +400,7 @@ border-radius: 8px;
         <div id="panelBuscadorInterno"             <div style="display:flex; gap:5px; align-items:stretch;">
                 
                 <input type="text" id="inputBusquedaInterna" placeholder="Escriba palabra clave..." 
-                       onup="if(event. === 'Enter') buscarEnTextoLey()"
+                      onkeyup="if(event. === 'Enter') buscarEnTextoLey()"
                        style="flex-grow: 1; width: 100%; padding:12px; font-size: 1.1em; border:1px solid #00bcd4; border-radius:5px;">
                 
                 <button onclick="buscarEnTextoLey()" class="btn-principal" 
@@ -443,7 +443,7 @@ border-radius: 8px;
             </label>
         </div>
 
-        <input type="text" id="busqueda" placeholder="Escriba nombre o cédula..." onup="listarCasos()">
+        <input type="text" id="busqueda" placeholder="Escriba nombre o cédula..." onkeyup="listarCasos()">
         <div id="listaCasos"></div>
     </div>
 
@@ -667,7 +667,7 @@ border-radius: 8px;
 
         <label>Buscar delito:</label>
         <input type="text" id="inputBusquedaDelito" placeholder="Escriba para filtrar (ej: robo...)" 
-               onup="filtrarDelitosUI()" style="margin-bottom:5px; background:#f0f8ff;">
+               onkeyup="filtrarDelitosUI()" style="margin-bottom:5px; background:#f0f8ff;">
         
         <select id="selDelitoPresc" onchange="cargarDatosDelitoSeleccionado()" size="7" style="height: auto; min-height: 180px;">
             <option value="">-- Resultados de la búsqueda --</option>
@@ -3829,7 +3829,7 @@ function agregarBloqueDelito() {
         </div>
         
         <label>Buscar delito:</label>
-        <input type="text" placeholder="Escriba para filtrar..." onup="filtrarDelitosDosimetria(this, '${idSelect}')" style="margin-bottom:5px; background:#f0f8ff;">
+        <input type="text" placeholder="Escriba para filtrar..." onkeyup="filtrarDelitosDosimetria(this, '${idSelect}')" style="margin-bottom:5px; background:#f0f8ff;">
         
         <select id="${idSelect}" class="sel-delito-dosim" onchange="cargarInfoDelitoDosimetria(this, '${idBloque}')" size="7" style="height: auto; min-height: 100px;">
             <option value="">-- Resultados de la búsqueda --</option>
