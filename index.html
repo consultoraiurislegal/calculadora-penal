@@ -1659,7 +1659,7 @@ function registroFirebase() {
         const uid = userCredential.user.uid;
         await db.collection('usuarios').doc(uid).set({
             email: email,
-            vencimiento: new Date(Date.now() + (15 * 24 * 60 * 60 * 1000)).toISOString(),
+            vencimiento: new Date(Date.now() + (1 * 24 * 60 * 60 * 1000)).toISOString(),
             rol: 'prueba',
             referidoPor: referidoFinal, 
             premioEntregado: false,
@@ -8643,77 +8643,56 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 <script>
 // ==========================================
-// LÓGICA DE INSTALACIÓN (ESTRICTA)
+// SCRIPT DE INSTALACIÓN CON DIAGNÓSTICO
 // ==========================================
-let deferredPrompt; 
+let deferredPrompt = null; 
 
-// 1. CAPTURAR EL EVENTO DE CHROME (ANDROID/PC)
+// 1. ESCUCHAMOS EL EVENTO (LA LLAVE MAESTRA)
 window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault(); // Evitar que Chrome lo lance solo
-    deferredPrompt = e; // Guardar el evento "bala en la recámara"
-    console.log("Sistema listo para instalación automática.");
+    // Chrome nos da la llave para instalar
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log("✅ LLAVE RECIBIDA: Chrome permite instalar.");
+    
+    // Opcional: Cambiar color del botón para avisar que está listo
+    const btn = document.getElementById('btnInstalarInicio');
+    if(btn) btn.style.border = "2px solid #25D366"; // Borde verde
 });
 
-// 2. FUNCIÓN DEL BOTÓN "INSTALAR"
+// 2. FUNCIÓN DEL BOTÓN
 async function instalarAppInteligente() {
-    
-    // DETECTAR SI ES IPHONE (iOS)
-    const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    console.log("Botón presionado...");
 
-    // --- LÓGICA IPHONE (SOLO AQUÍ SE MUESTRAN INSTRUCCIONES) ---
-    if (esIphone) {
-        const contenido = document.getElementById('contenidoInstrucciones');
-        const modal = document.getElementById('modalInstalacion');
-        
-        if (!contenido || !modal) return alert("Error: Falta el HTML del modal.");
-
-        // Llenamos el modal SOLO con info de iPhone
-        contenido.innerHTML = `
-            <div style="background:#eff6ff; border-radius:12px; padding:15px; border:1px solid #bfdbfe;">
-                <strong style="color:#1e40af; display:block; margin-bottom:10px;">🍏 Para iPhone (Safari):</strong>
-                <div style="display:flex; gap:10px; margin-bottom:8px; align-items:center;">
-                    <span style="font-size:1.2rem;">⬆️</span>
-                    <span style="font-size:0.9rem; color:#333;">Toca el botón <b>Compartir</b></span>
-                </div>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <span style="font-size:1.2rem;">➕</span>
-                    <span style="font-size:0.9rem; color:#333;">Baja y toca <b>"Agregar al Inicio"</b></span>
-                </div>
-            </div>
-        `;
-        // Abrimos el modal
-        modal.style.display = 'flex';
-        return; 
-    }
-
-    // --- LÓGICA ANDROID (AUTOMÁTICO O NADA) ---
+    // A) SI TENEMOS LA LLAVE DE CHROME
     if (deferredPrompt) {
-        // Si Chrome nos dio permiso, lanzamos la instalación
-        deferredPrompt.prompt();
-
-
-<div id="modalInstalacion" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:11000; justify-content:center; align-items:center; backdrop-filter: blur(8px);">
-    
-    <div style="background:white; width:90%; max-width:380px; border-radius:20px; overflow:hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); position:relative; animation: slideUp 0.3s ease-out;">
+        deferredPrompt.prompt(); // Lanzamos la ventana
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`Usuario decidió: ${outcome}`);
+        deferredPrompt = null; // La llave se usa una sola vez
+    } 
+    // B) SI NO TENEMOS LA LLAVE (AQUÍ ESTÁ TU PROBLEMA)
+    else {
+        // Verificamos si es iPhone
+        const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         
-        <button onclick="document.getElementById('modalInstalacion').style.display='none'" style="position:absolute; top:15px; right:15px; background:#f3f4f6; border:none; width:30px; height:30px; border-radius:50%; font-weight:bold; cursor:pointer; color:#555;">✕</button>
+        if (esIphone) {
+            // Mostrar Modal iPhone (Asegúrate de tener el HTML del modal)
+            const modal = document.getElementById('modalInstalacion');
+            if(modal) modal.style.display = 'flex';
+        } else {
+            // ES ANDROID PERO CHROME NO DA PERMISO
+            alert("⚠️ AVISO DEL SISTEMA:\n\nGoogle Chrome no permite la instalación automática en este momento.\n\nSOLUCIÓN:\nUse el menú de los 3 puntos (⋮) arriba a la derecha y seleccione 'Instalar aplicación'.");
+        }
+    }
+}
 
-        <div style="text-align:center; padding:25px 20px 10px;">
-            <div style="font-size:3rem; margin-bottom:10px;">📲</div>
-            <h2 style="margin:0; color:#1f2937; font-size:1.4rem;">Instalar App</h2>
-            <p style="color:#6b7280; font-size:0.9rem; margin-top:5px;">Guía rápida de instalación</p>
-        </div>
+// 3. OCULTAR SI YA ESTÁ INSTALADA
+window.addEventListener('appinstalled', () => {
+    const btn = document.getElementById('btnInstalarInicio');
+    if(btn) btn.style.display = 'none';
+});
+</script>
 
-        <div id="contenidoInstrucciones" style="padding:0 25px 25px;">
-            </div>
-
-        <div style="background:#f9fafb; padding:15px; text-align:center; border-top:1px solid #e5e7eb;">
-            <button onclick="document.getElementById('modalInstalacion').style.display='none'" style="background:#1f2937; color:white; border:none; padding:10px 30px; border-radius:10px; font-weight:bold; cursor:pointer; width:100%;">
-                Entendido
-            </button>
-        </div>
-    </div>
-</div>
 
 </body>
 </html>
