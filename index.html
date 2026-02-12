@@ -239,24 +239,20 @@ border-radius: 8px;
 </div>
 
 <div id="status-bar" class="user-status-bar" style="display:none;">
-<div>👤 <b id="user-display">Cargando
-
-...</b><button onclick="document.getElementById('modalVencimiento').style.display='flex'" 
-        style="background: linear-gradient(90deg, #FFD700, #FFA500); 
-               color: #333; 
-               border: none; 
-               padding: 5px 12px; 
-               border-radius: 20px; 
-               font-weight: bold; 
-               font-size: 0.85rem; 
-               cursor: pointer; 
-               margin-left: 10px; 
-               box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
-               animation: pulse 2s infinite;">
+    <div>
+        👤 <b id="user-display">Cargando...</b>
+        
+        <button onclick="abrirSuscripcion()" style="background: linear-gradient(90deg, #FFD700, #FFA500); color: #333; border: none; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; cursor: pointer; margin-left: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); animation: pulse 2s infinite;">
     👑 SUSCRIBIRME
-</button> <button class="btn-logout" onclick="logoutFirebase()">Salir</button></div>
-<span>⏳ <b id="days-display">--</b></span>
+</button>
+
+
+
+        <button class="btn-logout" onclick="logoutFirebase()">Salir</button>
+    </div>
+    <span>⏳ <b id="days-display">--</b></span>
 </div>
+
 
 <div class="tabs-container no-print">
 <button class="tab-button active" onclick="openTab(event, 'gestion')">📁 Expedientes</button>
@@ -1139,33 +1135,7 @@ border-radius: 8px;
 </div>
 </div>
 
-<div style="margin-top: 40px; padding-bottom: 20px;">
-    
-    <div class="modulo no-print" style="text-align: center; border: 1px solid #e1e4e8; background: #fff;">
-        <p style="margin-bottom: 10px; font-weight: bold; color: #1a73e8; font-size: 0.9em;">
-            ¿Dudas Legales? ¿Soporte Técnico? ¿Pagos?
-        </p>
-        <button onclick="abrirWhatsApp()" class="btn-whatsapp">
-            📲 Contactar al Dr. Charles Reyes
-        </button>
-    </div>
 
-    <div class="modulo no-print" style="background: #e8f5e9; border: 2px dashed #2e7d32; text-align: center; margin-top: 20px;">
-        <h3 style="color: #2e7d32; margin-top: 0; font-size: 1.1em;">🎁 ¡Gana 30 días GRATIS!</h3>
-        <p style="font-size: 0.85em; color: #555; margin-bottom: 15px;">
-            Recomienda la App a un colega. Si tu referido se suscribe, ambos reciben un mes de regalo.
-        </p>
-        <button onclick="compartirReferido()" class="btn-principal" style="background: #2e7d32; padding: 12px; font-size: 0.95em;">
-            Compartir Enlace de Referido 🚀
-        </button>
-    </div>
-
-    <div style="text-align: center; color: #aaa; font-size: 0.75em; margin-top: 20px;">
-        Calculadora Penal Iuris © 2026<br>
-        Desarrollado por Consultora Iuris
-    </div>
-
-</div>
 
 <div id="modalTerminos" class="modal" style="background: rgba(0,0,0,0.8);">
 <div class="modal-content" style="max-width: 700px;">
@@ -1295,14 +1265,11 @@ Estos T&C se rigen e interpretan de conformidad con las leyes de la República B
         </div>
 
         <div style="padding:15px; background:#fff; border-top:1px solid #eee; text-align:center;">
-        <p style="font-size:0.8em; color:#666; margin-bottom:10px;">Envía el CAPTURE del pago y tu correo aquí:</p>
-    <button onclick="contactarSoporte()" style="background:#25D366; color:white; border:none; padding:12px 25px; border-radius:50px; font-weight:bold; font-size:1rem; cursor:pointer; width:100%; box-shadow: 0 4px 6px rgba(37, 211, 102, 0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592z"/></svg>
-        ENVIAR CAPTURE AL WHATSAPP
-    </button>
-
-</div>
-
+            <p style="font-size:0.8em; color:#666; margin-bottom:10px;">Envía el CAPTURE del pago y tu correo aquí:</p>
+            <button onclick="contactarSoporte()" style="background:#25D366; color:white; border:none; padding:12px 25px; border-radius:50px; font-weight:bold; font-size:1rem; cursor:pointer; width:100%; box-shadow: 0 4px 6px rgba(37, 211, 102, 0.3); display:flex; align-items:center; justify-content:center; gap:8px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592z"/></svg>
+                ENVIAR CAPTURE AL WHATSAPP
+            </button>
         </div>
     </div>
 </div>
@@ -1352,7 +1319,35 @@ Estos T&C se rigen e interpretan de conformidad con las leyes de la República B
     </div>
 </div>
 
+
+</div>
+<div style="margin-top: 40px; padding-bottom: 20px;">
+    
+    <div class="modulo no-print" style="text-align: center; border: 1px solid #e1e4e8; background: #fff;">
+        <p style="margin-bottom: 10px; font-weight: bold; color: #1a73e8; font-size: 0.9em;">
+            ¿Dudas Legales? ¿Soporte Técnico? ¿Pagos?
+        </p>
+        <button onclick="abrirWhatsApp()" class="btn-whatsapp">
+            📲 Contactar al Dr. Charles Reyes
+        </button>
+    </div>
+
+    <div class="modulo no-print" style="background: #e8f5e9; border: 2px dashed #2e7d32; text-align: center; margin-top: 20px;">
+        <h3 style="color: #2e7d32; margin-top: 0; font-size: 1.1em;">🎁 ¡Gana 30 días GRATIS!</h3>
+        <p style="font-size: 0.85em; color: #555; margin-bottom: 15px;">
+            Recomienda la App a un colega. Si tu referido se suscribe, ambos reciben un mes de regalo.
+        </p>
+        <button onclick="compartirReferido()" class="btn-principal" style="background: #2e7d32; padding: 12px; font-size: 0.95em;">
+            Compartir Enlace de Referido 🚀
+        </button>
+    </div>
+
+    <div style="text-align: center; color: #aaa; font-size: 0.75em; margin-top: 20px;">
+        Calculadora Penal Iuris © 2026<br>
+        Desarrollado por Consultora Iuris
+    </div>
 <script>
+  
   let idDelitoEnEdicion = null; // null = Nuevo, "ID" = Editando
 
 // FUNCIÓN DE AYUDA PARA FORMATO DE FECHA LATINO
@@ -1825,7 +1820,7 @@ const DIAS_MES = 30;
 // FUNCIÓN DE PESTAÑAS (CON BLOQUEO DE FECHA)
 // ==========================================
 function openTab(evt, tabName) {
-    // 1. VALIDACIÓN DE SEGURIDAD PREMIUM (Tu lógica original)
+    // 1. VALIDACIÓN DE SEGURIDAD PREMIUM (Mantiene su lógica original)
     if (tabName === 'calculadora') {
         if (!validarAccesoPremium()) return; 
     }
@@ -1843,10 +1838,11 @@ function openTab(evt, tabName) {
     document.getElementById(tabName).style.display = "block";
     if (evt) evt.currentTarget.className += " active";
 
-    // --- 3. EL CHISMOSO MEJORADO 🕵️‍♂️ ---
+    // --- 3. NUEVO: CÓDIGO DE RASTREO PARA GOOGLE ANALYTICS 📊 ---
     
-    // Traducimos el ID técnico a un nombre claro para tu reporte
-    let nombrePantalla = "Inicio";
+    // Traducimos el "ID técnico" a un "Nombre Bonito" para el reporte
+    let nombrePantalla = "Desconocido";
+    
     if (tabName === 'gestion') nombrePantalla = "Gestión de Expedientes";
     else if (tabName === 'principal') nombrePantalla = "Cómputo de Pena";
     else if (tabName === 'calculadora') nombrePantalla = "Dosimetría Penal";
@@ -1854,26 +1850,17 @@ function openTab(evt, tabName) {
     else if (tabName === 'conversiones') nombrePantalla = "Conversiones";
     else if (tabName === 'herramientas') nombrePantalla = "Herramientas";
     else if (tabName === 'biblioteca') nombrePantalla = "Biblioteca Jurídica";
-    else if (tabName === 'adminPanel') nombrePantalla = "Panel Administrador";
+    else if (tabName === 'adminPanel') nombrePantalla = "Panel Admin";
+    else nombrePantalla = tabName; // Por si acaso hay otra nueva
 
-    // CAMBIO CLAVE 1: Actualizamos el título del documento para que GA lo capture
-    document.title = "Iuris - " + nombrePantalla;
-
-    // CAMBIO CLAVE 2: Enviamos el evento de configuración de pantalla
+    // Enviamos el aviso a Google
     if (typeof firebase !== 'undefined' && firebase.analytics) {
-        // Log de vista de pantalla
         firebase.analytics().logEvent('screen_view', {
             firebase_screen: nombrePantalla, 
-            firebase_screen_class: tabName
-        });
-
-        // Log de página vista (esto es lo que arregla tu gráfica)
-        firebase.analytics().logEvent('page_view', {
-            page_title: nombrePantalla,
-            page_location: window.location.href + "#" + tabName
+            firebase_screen_class: nombrePantalla
         });
         
-        console.log("Analytics OK: Reportando entrada a -> " + nombrePantalla);
+        console.log("Analytics: Visto pantalla -> " + nombrePantalla);
     }
 }
 
@@ -4722,20 +4709,6 @@ async function instalarAppInteligente() {
         }
     }
 }
-// Función para el botón verde dentro del Modal de Suscripción
-function contactarSoporte() {
-    const user = auth.currentUser;
-    const email = user ? user.email : "Usuario no identificado";
-    
-    const mensaje = encodeURIComponent(
-        `Hola Dr. Charles Reyes.\n\n` +
-        `Adjunto el comprobante de pago para mi suscripción en *IURIS PENAL*.\n\n` +
-        `📧 Correo de cuenta: ${email}`
-    );
-
-    window.open(`https://wa.me/584247640846?text=${mensaje}`, '_blank');
-}
-
 
 </script>
 </body>
