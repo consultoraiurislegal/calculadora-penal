@@ -81,10 +81,6 @@ input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-ra
 .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); overflow-y: auto; }
 .modal-content { background-color: white; margin: 5% auto; padding: 20px; border-radius: 15px; width: 90%; max-width: 600px; line-height: 1.5; font-size: 0.85em; position: relative; }
 .close-modal { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-
-/* --- PEGAR ESTO EN LUGAR DE LO QUE BORRASTE (LÍNEAS 84-86 APROX) --- */
-
-/* --- REEMPLAZA TU BLOQUE .tabs-container POR ESTE --- */
 .tabs-container {
     display: flex;
     overflow-x: auto;
@@ -242,11 +238,9 @@ border-radius: 8px;
     <div>
         👤 <b id="user-display">Cargando...</b>
         
-        <button onclick="abrirSuscripcion()" style="background: linear-gradient(90deg, #FFD700, #FFA500); color: #333; border: none; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; cursor: pointer; margin-left: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); animation: pulse 2s infinite;">
+    <button onclick="abrirSuscripcion()" style="background: linear-gradient(90deg, #FFD700, #FFA500); color: #333; border: none; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; cursor: pointer; margin-left: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); animation: pulse 2s infinite;">
     👑 SUSCRIBIRME
 </button>
-
-
 
         <button class="btn-logout" onclick="logoutFirebase()">Salir</button>
     </div>
@@ -369,63 +363,6 @@ border-radius: 8px;
         </div>
     </div>
 </div>
-<div id="biblioteca" class="tab-content">
-    
-    <div class="modulo" style="border-top: 5px solid #00acc1; padding-bottom: 30px;">
-        <h2 style="color:#00acc1; text-align:center; margin-bottom: 20px;">📚 Biblioteca Jurídica</h2>
-
-        <div style="background:#f1f8e9; padding:15px; border-radius:10px; border:1px solid #c5e1a5;">
-            <label style="display:block; color:#2e7d32; font-weight:bold; margin-bottom:8px;">
-                1️⃣ Primero, elija la Ley:
-            </label>
-            
-            <input type="text" 
-                   placeholder="Filtre aquí (Ej: Penal, COPP...)" 
-                   onkeyup="filtrarListaLeyes(this.value)" 
-                   style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; box-sizing: border-box;">
-            
-            <select id="selBiblioteca" 
-                    onchange="cargarTextoLey()" 
-                    size="5" 
-                    style="width:100%; height: 140px; border:1px solid #ccc; border-radius:5px; padding:5px; background:white;">
-                </select>
-        </div>
-
-        <hr style="border: 0; border-top: 2px dashed #ccc; margin: 25px 0;">
-
-        <div id="panelBuscadorInterno"             <div style="display:flex; gap:5px; align-items:stretch;">
-                
-                <input type="text" id="inputBusquedaInterna" placeholder="Escriba palabra clave..." 
-                      onkeyup="if(event. === 'Enter') buscarEnTextoLey()"
-                       style="flex-grow: 1; width: 100%; padding:12px; font-size: 1.1em; border:1px solid #00bcd4; border-radius:5px;">
-                
-                <button onclick="buscarEnTextoLey()" class="btn-principal" 
-                        style="width: 50px; flex-shrink: 0; background:#00acc1; color:white; border:none; border-radius:5px; cursor:pointer; font-size:1.2em; padding:0; display:flex; align-items:center; justify-content:center;">
-                    🔍
-                </button>
-            </div>
-
-
-            <div id="controlesNavegacion" style="display:none; margin-top:15px; background:white; padding:10px; border-radius:8px; border:1px solid #b2ebf2; align-items:center; justify-content:space-between;">
-                
-                <span id="contadorCoincidencias" style="font-weight:bold; color:#006064; font-size:0.9em;">0 de 0</span>
-                
-                <div style="display:flex; gap:8px;">
-                    <button onclick="navegarCoincidencia(-1)" style="padding:8px 15px; background:#f0f0f0; border:1px solid #ccc; border-radius:5px; font-weight:bold;">⬆️</button>
-                    <button onclick="navegarCoincidencia(1)" style="padding:8px 15px; background:#f0f0f0; border:1px solid #ccc; border-radius:5px; font-weight:bold;">⬇️</button>
-                    <button onclick="limpiarBusquedaLey()" style="padding:8px 15px; background:#ffebee; border:1px solid #ef5350; color:#c62828; border-radius:5px; font-weight:bold;">✖</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="visorLey" class="contrato-scroll" 
-             style="height: 450px; margin-top:20px; background:#fff; border:2px solid #eee; padding:20px; font-family:'Times New Roman', serif; font-size:1.15em; line-height:1.6; display:none; border-radius:5px;">
-            </div>
-
-    </div>
-</div>
-
-
 
 <div id="principal" class="tab-content">
     <div class="modulo search-box no-print">
@@ -1182,16 +1119,93 @@ Estos T&C se rigen e interpretan de conformidad con las leyes de la República B
 <button class="btn-principal" onclick="aceptarTerminos()" style="padding:15px; background: #34a853;">HE LEÍDO, ENTIENDO Y ACEPTO LOS TÉRMINOS Y CONDICIONES</button>
 </div>
 </div>
+<div id="plantilla-pdf" style="display: none; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333;">
+    <div style="text-align: center; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; margin-bottom: 20px;">
+        <h2 style="margin: 0; color: #1a73e8;">INFORME TÉCNICO DE CÓMPUTO PENAL</h2>
+        <p style="margin: 5px 0; font-weight: bold;">Consultora Iuris - Dr. Charles Reyes</p>
+    </div>
 
-<div id="modalVencimiento" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+    <h3 style="background: #f0f2f5; padding: 8px;">I. DATOS DEL PRIVADO DE LIBERTAD</h3>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <tr>
+            <td style="padding: 5px; border: 1px solid #ddd; width: 30%;"><strong>Nombre:</strong></td>
+            <td id="pdf-nombre" style="padding: 5px; border: 1px solid #ddd;"></td>
+        </tr>
+        <tr>
+            <td style="padding: 5px; border: 1px solid #ddd;"><strong>Cédula:</strong></td>
+            <td id="pdf-cedula" style="padding: 5px; border: 1px solid #ddd;"></td>
+        </tr>
+        <tr>
+            <td style="padding: 5px; border: 1px solid #ddd;"><strong>Exp. Judicial:</strong></td>
+            <td id="pdf-exp" style="padding: 5px; border: 1px solid #ddd;"></td>
+        </tr>
+        <tr>
+            <td style="padding: 5px; border: 1px solid #ddd;"><strong>Delito:</strong></td>
+            <td id="pdf-delito" style="padding: 5px; border: 1px solid #ddd;"></td>
+        </tr>
+        <tr id="pdf-fila-drogas" style="display: none;">
+            <td style="padding: 5px; border: 1px solid #ddd;"><strong>Drogas:</strong></td>
+            <td id="pdf-drogas" style="padding: 5px; border: 1px solid #ddd;"></td>
+        </tr>
+    </table>
+
+    <h3 style="background: #f0f2f5; padding: 8px;">II. RESUMEN DEL CÓMPUTO</h3>
+    <div id="pdf-resumen-calculo" style="margin-bottom: 20px; line-height: 1.6;">
+        </div>
+
+    <h3 style="background: #f0f2f5; padding: 8px;">III. PROYECCIÓN DE BENEFICIOS PENALES</h3>
+    <div id="pdf-beneficios">
+        </div>
+
+    <div style="margin-top: 50px; text-align: center;">
+        <div style="width: 200px; border-top: 1px solid #000; margin: 0 auto;"></div>
+        <p style="font-size: 0.8em;">Firma Autorizada<br>Especialista en Derecho Penal</p>
+    </div>
+</div>
+
+
+</div>
+<div style="margin-top: 40px; padding-bottom: 20px;">
+    
+    <div class="modulo no-print" style="text-align: center; border: 1px solid #e1e4e8; background: #fff;">
+        <p style="margin-bottom: 10px; font-weight: bold; color: #1a73e8; font-size: 0.9em;">
+            ¿Dudas Legales? ¿Soporte Técnico? ¿Pagos?
+        </p>
+        <button onclick="abrirWhatsApp()" class="btn-whatsapp">
+            📲 Contactar al Dr. Charles Reyes
+        </button>
+    </div>
+
+    <div class="modulo no-print" style="background: #e8f5e9; border: 2px dashed #2e7d32; text-align: center; margin-top: 20px;">
+        <h3 style="color: #2e7d32; margin-top: 0; font-size: 1.1em;">🎁 ¡Gana 30 días GRATIS!</h3>
+        <p style="font-size: 0.85em; color: #555; margin-bottom: 15px;">
+            Recomienda la App a un colega. Si tu referido se suscribe, ambos reciben un mes de regalo.
+        </p>
+        <button onclick="compartirReferido()" class="btn-principal" style="background: #2e7d32; padding: 12px; font-size: 0.95em;">
+            Compartir Enlace de Referido 🚀
+        </button>
+    </div>
+
+    <div style="text-align: center; color: #aaa; font-size: 0.75em; margin-top: 20px;">
+        Calculadora Penal Iuris © 2026<br>
+        Desarrollado por Consultora Iuris
+    </div>
+    <div id="modalVencimiento" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
     
     <div style="background:white; width:90%; max-width:450px; border-radius:15px; overflow:hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display:flex; flex-direction:column; max-height: 90vh;">
         
-        <div style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); padding:20px; text-align:center; color:white;">
-            <div style="font-size:3rem; margin-bottom:10px;">💎</div>
-            <h2 style="margin:0; font-size:1.4rem;">IURIS PENAL</h2>
-            <p style="margin:5px 0 0; font-size:0.9rem; opacity:0.9;">Tu suscripción ha vencido</p>
-        </div>
+<div style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); padding:20px; text-align:center; color:white; position: relative;">
+
+    <button onclick="document.getElementById('modalVencimiento').style.display='none'" 
+            style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; font-size: 24px; font-weight: bold; cursor: pointer; color: white; z-index: 10001;">
+        ✕
+    </button>
+
+    <div style="font-size:3rem; margin-bottom:10px;">💎</div>
+    <h2 style="margin:0; font-size:1.4rem;">IURIS PENAL</h2>
+    <p style="margin:5px 0 0; font-size:0.9rem; opacity:0.9;">Tu suscripción ha vencido</p>
+</div>
+
 
         <div style="padding:20px; overflow-y:auto; font-size:0.95rem; color:#333;">
             
@@ -1273,79 +1287,6 @@ Estos T&C se rigen e interpretan de conformidad con las leyes de la República B
         </div>
     </div>
 </div>
-
-
-<div id="plantilla-pdf" style="display: none; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333;">
-    <div style="text-align: center; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; margin-bottom: 20px;">
-        <h2 style="margin: 0; color: #1a73e8;">INFORME TÉCNICO DE CÓMPUTO PENAL</h2>
-        <p style="margin: 5px 0; font-weight: bold;">Consultora Iuris - Dr. Charles Reyes</p>
-    </div>
-
-    <h3 style="background: #f0f2f5; padding: 8px;">I. DATOS DEL PRIVADO DE LIBERTAD</h3>
-    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-        <tr>
-            <td style="padding: 5px; border: 1px solid #ddd; width: 30%;"><strong>Nombre:</strong></td>
-            <td id="pdf-nombre" style="padding: 5px; border: 1px solid #ddd;"></td>
-        </tr>
-        <tr>
-            <td style="padding: 5px; border: 1px solid #ddd;"><strong>Cédula:</strong></td>
-            <td id="pdf-cedula" style="padding: 5px; border: 1px solid #ddd;"></td>
-        </tr>
-        <tr>
-            <td style="padding: 5px; border: 1px solid #ddd;"><strong>Exp. Judicial:</strong></td>
-            <td id="pdf-exp" style="padding: 5px; border: 1px solid #ddd;"></td>
-        </tr>
-        <tr>
-            <td style="padding: 5px; border: 1px solid #ddd;"><strong>Delito:</strong></td>
-            <td id="pdf-delito" style="padding: 5px; border: 1px solid #ddd;"></td>
-        </tr>
-        <tr id="pdf-fila-drogas" style="display: none;">
-            <td style="padding: 5px; border: 1px solid #ddd;"><strong>Drogas:</strong></td>
-            <td id="pdf-drogas" style="padding: 5px; border: 1px solid #ddd;"></td>
-        </tr>
-    </table>
-
-    <h3 style="background: #f0f2f5; padding: 8px;">II. RESUMEN DEL CÓMPUTO</h3>
-    <div id="pdf-resumen-calculo" style="margin-bottom: 20px; line-height: 1.6;">
-        </div>
-
-    <h3 style="background: #f0f2f5; padding: 8px;">III. PROYECCIÓN DE BENEFICIOS PENALES</h3>
-    <div id="pdf-beneficios">
-        </div>
-
-    <div style="margin-top: 50px; text-align: center;">
-        <div style="width: 200px; border-top: 1px solid #000; margin: 0 auto;"></div>
-        <p style="font-size: 0.8em;">Firma Autorizada<br>Especialista en Derecho Penal</p>
-    </div>
-</div>
-
-
-</div>
-<div style="margin-top: 40px; padding-bottom: 20px;">
-    
-    <div class="modulo no-print" style="text-align: center; border: 1px solid #e1e4e8; background: #fff;">
-        <p style="margin-bottom: 10px; font-weight: bold; color: #1a73e8; font-size: 0.9em;">
-            ¿Dudas Legales? ¿Soporte Técnico? ¿Pagos?
-        </p>
-        <button onclick="abrirWhatsApp()" class="btn-whatsapp">
-            📲 Contactar al Dr. Charles Reyes
-        </button>
-    </div>
-
-    <div class="modulo no-print" style="background: #e8f5e9; border: 2px dashed #2e7d32; text-align: center; margin-top: 20px;">
-        <h3 style="color: #2e7d32; margin-top: 0; font-size: 1.1em;">🎁 ¡Gana 30 días GRATIS!</h3>
-        <p style="font-size: 0.85em; color: #555; margin-bottom: 15px;">
-            Recomienda la App a un colega. Si tu referido se suscribe, ambos reciben un mes de regalo.
-        </p>
-        <button onclick="compartirReferido()" class="btn-principal" style="background: #2e7d32; padding: 12px; font-size: 0.95em;">
-            Compartir Enlace de Referido 🚀
-        </button>
-    </div>
-
-    <div style="text-align: center; color: #aaa; font-size: 0.75em; margin-top: 20px;">
-        Calculadora Penal Iuris © 2026<br>
-        Desarrollado por Consultora Iuris
-    </div>
 <script>
   
   let idDelitoEnEdicion = null; // null = Nuevo, "ID" = Editando
@@ -1849,7 +1790,6 @@ function openTab(evt, tabName) {
     else if (tabName === 'prescripciones') nombrePantalla = "Prescripciones";
     else if (tabName === 'conversiones') nombrePantalla = "Conversiones";
     else if (tabName === 'herramientas') nombrePantalla = "Herramientas";
-    else if (tabName === 'biblioteca') nombrePantalla = "Biblioteca Jurídica";
     else if (tabName === 'adminPanel') nombrePantalla = "Panel Admin";
     else nombrePantalla = tabName; // Por si acaso hay otra nueva
 
@@ -1863,10 +1803,6 @@ function openTab(evt, tabName) {
         console.log("Analytics: Visto pantalla -> " + nombrePantalla);
     }
 }
-
-
-
-
 
 
 function exportarDB() {
@@ -4709,7 +4645,37 @@ async function instalarAppInteligente() {
         }
     }
 }
+// --- FUNCIÓN PARA ABRIR EL MODAL DE SUSCRIPCIÓN ---
+function abrirSuscripcion() {
+    var modal = document.getElementById('modalVencimiento');
+    if (modal) {
+        modal.style.display = 'flex'; // Esto fuerza al modal a mostrarse
+    } else {
+        alert("Error: No se encontró el modal de suscripción.");
+    }
+}
+
+// --- FUNCIÓN RECUPERADA PARA EL BOTÓN DE WHATSAPP ---
+window.contactarSoporte = function() {
+    // 1. Intentamos obtener el correo del usuario automáticamente
+    let correoUsuario = "No identificado";
+    
+    if (typeof firebase !== 'undefined' && firebase.auth().currentUser) {
+        correoUsuario = firebase.auth().currentUser.email;
+    }
+
+    // 2. Preparamos el mensaje automático
+    const mensaje = `Hola Dr. Charles, aquí le envío el CAPTURE DE PAGO para activar mi suscripción.\n\nMi correo registrado es: ${correoUsuario}`;
+    
+    // 3. Tu número de teléfono (formato internacional sin el +)
+    const telefono = "584247640846"; 
+
+    // 4. Creamos el enlace de WhatsApp y lo abrimos
+    const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, '_blank');
+}
 
 </script>
+
 </body>
 </html>
