@@ -198,20 +198,21 @@ border-radius: 8px;
                 <p style="font-size:0.8em; color:#666;">¿No tienes cuenta?</p>
                 <button onclick="toggleModoRegistro(true)" style="background:none; border:none; color:#34a853; font-weight:bold; cursor:pointer; font-size:1em;">Crear Cuenta Nueva</button>
             </div>
+
+            <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                <p style="font-size: 0.9em; color: #666; margin-bottom: 10px;">¿Quieres usar la App sin internet?</p>
+                <button id="btnInstalarInicio" onclick="instalarAppInteligente()" 
+                        style="background: #fff; border: 2px solid #333; color: #333; padding: 10px 20px; border-radius: 50px; font-weight: bold; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    📲 INSTALAR APLICACIÓN
+                </button>
+            </div>
         </div>
-<div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-    <p style="font-size: 0.9em; color: #666; margin-bottom: 10px;">¿Quieres usar la App sin internet?</p>
-    
-    <button id="btnInstalarInicio" onclick="instalarAppInteligente()" 
-            style="background: #fff; border: 2px solid #333; color: #333; 
-                   padding: 10px 20px; border-radius: 50px; font-weight: bold; 
-                   cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;">
-        📲 INSTALAR APLICACIÓN
-    </button>
-</div>
 
         <div id="bloque-registro" style="display:none;">
-            <div style="text-align:left; font-size:0.75em; color:#666; margin-top:10px; margin-left:5px;">
+            
+            <input type="tel" id="f_telefono" placeholder="📲 Teléfono / WhatsApp (Obligatorio)" style="width:100%; padding:12px; margin:8px 0 15px 0; border:2px solid #1a73e8; border-radius:8px;">
+
+            <div style="text-align:left; font-size:0.75em; color:#666; margin-left:5px;">
                 Si viene recomendado, ingrese el <b>correo</b> de su colega:
             </div>
             <input type="email" id="f_referido" placeholder="ejemplo@correo.com (Opcional)" style="width:100%; padding:12px; margin:5px 0 15px 0; border:1px solid #ddd; border-radius:8px; background: #fffde7;">
@@ -227,6 +228,7 @@ border-radius: 8px;
     </div>
 
 </div>
+
 
 <div id="app-container">
 <div class="header-app">
@@ -255,6 +257,7 @@ border-radius: 8px;
 <button class="tab-button" onclick="openTab(event, 'calculadora')">​🧑‍⚖️ Dosimetría</button>
 <button class="tab-button" onclick="openTab(event, 'prescripciones')">⚖️ Prescripciones </button>
 <button class="tab-button" onclick="openTab(event, 'conversiones')">🔄 Conversiones</button>
+<button class="tab-button" onclick="openTab(event, 'leyes')">📚 Leyes</button>
 <button class="tab-button" onclick="openTab(event, 'herramientas')">🛠️ Herramientas</button>
 <button id="tab-admin" class="tab-button" style="display:none; background: #991b1b; color: white;" onclick="openTab(event, 'adminPanel')">🛡️ Admin</button>
 </div>
@@ -791,6 +794,19 @@ border-radius: 8px;
         </div>
     </div>
 </div>
+<div id="leyes" class="tab-content">
+    <div class="modulo search-box">
+        <h2>📚 Biblioteca Jurídica</h2>
+        <p style="font-size: 0.85em; color: #666;">Consulte y descargue las leyes actualizadas en formato PDF.</p>
+        
+        <input type="text" id="busquedaLeyes" placeholder="Buscar por nombre de ley o categoría..." onkeyup="filtrarLeyes()" style="background:#fff;">
+        
+        <div id="listaLeyesContainer" style="margin-top: 15px; display: grid; gap: 10px;">
+            <p style="text-align:center; color:#999;">Cargando biblioteca...</p>
+        </div>
+    </div>
+</div>
+
 <div id="conversiones" class="tab-content">
     
     <div class="modulo" style="border-top: 5px solid #e67e22;">
@@ -941,7 +957,6 @@ border-radius: 8px;
 
 </div>
 
-
 <div id="adminPanel" class="tab-content">
     
     <div class="modulo" style="border-top: 5px solid #8e44ad;">
@@ -949,8 +964,7 @@ border-radius: 8px;
         
         <div class="grid-2">
             <div><label>Nombre del Delito:</label><input type="text" id="admDelitoNombre" placeholder="Ej: Robo Agravado"></div>
-
-        <div class="grid-3">
+        </div> <div class="grid-3">
             <div><label>Artículo:</label><input type="text" id="admDelitoArt"></div>
             <div><label>Pena Mínima (Años):</label><input type="number" id="admDelitoMin" step="0.01"></div>
             <div><label>Pena Máxima (Años):</label><input type="number" id="admDelitoMax" step="0.01"></div>
@@ -984,8 +998,9 @@ border-radius: 8px;
         </div>
 
         <button class="btn-principal" style="background: #4a148c; margin-top:20px;" onclick="guardarDelitoAvanzado()">+ GUARDAR EN CATÁLOGO</button>
-        <div class="modulo" style="border-top: 5px solid #107c41; margin-top: 20px; background: #f0fff4;">
-    <h3 style="color: #107c41;">📗 Importación Masiva desde Excel</h3>
+    </div> <div class="modulo" style="border-top: 5px solid #107c41; margin-top: 20px; background: #f0fff4;">
+        <h3 style="color: #107c41;">📗 Importación Masiva desde Excel</h3>
+
     <p style="font-size: 0.9em;">
         <b>Paso 1:</b> Descargue la plantilla obligatoria.<br>
         <b>Paso 2:</b> Llene los datos en Excel (No cambie los títulos).<br>
@@ -1027,6 +1042,23 @@ border-radius: 8px;
 <div id="listaDelitosAdmin" style="max-height: 300px; overflow-y: auto; background: #fff; padding: 10px; border: 1px solid #ddd; display: none;">
     </div>
 
+<div class="modulo" style="border-top: 5px solid #1a73e8; margin-top: 20px; background: #f4f8ff;">
+    <h3 style="color: #1a73e8;">📖 Carga Individual de Leyes (Para textos muy largos)</h3>
+    <p style="font-size: 0.85em; color: #555;">Use este formulario para leyes extensas (como el Código Penal) que superan el límite de Excel.</p>
+    
+    <div class="grid-3">
+        <div><label>Título de la Ley:</label><input type="text" id="leyTitulo" placeholder="Ej: Código Penal"></div>
+        <div><label>Categoría:</label><input type="text" id="leyCategoria" placeholder="Ej: Penal"></div>
+        <div><label>Año:</label><input type="number" id="leyAno" placeholder="Ej: 2005"></div>
+    </div>
+    
+    <label>Contenido Completo de la Ley (Pegar aquí):</label>
+    <textarea id="leyContenido" placeholder="Pegue aquí todo el texto de la ley..." style="height: 150px; resize: vertical; font-family: monospace; font-size: 0.9em;"></textarea>
+    
+    <button class="btn-principal" onclick="guardarLeyDirecta()" style="background: #1a73e8; margin-top: 15px;">
+        💾 GUARDAR LEY EN LA BASE DE DATOS
+    </button>
+</div>
 
     <div style="background:#f8f9fa; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:20px;">
         <label style="margin-top:0;">🔎 Buscar abonado por correo:</label>
@@ -1286,6 +1318,8 @@ Estos T&C se rigen e interpretan de conformidad con las leyes de la República B
             </button>
         </div>
     </div>
+    
+
 </div>
 <script>
   
@@ -1596,7 +1630,7 @@ function registroFirebase() {
         const uid = userCredential.user.uid;
         await db.collection('usuarios').doc(uid).set({
             email: email,
-            vencimiento: new Date(Date.now() + (1 * 24 * 60 * 60 * 1000)).toISOString(),
+            vencimiento: new Date(0).toISOString(),
             rol: 'prueba',
             referidoPor: referidoFinal, 
             premioEntregado: false,
@@ -1789,6 +1823,7 @@ function openTab(evt, tabName) {
     else if (tabName === 'calculadora') nombrePantalla = "Dosimetría Penal";
     else if (tabName === 'prescripciones') nombrePantalla = "Prescripciones";
     else if (tabName === 'conversiones') nombrePantalla = "Conversiones";
+    else if (tabName === 'leyes') nombrePantalla = "Biblioteca Jurídica";
     else if (tabName === 'herramientas') nombrePantalla = "Herramientas";
     else if (tabName === 'adminPanel') nombrePantalla = "Panel Admin";
     else nombrePantalla = tabName; // Por si acaso hay otra nueva
@@ -4675,7 +4710,318 @@ window.contactarSoporte = function() {
     window.open(url, '_blank');
 }
 
+// ==========================================
+// MÓDULO DE BIBLIOTECA DE LEYES (VERSIÓN LIMPIA)
+// ==========================================
+
+let catalogoLeyes = []; 
+
+// 1. CARGA INICIAL
+document.addEventListener('DOMContentLoaded', () => {
+    cargarLeyesDesdeMaestro();
+});
+
+async function cargarLeyesDesdeMaestro(forzar = false) {
+    const container = document.getElementById('listaLeyesContainer');
+    
+    // Carga rápida desde Caché Local
+    const cacheLeyes = localStorage.getItem('catalogoLeyesCache');
+    if (cacheLeyes) {
+        catalogoLeyes = JSON.parse(cacheLeyes);
+        renderizarLeyes(catalogoLeyes);
+    }
+
+    // Actualización silenciosa desde Firebase
+    try {
+        const doc = await db.collection('configuracion_global').doc('catalogo_leyes_maestro').get();
+        if (doc.exists && doc.data().contenido) {
+            const jsonNube = doc.data().contenido;
+            if (jsonNube !== cacheLeyes || forzar) {
+                catalogoLeyes = JSON.parse(jsonNube);
+                localStorage.setItem('catalogoLeyesCache', jsonNube);
+                renderizarLeyes(catalogoLeyes);
+                console.log("📚 Biblioteca actualizada.");
+            }
+        }
+    } catch (error) {
+        console.error("Error cargando biblioteca:", error);
+    }
+}
+
+// 2. RENDERIZADO VISUAL (TARJETAS)
+function renderizarLeyes(lista) {
+    const container = document.getElementById('listaLeyesContainer');
+    if (!container) return;
+    container.innerHTML = "";
+
+    if (lista.length === 0) {
+        container.innerHTML = "<p style='text-align:center;'>No se encontraron leyes.</p>";
+        return;
+    }
+
+    lista.forEach(ley => {
+        const card = document.createElement('div');
+        card.className = "case-card";
+        card.style.borderLeft = "5px solid #1a73e8"; 
+        card.innerHTML = `
+            <div style="flex-grow:1;">
+                <b style="color:#1a73e8;">${ley.titulo}</b><br>
+                <small>📅 ${ley.fecha} | 📁 ${ley.categoria}</small>
+            </div>
+            <button onclick="abrirLector('${ley.id}')" style="background:#1a73e8; color:white; border:none; padding:10px 15px; border-radius:8px; font-size:0.85em; font-weight:bold; cursor:pointer;">
+                LEER LEY 📖
+            </button>
+        `;
+        container.appendChild(card);
+    });
+}
+
+// 3. FILTRO DE BÚSQUEDA
+function filtrarLeyes() {
+    const busqueda = normalizarTexto(document.getElementById('busquedaLeyes').value);
+    const filtradas = catalogoLeyes.filter(ley => 
+        normalizarTexto(ley.titulo).includes(busqueda) || 
+        normalizarTexto(ley.categoria).includes(busqueda)
+    );
+    renderizarLeyes(filtradas);
+}
+
+
+
+// 7. ABRIR LECTOR (CARGA BAJO DEMANDA Y FORMATO)
+async function abrirLector(idLey) {
+    const modal = document.getElementById('modalLector');
+    const cuerpo = document.getElementById('cuerpoLey');
+    const titulo = document.getElementById('tituloLector');
+    
+    modal.style.display = 'flex'; 
+    titulo.innerText = "Recuperando texto...";
+    cuerpo.innerHTML = "<p style='text-align:center; margin-top:50px;'>⏳ Descargando ley...</p>";
+
+    try {
+        const doc = await db.collection('biblioteca_leyes_individual').doc(idLey).get();
+        if (doc.exists) {
+            const data = doc.data();
+            titulo.innerText = data.titulo;
+            
+            // APLICAMOS LA MAGIA DEL FORMATO
+            const textoFormateado = darFormatoLegal(data.contenido);
+            cuerpo.dataset.original = textoFormateado; 
+            cuerpo.innerHTML = textoFormateado; 
+
+            // 🔥 EL CHISMOSO: Avisamos a Analytics qué ley acaban de abrir
+            if (typeof firebase !== 'undefined' && firebase.analytics) {
+                firebase.analytics().logEvent('lectura_ley', {
+                    nombre_ley: data.titulo,
+                    categoria_ley: data.categoria
+                });
+                console.log("Analytics: Ley leída -> " + data.titulo);
+            }
+
+        } else {
+            cuerpo.innerHTML = "<p style='color:red;'>Error: El contenido no está disponible.</p>";
+        }
+    } catch (e) {
+        cuerpo.innerHTML = "<p>Error de conexión.</p>";
+    }
+}
+
+
+// 8. BUSCADOR INTELIGENTE (RESALTADO)
+// Variables globales para la navegación del lector
+let indiceMatchActual = 0;
+let totalMatchesLey = 0;
+
+// 8. BUSCADOR INTELIGENTE (ACTUALIZADO CON RUTEO)
+function resaltarTexto() {
+    const query = normalizarTexto(document.getElementById('busquedaInterna').value.trim());
+    const contenedor = document.getElementById('cuerpoLey');
+    const textoOriginal = contenedor.dataset.original;
+
+    if (!textoOriginal) return;
+    
+    // Si borran la búsqueda, limpiamos todo
+    if (!query || query.length < 3) {
+        contenedor.innerText = textoOriginal;
+        document.getElementById('contadorCoincidencias').innerText = "0/0";
+        totalMatchesLey = 0;
+        indiceMatchActual = 0;
+        return;
+    }
+
+    const regex = new RegExp(`(${query})(?![^<]*>)`, 'gi');
+    let contadorIds = 0;
+
+    // Reemplazamos el texto y le ponemos un "ID" único a cada coincidencia para encontrarla
+    const nuevoTexto = textoOriginal.replace(regex, (match) => {
+        contadorIds++;
+        return `<mark id="match-${contadorIds}" style="background:yellow; color:black; border-radius:3px; padding:0 2px; transition: 0.3s;">${match}</mark>`;
+    });
+
+    contenedor.innerHTML = nuevoTexto;
+    totalMatchesLey = contadorIds;
+    indiceMatchActual = 0;
+
+    if (totalMatchesLey > 0) {
+        // Si hay coincidencias, saltamos automáticamente a la primera
+        navegarCoincidencia(1);
+    } else {
+        document.getElementById('contadorCoincidencias').innerText = "0/0";
+    }
+}
+
+// 9. FUNCIÓN PARA SALTAR ENTRE COINCIDENCIAS (NUEVO)
+function navegarCoincidencia(direccion) {
+    if (totalMatchesLey === 0) return;
+
+    // 1. Quitar el color naranja de la coincidencia anterior (volverla amarilla)
+    const markAnterior = document.getElementById(`match-${indiceMatchActual}`);
+    if (markAnterior) {
+        markAnterior.style.background = "yellow";
+        markAnterior.style.color = "black";
+    }
+
+    // 2. Calcular el nuevo índice (Hacia adelante o atrás)
+    indiceMatchActual += direccion;
+    
+    // Si llegamos al final, damos la vuelta al inicio (y viceversa)
+    if (indiceMatchActual > totalMatchesLey) indiceMatchActual = 1;
+    if (indiceMatchActual < 1) indiceMatchActual = totalMatchesLey;
+
+    // 3. Actualizar el texto del contador (Ej: "2/5")
+    document.getElementById('contadorCoincidencias').innerText = `${indiceMatchActual}/${totalMatchesLey}`;
+
+    // 4. Pintar la nueva coincidencia de Naranja y hacer Scroll
+    const markActual = document.getElementById(`match-${indiceMatchActual}`);
+    if (markActual) {
+        markActual.style.background = "#ff9800"; // Color naranja para destacar
+        markActual.style.color = "white";
+        
+        // Mueve la pantalla suavemente para centrar la palabra encontrada
+        markActual.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+}
+
+
+function cerrarLector() {
+    document.getElementById('modalLector').style.display = 'none';
+}
+async function guardarLeyDirecta() {
+    const titulo = document.getElementById('leyTitulo').value.trim();
+    const categoria = document.getElementById('leyCategoria').value.trim();
+    const ano = document.getElementById('leyAno').value.trim();
+    const contenido = document.getElementById('leyContenido').value.trim();
+
+    if (!titulo || !contenido) {
+        return alert("El título y el contenido son obligatorios.");
+    }
+
+    const btn = event.currentTarget;
+    btn.innerText = "⏳ GUARDANDO (Puede tardar unos segundos)...";
+    btn.disabled = true;
+
+    try {
+        // 1. Guardamos la ley individual completa
+        await db.collection('biblioteca_leyes_individual').add({
+            titulo: titulo,
+            categoria: categoria || "General",
+            fecha: ano || new Date().getFullYear().toString(),
+            contenido: contenido,
+            pais: "Venezuela",
+            fechaCarga: Date.now()
+        });
+
+        alert(`✅ La ley "${titulo}" se ha guardado completa.`);
+        
+        // 2. Limpiamos el formulario
+        document.getElementById('leyTitulo').value = "";
+        document.getElementById('leyCategoria').value = "";
+        document.getElementById('leyAno').value = "";
+        document.getElementById('leyContenido').value = "";
+
+        // 3. ACTUALIZAMOS EL ÍNDICE AUTOMÁTICAMENTE
+        await publicarLeyesMaestroSilencioso();
+
+    } catch (e) {
+        console.error(e);
+        alert("Error al guardar: " + e.message);
+    } finally {
+        btn.innerText = "💾 GUARDAR LEY EN LA BASE DE DATOS";
+        btn.disabled = false;
+    }
+}
+
+// Función auxiliar para que el índice se actualice sin preguntar
+async function publicarLeyesMaestroSilencioso() {
+    try {
+        const snap = await db.collection('biblioteca_leyes_individual').get();
+        let listaLeyes = [];
+        snap.forEach(doc => {
+            let d = doc.data();
+            listaLeyes.push({ id: doc.id, titulo: d.titulo, categoria: d.categoria, fecha: d.fecha });
+        });
+
+        await db.collection('configuracion_global').doc('catalogo_leyes_maestro').set({
+            contenido: JSON.stringify(listaLeyes),
+            fechaPublicacion: Date.now()
+        });
+        
+        cargarLeyesDesdeMaestro(true); // Refrescar pestaña
+    } catch (e) {
+        console.error("Error al actualizar índice maestro:", e);
+    }
+}
+// ==========================================
+// FUNCIÓN PARA DARLE FORMATO DE LIBRO A LA LEY
+// ==========================================
+function darFormatoLegal(textoPuro) {
+    if (!textoPuro) return "";
+
+    let texto = textoPuro;
+
+    // 1. TÍTULOS Y LIBROS (Centrados, azules, grandes y con espacio)
+    texto = texto.replace(/^(LIBRO\s+[IVXLCDM]+.*)$/gmi, '<div style="text-align: center; font-weight: bold; color: #1a73e8; font-size: 1.3em; margin-top: 30px; margin-bottom: 15px;">$1</div>');
+    texto = texto.replace(/^(TÍTULO\s+[IVXLCDM]+.*)$/gmi, '<div style="text-align: center; font-weight: bold; color: #1a73e8; font-size: 1.15em; margin-top: 25px; margin-bottom: 10px;">$1</div>');
+
+    // 2. CAPÍTULOS Y SECCIONES (Centrados y negrita oscura)
+    texto = texto.replace(/^(CAPÍTULO\s+[IVXLCDM]+.*)$/gmi, '<div style="text-align: center; font-weight: bold; color: #333; margin-top: 15px; margin-bottom: 10px; text-decoration: underline;">$1</div>');
+    texto = texto.replace(/^(SECCIÓN\s+[A-ZIVXLC]+.*)$/gmi, '<div style="text-align: center; font-weight: bold; color: #555; margin-top: 15px; margin-bottom: 10px;">$1</div>');
+
+    // 3. ARTÍCULOS (Negrita y color rojo/naranja oscuro para destacar rápido a la vista)
+    texto = texto.replace(/(Artículo\s+\d+[a-zA-Z]?[\.\-]*)/gi, '<b style="color: #c62828; font-size: 1.05em;">$1</b>');
+    texto = texto.replace(/(Art\.\s*\d+[a-zA-Z]?[\.\-]*)/gi, '<b style="color: #c62828; font-size: 1.05em;">$1</b>');
+
+    // 4. Parágrafos (Solo negrita)
+    texto = texto.replace(/(Parágrafo\s+Único:?)/gi, '<b style="color: #444;">$1</b>');
+    texto = texto.replace(/(Parágrafo\s+[A-ZIVXLC]+:?)/gi, '<b style="color: #444;">$1</b>');
+
+    return texto;
+}
+
 </script>
+<div id="modalLector" class="modal" style="display:none; background: rgba(0,0,0,0.95); padding: 0; z-index: 9999;">
+    <div class="modal-content" style="width: 100%; height: 100%; max-width: 100%; border-radius: 0; margin: 0; display: flex; flex-direction: column; padding: 10px; box-sizing: border-box;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; background: white;">
+            <h2 id="tituloLector" style="margin: 0; font-size: 1em; color: #1a73e8;">Cargando Ley...</h2>
+            <button onclick="cerrarLector()" style="background: #d93025; color: white; border: none; padding: 5px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">CERRAR X</button>
+        </div>
+
+               <div style="background: #e8f0fe; padding: 10px; margin: 10px 0; display: flex; gap: 5px; border-radius: 5px; align-items: center;">
+            <input type="text" id="busquedaInterna" placeholder="🔍 Buscar palabra clave..." onkeyup="resaltarTexto()" style="flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+            
+            <span id="contadorCoincidencias" style="color: #1a73e8; font-weight: bold; min-width: 50px; text-align: center; font-size: 0.9em;">0/0</span>
+            
+            <button onclick="navegarCoincidencia(-1)" style="background: #1a73e8; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1.1em;" title="Anterior">▲</button>
+            <button onclick="navegarCoincidencia(1)" style="background: #1a73e8; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1.1em;" title="Siguiente">▼</button>
+        </div>
+
+
+        <div id="cuerpoLey" style="flex-grow: 1; overflow-y: auto; background: white; padding: 20px; line-height: 1.8; font-size: 1.1em; white-space: pre-wrap; color: #222; text-align: justify;">
+            Seleccione una ley...
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
