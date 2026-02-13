@@ -4833,6 +4833,7 @@ let indiceMatchActual = 0;
 let totalMatchesLey = 0;
 
 // 8. BUSCADOR INTELIGENTE (ACTUALIZADO CON RUTEO)
+// 8. BUSCADOR INTELIGENTE (ACTUALIZADO CON RUTEO Y SUPER BÚSQUEDA)
 function resaltarTexto() {
     const query = normalizarTexto(document.getElementById('busquedaInterna').value.trim());
     const contenedor = document.getElementById('cuerpoLey');
@@ -4842,17 +4843,20 @@ function resaltarTexto() {
     
     // Si borran la búsqueda, limpiamos todo
     if (!query || query.length < 3) {
-        contenedor.innerText = textoOriginal;
+        contenedor.innerHTML = textoOriginal; // Restauramos el formato rojo impecable
         document.getElementById('contadorCoincidencias').innerText = "0/0";
         totalMatchesLey = 0;
         indiceMatchActual = 0;
         return;
     }
 
-    const regex = new RegExp(`(${query})(?![^<]*>)`, 'gi');
+    // 🔥 MAGIA: Si el usuario busca "1965", el sistema buscará también "1.965" o "1 965"
+    let regexFlexible = query.replace(/(\d)(?=\d)/g, '$1[\\.\\,\\s]*');
+    const regex = new RegExp(`(${regexFlexible})(?![^<]*>)`, 'gi');
+    
     let contadorIds = 0;
 
-    // Reemplazamos el texto y le ponemos un "ID" único a cada coincidencia para encontrarla
+    // Reemplazamos el texto y le ponemos un "ID" único a cada coincidencia
     const nuevoTexto = textoOriginal.replace(regex, (match) => {
         contadorIds++;
         return `<mark id="match-${contadorIds}" style="background:yellow; color:black; border-radius:3px; padding:0 2px; transition: 0.3s;">${match}</mark>`;
@@ -4863,12 +4867,13 @@ function resaltarTexto() {
     indiceMatchActual = 0;
 
     if (totalMatchesLey > 0) {
-        // Si hay coincidencias, saltamos automáticamente a la primera
+        // Saltamos automáticamente a la primera
         navegarCoincidencia(1);
     } else {
         document.getElementById('contadorCoincidencias').innerText = "0/0";
     }
 }
+
 
 // 9. FUNCIÓN PARA SALTAR ENTRE COINCIDENCIAS (NUEVO)
 function navegarCoincidencia(direccion) {
@@ -4974,29 +4979,33 @@ async function publicarLeyesMaestroSilencioso() {
 // ==========================================
 // FUNCIÓN PARA DARLE FORMATO DE LIBRO A LA LEY
 // ==========================================
+// ==========================================
+// FUNCIÓN PARA DARLE FORMATO DE LIBRO A LA LEY
+// ==========================================
 function darFormatoLegal(textoPuro) {
     if (!textoPuro) return "";
 
     let texto = textoPuro;
 
-    // 1. TÍTULOS Y LIBROS (Centrados, azules, grandes y con espacio)
+    // 1. TÍTULOS Y LIBROS
     texto = texto.replace(/^(LIBRO\s+[IVXLCDM]+.*)$/gmi, '<div style="text-align: center; font-weight: bold; color: #1a73e8; font-size: 1.3em; margin-top: 30px; margin-bottom: 15px;">$1</div>');
     texto = texto.replace(/^(TÍTULO\s+[IVXLCDM]+.*)$/gmi, '<div style="text-align: center; font-weight: bold; color: #1a73e8; font-size: 1.15em; margin-top: 25px; margin-bottom: 10px;">$1</div>');
 
-    // 2. CAPÍTULOS Y SECCIONES (Centrados y negrita oscura)
+    // 2. CAPÍTULOS Y SECCIONES
     texto = texto.replace(/^(CAPÍTULO\s+[IVXLCDM]+.*)$/gmi, '<div style="text-align: center; font-weight: bold; color: #333; margin-top: 15px; margin-bottom: 10px; text-decoration: underline;">$1</div>');
     texto = texto.replace(/^(SECCIÓN\s+[A-ZIVXLC]+.*)$/gmi, '<div style="text-align: center; font-weight: bold; color: #555; margin-top: 15px; margin-bottom: 10px;">$1</div>');
 
-    // 3. ARTÍCULOS (Negrita y color rojo/naranja oscuro para destacar rápido a la vista)
-    texto = texto.replace(/(Artículo\s+\d+[a-zA-Z]?[\.\-]*)/gi, '<b style="color: #c62828; font-size: 1.05em;">$1</b>');
-    texto = texto.replace(/(Art\.\s*\d+[a-zA-Z]?[\.\-]*)/gi, '<b style="color: #c62828; font-size: 1.05em;">$1</b>');
+    // 3. ARTÍCULOS (🔥 CORREGIDO PARA NÚMEROS DE MILES Ej: 1.965)
+    texto = texto.replace(/(Artículo\s+\d[\d\.\,]*[a-zA-Z]?[\.\-]*)/gi, '<b style="color: #c62828; font-size: 1.05em;">$1</b>');
+    texto = texto.replace(/(Art\.\s*\d[\d\.\,]*[a-zA-Z]?[\.\-]*)/gi, '<b style="color: #c62828; font-size: 1.05em;">$1</b>');
 
-    // 4. Parágrafos (Solo negrita)
+    // 4. Parágrafos
     texto = texto.replace(/(Parágrafo\s+Único:?)/gi, '<b style="color: #444;">$1</b>');
     texto = texto.replace(/(Parágrafo\s+[A-ZIVXLC]+:?)/gi, '<b style="color: #444;">$1</b>');
 
     return texto;
 }
+
 
 </script>
 <div id="modalLector" class="modal" style="display:none; background: rgba(0,0,0,0.95); padding: 0; z-index: 9999;">
