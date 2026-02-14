@@ -5708,6 +5708,7 @@ async function abrirLectorDoctrina(idDoc) {
 }
 
 // A. TOMAR FOTO A LA TARJETA Y COMPARTIRLA (CORREGIDO CON useCORS)
+// A. TOMAR FOTO A LA TARJETA Y COMPARTIRLA (CON MENSAJE PUBLICITARIO)
 async function compartirTarjetaJuris(idJur) {
     const tarjeta = document.getElementById(`tarjeta-jur-${idJur}`);
     if (!tarjeta) return;
@@ -5720,7 +5721,7 @@ async function compartirTarjetaJuris(idJur) {
     marcaAgua.style.display = 'block';
 
     try {
-        // 2. Tomamos la "Fotografía" (Agregado useCORS: true para igualar a Doctrina)
+        // 2. Tomamos la "Fotografía" 
         const canvas = await html2canvas(tarjeta, { scale: 3, backgroundColor: "#ffffff", useCORS: true });
         
         // Restauramos la tarjeta a la normalidad
@@ -5735,7 +5736,8 @@ async function compartirTarjetaJuris(idJur) {
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 await navigator.share({
                     title: 'Jurisprudencia Vinculante',
-                    text: 'Mira esta jurisprudencia que encontré en la App Iuris Penal ⚖️.',
+                    // 🔥 AQUÍ ESTÁ EL NUEVO MENSAJE PUBLICITARIO CORTO Y ATRACTIVO 🔥
+                    text: '¡Mira esta jurisprudencia! ⚖️ Encuentra esta y muchas más de manera GRATUITA en la App IURIS PENAL. Úsala desde tu celular aquí: https://consultoraiurislegal.github.io/calculadora-penal/',
                     files: [file]
                 });
             } else {
@@ -5753,6 +5755,7 @@ async function compartirTarjetaJuris(idJur) {
         alert("Error al generar la imagen: " + e.message);
     }
 }
+
 
 // B. DESCARGAR TEXTO COMPLETO EN PDF DIRECTO A LA MEMORIA (CORREGIDO VARIABLES)
 async function descargarJurisPDF(idJur, numStr) {
