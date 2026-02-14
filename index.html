@@ -7,6 +7,7 @@
 <link rel="manifest" href="manifest.json">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
@@ -231,10 +232,22 @@ border-radius: 8px;
 
 
 <div id="app-container">
-<div class="header-app">
-<h1>Calculadora Penal</h1>
-<p>Consultora Iuris</p>
-</div>
+    
+        <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 25px; background: white; padding: 20px 15px; border-bottom: 4px solid #1a73e8; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-radius: 0 0 15px 15px;">
+        <img src="https://raw.githubusercontent.com/consultoraiurislegal/calculadora-penal/refs/heads/main/icon-512.png" 
+             alt="Logo Iuris Penal" 
+             style="width: 75px; height: 75px; border-radius: 15px; object-fit: cover; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
+
+        <div style="text-align: left; flex-grow: 1;">
+            <h1 style="color: #1a73e8; margin: 0; font-size: 1.8em; font-weight: 900; letter-spacing: -0.5px;">IURIS PENAL</h1>
+            <p style="color: #555; margin: 5px 0 0 0; font-size: 0.9em; font-weight: bold; line-height: 1.3;">
+                La única aplicación para abogados penalistas de Venezuela.
+            </p>
+        </div>
+    </div>
+
+    </div>
+
 
 <div id="status-bar" class="user-status-bar" style="display:none;">
     <div>
@@ -258,7 +271,10 @@ border-radius: 8px;
 <button class="tab-button" onclick="openTab(event, 'prescripciones')">⚖️ Prescripciones </button>
 <button class="tab-button" onclick="openTab(event, 'conversiones')">🔄 Conversiones</button>
 <button class="tab-button" onclick="openTab(event, 'leyes')">📚 Leyes</button>
+<button class="tab-button" onclick="openTab(event, 'jurisprudencia')">🏛️ Jurisprudencia</button>
+<button class="tab-button" onclick="openTab(event, 'doctrina')">💡 Guía & Doctrina</button>
 <button class="tab-button" onclick="openTab(event, 'herramientas')">🛠️ Herramientas</button>
+<button class="tab-button" onclick="openTab(event, 'directorio')">🛒 Servicios</button>
 <button id="tab-admin" class="tab-button" style="display:none; background: #991b1b; color: white;" onclick="openTab(event, 'adminPanel')">🛡️ Admin</button>
 </div>
 
@@ -282,29 +298,15 @@ border-radius: 8px;
 
 
 
-    <div class="modulo">
+     <div class="modulo">
         <h2>📝 Registro de Información</h2>
         <input type="hidden" id="idCasoGestion">
         
+        <label>Nombre Completo:</label>
+        <input type="text" id="gNombre" oninput="document.getElementById('pNombre').value = this.value">
+        
         <div class="grid-2">
-            <div><label>Nombre Completo:</label><input type="text" id="gNombre" oninput="document.getElementById('pNombre').value = this.value"></div>
             <div><label>Cédula:</label><input type="text" id="gCedula" oninput="document.getElementById('pCedula').value = this.value"></div>
-        </div>
-
-        <div class="grid-3">
-            <div><label>Exp. Judicial:</label><input type="text" id="gExpJud"></div>
-            <div><label>Exp. Fiscalía:</label><input type="text" id="gExpFis"></div>
-            <div><label>Exp. Carcelario:</label><input type="text" id="gExpCar"></div>
-        </div>
-
-        <div class="grid-2">
-            <div><label>Fiscalía Nº:</label><input type="text" id="gNumFis"></div>
-            <div><label>Tribunal:</label><input type="text" id="gTribunal"></div>
-        </div>
-
-        <label>Centro de Reclusión:</label><input type="text" id="gLugar">
-
-        <div class="grid-2">
             <div>
                 <label>Fase Procesal:</label>
                 <select id="gFase">
@@ -314,8 +316,27 @@ border-radius: 8px;
                     <option value="Ejecución">Ejecución</option>
                 </select>
             </div>
-            <div><label>Delito:</label><input type="text" id="gDelito"></div>
         </div>
+
+        <label>Nº Expediente Judicial:</label>
+        <input type="text" id="gExpJud" placeholder="Ej: SP-21-2024-4567">
+        
+        <label>Tribunal que conoce la causa:</label>
+        <input type="text" id="gTribunal" placeholder="Ej: Juzgado 1ro de Control">
+
+        <div class="grid-2">
+            <div><label>Fiscalía Nº:</label><input type="text" id="gNumFis"></div>
+            <div><label>Exp. Fiscalía:</label><input type="text" id="gExpFis"></div>
+        </div>
+
+        <label>Delito Imputado / Acusado:</label>
+        <input type="text" id="gDelito">
+
+        <label>Nº Expediente Carcelario:</label>
+        <input type="text" id="gExpCar">
+
+        <label>Centro de Reclusión:</label>
+        <input type="text" id="gLugar">
 
         <div style="background: #fdf2f2; padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid #fca5a5;">
             <label>¿Caso de Drogas?</label>
@@ -364,6 +385,18 @@ border-radius: 8px;
         <div id="scrollEventos" style="margin-top: 15px; max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 8px; background: #fafafa;">
             <p style="text-align: center; color: #999;">Seleccione un caso para ver sus eventos</p>
         </div>
+            <div class="modulo no-print" style="border: 2px solid #f39c12; background: #fdfae6; border-radius: 10px; padding: 15px; margin-top: 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div style="font-size: 3em;">🕵️‍♂️</div>
+        <div>
+            <span style="background: #f39c12; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7em; font-weight: bold; text-transform: uppercase;">Espacio Patrocinado</span>
+            <h4 style="margin: 5px 0; color: #333;">Servicios de Peritaje e Investigación</h4>
+            <p style="font-size: 0.85em; color: #555; margin: 0 0 10px 0;">¿Es usted perito grafotécnico, informático o investigador? Llegue a cientos de abogados litigantes en todo el país alquilando este espacio.</p>
+            <button onclick="abrirWhatsAppSuscripcion()" style="background: #f39c12; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8em; text-transform: uppercase;">
+                CONTRATAR ESPACIO PUBLICITARIO
+            </button>
+        </div>
+    </div>
+
     </div>
 </div>
 
@@ -386,16 +419,23 @@ border-radius: 8px;
     <div class="modulo">
         <input type="hidden" id="casoActivoId" value="">
         <h2>0. Datos del Privado de Libertad</h2>
+        
+        <label>Nombre Completo:</label>
+        <input type="text" id="pNombre" required oninput="document.getElementById('gNombre').value = this.value">
+        
         <div class="grid-2">
-            <div><label>Nombre:</label><input type="text" id="pNombre" required oninput="document.getElementById('gNombre').value = this.value"></div>
             <div><label>Cédula:</label><input type="text" id="pCedula" required oninput="document.getElementById('pCedula').value = this.value"></div>
-        </div>
-        <div class="grid-2">
-            <div><label>Exp. Judicial:</label><input type="text" id="pExpJud"></div>
             <div><label>Exp. Carcelario:</label><input type="text" id="pExpCar"></div>
         </div>
-        <label>Delito:</label><input type="text" id="pDelito" placeholder="Ej: Robo Agravado">
-        <label>Lugar de Reclusión:</label><input type="text" id="pLugar">
+        
+        <label>Nº Expediente Judicial:</label>
+        <input type="text" id="pExpJud" placeholder="Ej: SP-21-2024-4567">
+        
+        <label>Delito:</label>
+        <input type="text" id="pDelito" placeholder="Ej: Robo Agravado">
+        
+        <label>Lugar de Reclusión:</label>
+        <input type="text" id="pLugar">
     </div>
 
     <div class="modulo">
@@ -430,7 +470,7 @@ border-radius: 8px;
         <h2>2. Tiempo Redimido</h2>
         <div id="listaRedenciones"></div>
         <button class="btn-add" onclick="agregarFilaRedencion(0,0,0)">+ Añadir Manualmente</button>
-        <button class="btn-calc-red" onclick="toggleSubModulo()">Calculadora de redenciones</button>
+                <button class="btn-calc-red" onclick="if(validarAccesoPremium()) toggleSubModulo()">Calculadora de redenciones</button>
         <div id="subModuloRedencion" class="sub-modulo">
             <h3>Cálculo de Redencion</h3>
             <label>Fecha de Inicio de Labores:</label><input type="date" id="redInicio">
@@ -806,6 +846,72 @@ border-radius: 8px;
         </div>
     </div>
 </div>
+<div id="jurisprudencia" class="tab-content">
+    <div class="modulo search-box" style="background: linear-gradient(135deg, #e0f7fa 0%, #ffffff 100%); border: 1px solid #b2ebf2;">
+        <h2 style="color: #00838f; border-bottom: 2px solid #b2ebf2;">🏛️ Motor de Búsqueda Jurisprudencial</h2>
+        <p style="font-size: 0.85em; color: #555;">Encuentre doctrina vinculante al instante cruzando múltiples criterios.</p>
+        
+                       <div class="grid-2" style="margin-bottom: 10px;">
+            <div><input type="text" id="busqJurisNum" placeholder="🔢 Nº de Sentencia..." onkeyup="filtrarJurisprudencia()" style="border: 1px solid #00acc1;"></div>
+            
+            <div style="position: relative; display: flex; align-items: center;">
+                <span style="position: absolute; left: 10px; color: #555; pointer-events: none; font-size: 0.9em;">📅 Fecha:</span>
+                <input type="date" id="busqJurisFecha" onchange="filtrarJurisprudencia()" style="border: 1px solid #00acc1; padding-left: 85px; width: 100%;">
+            </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom: 15px;">
+            <div><input type="text" id="busqJurisTexto" placeholder="🔍 Buscar en Tema, Minuta o Magistrado..." onkeyup="filtrarJurisprudencia()" style="border: 1px solid #00acc1;"></div>
+            <div>
+                <select id="busqJurisSala" onchange="filtrarJurisprudencia()" style="border: 1px solid #00acc1;">
+                    <option value="">🏛️ Todas las Salas</option>
+                    <option value="Casación Penal">Casación Penal</option>
+                    <option value="Constitucional">Constitucional</option>
+                </select>
+            </div>
+        </div>
+
+        
+        <div id="listaJurisContainer" style="display: grid; gap: 15px; max-height: 65vh; overflow-y: auto; padding-right: 5px; padding-bottom: 15px;">
+            <p style="text-align:center; color:#999; margin-top: 20px;">Cargando base jurisprudencial...</p>
+        </div>
+    </div>
+</div>
+<div id="doctrina" class="tab-content">
+    <div class="modulo search-box" style="background: linear-gradient(135deg, #f3e5f5 0%, #ffffff 100%); border: 1px solid #e1bee7;">
+        <h2 style="color: #6a1b9a; border-bottom: 2px solid #e1bee7;">💡 Academia y Guía de Uso</h2>
+        <p style="font-size: 0.85em; color: #555;">Aprenda a usar la aplicación, consulte la base dogmática de los cálculos y lea artículos de colegas.</p>
+        
+        <div class="grid-2" style="margin-bottom: 15px;">
+            <div><input type="text" id="busqDocTexto" placeholder="🔍 Buscar tema o autor..." onkeyup="filtrarDoctrina()" style="border: 1px solid #ab47bc;"></div>
+            <div>
+                <select id="busqDocCat" onchange="filtrarDoctrina()" style="border: 1px solid #ab47bc;">
+                    <option value="">📚 Todas las Categorías</option>
+                    <option value="Tutorial">📱 Tutorial de la App</option>
+                    <option value="Criterio Dogmático">⚖️ Criterio Dogmático</option>
+                    <option value="Análisis de Jurisprudencia">🔎 Análisis de Jurisprudencia</option>
+                    <option value="Artículo de Colega">✍️ Artículo de Colega</option>
+                </select>
+            </div>
+        </div>
+                <div class="modulo no-print" style="border: 2px solid #27ae60; background: #e9f7ef; border-radius: 10px; padding: 15px; margin-top: 0px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            <div style="font-size: 3em;">📚</div>
+            <div>
+                <span style="background: #27ae60; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7em; font-weight: bold; text-transform: uppercase;">Recomendado</span>
+                <h4 style="margin: 5px 0; color: #333;">Diplomados y Literatura Jurídica</h4>
+                <p style="font-size: 0.85em; color: #555; margin: 0 0 10px 0;">Espacio ideal para Universidades, Institutos o Librerías. Promocione sus cursos directamente a profesionales del derecho.</p>
+                <button onclick="abrirWhatsAppSuscripcion()" style="background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8em; text-transform: uppercase;">
+                    ANUNCIAR MI CURSO O LIBRO
+                </button>
+            </div>
+        </div>
+
+        <div id="listaDoctrinaContainer" style="display: grid; gap: 15px; max-height: 65vh; overflow-y: auto; padding-right: 5px; padding-bottom: 15px;">
+            <p style="text-align:center; color:#999; margin-top: 20px;">Cargando biblioteca académica...</p>
+        </div>
+    </div>
+</div>
+
 
 <div id="conversiones" class="tab-content">
     
@@ -956,6 +1062,43 @@ border-radius: 8px;
 </div>
 
 </div>
+<div id="directorio" class="tab-content">
+    <div class="modulo search-box" style="background: linear-gradient(135deg, #fff3e0 0%, #ffffff 100%); border: 1px solid #ffe0b2;">
+        <h2 style="color: #e65100; border-bottom: 2px solid #ffe0b2;">🛒 Directorio Comercial</h2>
+        <p style="font-size: 0.85em; color: #555;">Encuentre peritos, almuerzos con delivery, librerías y diplomados cerca de su jurisdicción.</p>
+
+        <div class="grid-3" style="margin-bottom: 15px;">
+            <div><input type="text" id="busqDirTexto" placeholder="🔍 Buscar..." onkeyup="filtrarDirectorio()" style="border: 1px solid #ffb74d;"></div>
+            <div>
+                <select id="busqDirCat" onchange="filtrarDirectorio()" style="border: 1px solid #ffb74d;">
+                    <option value="">📚 Todas las Categorías</option>
+                    <option value="Comida">🍔 Comida / Delivery</option>
+                    <option value="Peritos">🕵️‍♂️ Peritos / Investigadores</option>
+                    <option value="Cursos">🎓 Cursos / Diplomados</option>
+                    <option value="Libreria">📖 Librerías Jurídicas</option>
+                    <option value="Otros">💼 Otros Servicios</option>
+                </select>
+            </div>
+            <div>
+                <select id="busqDirUbicacion" onchange="filtrarDirectorio()" style="border: 1px solid #ffb74d;">
+                    <option value="">📍 Cualquier Ubicación</option>
+                    <option value="Nacional">🇻🇪 Nivel Nacional (Online)</option>
+                    <option value="San Cristóbal">San Cristóbal</option>
+                    <option value="Caracas">Caracas</option>
+                    <option value="Maracaibo">Maracaibo</option>
+                    <option value="Maracay">Maracay</option>
+                    <option value="Merida">Merida</option>
+                    <option value="San Antonio del Tachira">San Antonio del Tachira</option>
+                    <option value="Valencia">Valencia</option>
+                    </select>
+            </div>
+        </div>
+
+        <div id="listaDirectorioContainer" style="display: grid; gap: 15px; max-height: 65vh; overflow-y: auto; padding-right: 5px; padding-bottom: 15px;">
+            <p style="text-align:center; color:#999; margin-top: 20px;">Cargando directorio comercial...</p>
+        </div>
+    </div>
+</div>
 
 <div id="adminPanel" class="tab-content">
     
@@ -1059,6 +1202,111 @@ border-radius: 8px;
         💾 GUARDAR LEY EN LA BASE DE DATOS
     </button>
 </div>
+<div class="modulo" style="border-top: 5px solid #00acc1; margin-top: 20px; background: #f8fdfe;">
+    <h3 style="color: #00acc1;">🏛️ Publicar Jurisprudencia</h3>
+    <p style="font-size: 0.85em; color: #555;">El texto completo se guardará en la base de datos y se actualizará el índice maestro.</p>
+    
+    <div class="grid-3">
+        <div><label>Nº Sentencia:</label><input type="text" id="jurNum" placeholder="Ej: 154"></div>
+        <div><label>Fecha de Publicación:</label><input type="date" id="jurFecha"></div>
+        <div>
+            <label>Sala:</label>
+            <select id="jurSala">
+                <option value="Casación Penal">Casación Penal</option>
+                <option value="Constitucional">Constitucional</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="grid-2">
+        <div><label>Magistrado Ponente:</label><input type="text" id="jurMagistrado" placeholder="Nombre completo"></div>
+        <div><label>Tema / Palabras Clave:</label><input type="text" id="jurTema" placeholder="Ej: Robo agravado, Cómputo..."></div>
+    </div>
+    
+    <label>Minuta / Resumen (Ratio Decidendi):</label>
+    <textarea id="jurMinuta" placeholder="Escriba de qué trata la sentencia para que aparezca en la tarjeta..." style="height: 80px; resize: vertical; font-family: sans-serif; font-size: 0.9em; background: #fffde7;"></textarea>
+    
+    <label>Contenido Completo de la Sentencia:</label>
+    <textarea id="jurContenido" placeholder="Pegue la sentencia completa aquí..." style="height: 150px; resize: vertical; font-family: monospace; font-size: 0.9em;"></textarea>
+    
+    <button class="btn-principal" onclick="guardarJurisprudenciaDirecta()" style="background: #00acc1; margin-top: 15px;">
+        💾 GUARDAR Y PUBLICAR SENTENCIA
+    </button>
+</div>
+<div class="modulo" style="border-top: 5px solid #8e24aa; margin-top: 20px; background: #faf2fb;">
+    <h3 style="color: #8e24aa;">💡 Publicar Guía o Artículo Académico</h3>
+    <p style="font-size: 0.85em; color: #555;">Sube tutoriales de uso, análisis o artículos de invitados con su foto.</p>
+    
+    <div class="grid-2">
+        <div><label>Título:</label><input type="text" id="docTitulo" placeholder="Ej: Análisis Sentencia 154"></div>
+        <div>
+            <label>Categoría:</label>
+            <select id="docCategoria">
+                <option value="Tutorial">📱 Tutorial de la App</option>
+                <option value="Criterio Dogmático">⚖️ Criterio Dogmático</option>
+                <option value="Análisis de Jurisprudencia">🔎 Análisis de Jurisprudencia</option>
+                <option value="Artículo de Colega">✍️ Artículo de Colega</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="grid-3">
+        <div><label>Autor:</label><input type="text" id="docAutor" placeholder="Ej: Dr. Charles Reyes"></div>
+        <div><label>Fecha:</label><input type="date" id="docFecha"></div>
+        <div><label>Foto Autor (URL):</label><input type="url" id="docFoto" placeholder="https://link-a-foto.jpg"></div>
+    </div>
+    
+    <label>Resumen / Introducción:</label>
+    <textarea id="docResumen" placeholder="Breve descripción para mostrar en la tarjeta..." style="height: 60px; resize: vertical; font-family: sans-serif; font-size: 0.9em; background: #fff;"></textarea>
+    
+    <label>Contenido Completo:</label>
+    <textarea id="docContenido" placeholder="Pegue todo el texto del artículo o tutorial aquí..." style="height: 150px; resize: vertical; font-family: monospace; font-size: 0.9em;"></textarea>
+    
+    <button class="btn-principal" onclick="guardarDoctrinaDirecta()" style="background: #8e24aa; margin-top: 15px;">
+        💾 PUBLICAR ARTÍCULO
+    </button>
+</div>
+<div class="modulo" style="border-top: 5px solid #e65100; margin-top: 20px; background: #fffdf5;">
+    <h3 style="color: #e65100;">🛒 Publicar Anuncio Publicitario (Directorio)</h3>
+    <p style="font-size: 0.85em; color: #555;">Agregue los servicios de los proveedores que le han pagado publicidad en la App.</p>
+
+    <div class="grid-2">
+        <div><label>Nombre del Negocio / Servicio:</label><input type="text" id="dirNombre" placeholder="Ej: Empanadas El Palacio"></div>
+        <div>
+            <label>Categoría:</label>
+            <select id="dirCategoria">
+                <option value="Comida">🍔 Comida / Delivery</option>
+                <option value="Peritos">🕵️‍♂️ Peritos / Investigadores</option>
+                <option value="Cursos">🎓 Cursos / Diplomados</option>
+                <option value="Libreria">📖 Librerías Jurídicas</option>
+                <option value="Otros">💼 Otros Servicios</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-3">
+        <div>
+            <label>Ubicación:</label>
+            <select id="dirUbicacion">
+                <option value="Nacional">🇻🇪 Nivel Nacional (Online)</option>
+                <option value="San Cristóbal">San Cristóbal</option>
+                <option value="Caracas">Caracas</option>
+                <option value="Maracaibo">Maracaibo</option>
+                <option value="Valencia">Valencia</option>
+            </select>
+        </div>
+        <div><label>WhatsApp (Sin el +):</label><input type="text" id="dirTelefono" placeholder="Ej: 584241234567"></div>
+        <div><label>Logo / Imagen (URL):</label><input type="url" id="dirFoto" placeholder="https://link-a-foto.jpg"></div>
+    </div>
+
+    <label>Descripción y Oferta del Servicio:</label>
+    <textarea id="dirDescripcion" placeholder="Describa el menú de almuerzos, el curso, o los honorarios del perito..." style="height: 60px; resize: vertical; font-family: sans-serif; font-size: 0.9em; background: #fff;"></textarea>
+
+    <button class="btn-principal" onclick="guardarAnuncioDirectorio()" style="background: #e65100; margin-top: 15px;">
+        📢 PUBLICAR ANUNCIO
+    </button>
+</div>
+
 
     <div style="background:#f8f9fa; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:20px;">
         <label style="margin-top:0;">🔎 Buscar abonado por correo:</label>
@@ -1201,7 +1449,7 @@ Estos T&C se rigen e interpretan de conformidad con las leyes de la República B
     
     <div class="modulo no-print" style="text-align: center; border: 1px solid #e1e4e8; background: #fff;">
         <p style="margin-bottom: 10px; font-weight: bold; color: #1a73e8; font-size: 0.9em;">
-            ¿Dudas Legales? ¿Soporte Técnico? ¿Pagos?
+            ¿Quiere Publicitar en esta App? ¿Soporte Técnico? ¿Pagos?
         </p>
         <button onclick="abrirWhatsApp()" class="btn-whatsapp">
             📲 Contactar al Dr. Charles Reyes
@@ -1824,7 +2072,10 @@ function openTab(evt, tabName) {
     else if (tabName === 'prescripciones') nombrePantalla = "Prescripciones";
     else if (tabName === 'conversiones') nombrePantalla = "Conversiones";
     else if (tabName === 'leyes') nombrePantalla = "Biblioteca Jurídica";
+    else if (tabName === 'jurisprudencia') nombrePantalla = "Jurisprudencia (Motor)";
+    else if (tabName === 'doctrina') nombrePantalla = "Guía y Doctrina";
     else if (tabName === 'herramientas') nombrePantalla = "Herramientas";
+    else if (tabName === 'directorio') nombrePantalla = "Marketplace (Servicios)";
     else if (tabName === 'adminPanel') nombrePantalla = "Panel Admin";
     else nombrePantalla = tabName; // Por si acaso hay otra nueva
 
@@ -2465,6 +2716,7 @@ function validarYCalcular() {
 }
 
 function calc71() {
+    if (!consumirUsoGratuito('herramientas')) return;
 const f1 = new Date(document.getElementById('calc71_inicio').value), f2 = new Date(document.getElementById('calc71_fin').value);
 if(isNaN(f1)||isNaN(f2)) return;
 let a=f2.getFullYear()-f1.getFullYear(), m=f2.getMonth()-f1.getMonth(), d=f2.getDate()-f1.getDate();
@@ -2477,10 +2729,12 @@ div.innerHTML = `<input type="number" class="sa" placeholder="A"><input type="nu
 document.getElementById('listaLapsosSuma').appendChild(div);
 }
 function calc72() {
+    if (!consumirUsoGratuito('herramientas')) return;
 let a=0, m=0, d=0; document.querySelectorAll('.sa').forEach(i=>a+=parseInt(i.value||0)); document.querySelectorAll('.sm').forEach(i=>m+=parseInt(i.value||0)); document.querySelectorAll('.sd').forEach(i=>d+=parseInt(i.value||0));
 m+=Math.floor(d/30); d=d%30; a+=Math.floor(m/12); m=m%12; document.getElementById('res72').innerText = `Total: ${a}a, ${m}m, ${d}d`;
 }
 function calc73() {
+    if (!consumirUsoGratuito('herramientas')) return;
 const a1 = parseInt(document.getElementById('r1a').value || 0), m1 = parseInt(document.getElementById('r1m').value || 0), d1 = parseInt(document.getElementById('r1d').value || 0);
 const a2 = parseInt(document.getElementById('r2a').value || 0), m2 = parseInt(document.getElementById('r2m').value || 0), d2 = parseInt(document.getElementById('r2d').value || 0);
 const totalDias1 = (a1 * 360) + (m1 * 30) + d1, totalDias2 = (a2 * 360) + (m2 * 30) + d2;
@@ -2489,6 +2743,7 @@ if (diferencia < 0) { document.getElementById('res73').innerText = "Resultado: E
 else { document.getElementById('res73').innerText = "Resultado: " + desglosar(diferencia); document.getElementById('res73').style.color = "#856404"; }
 }
 function calc745(op) {
+    if (!consumirUsoGratuito('herramientas')) return;
 const dateInput = document.getElementById('fBase745').value;
 if (!dateInput) return alert("Por favor, seleccione una fecha base.");
 const partes = dateInput.split('-'); const anioBase = parseInt(partes[0], 10), mesBase = parseInt(partes[1], 10) - 1, diaBase = parseInt(partes[2], 10);
@@ -2499,6 +2754,7 @@ else { f.setFullYear(f.getFullYear() - añosAdd); f.setMonth(f.getMonth() - mese
 document.getElementById('res745').innerText = "Fecha Resultante: " + f.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 function calc76() {
+    if (!consumirUsoGratuito('herramientas')) return;
 const t = (parseInt(document.getElementById('fra').value||0)*360) + (parseInt(document.getElementById('frm').value||0)*30) + (parseInt(document.getElementById('frd').value||0));
 const p = document.getElementById('fraccion').value.split('/'); 
 document.getElementById('res76').innerText = "Producto: " + desglosarBreve(Math.floor((t*parseInt(p[0]))/parseInt(p[1])));
@@ -4147,7 +4403,7 @@ function calcularDosimetriaFinal() {
 // ==========================================
 
 function calcularEquivalencia() {
-    // 1. Obtener días totales
+    if (!consumirUsoGratuito('conversiones')) return;
     const a = parseInt(document.getElementById('conv_a').value || 0);
     const m = parseInt(document.getElementById('conv_m').value || 0);
     const d = parseInt(document.getElementById('conv_d').value || 0);
@@ -4206,7 +4462,7 @@ function calcularEquivalencia() {
 
 
 function calcularConmutacion() {
-    // 1. Obtener días totales
+    if (!consumirUsoGratuito('conversiones')) return;
     const a = parseInt(document.getElementById('conm_a').value || 0);
     const m = parseInt(document.getElementById('conm_m').value || 0);
     const d = parseInt(document.getElementById('conm_d').value || 0);
@@ -4247,7 +4503,7 @@ function calcularConmutacion() {
 }
 
 function calcularOperacionFraccion() {
-    // 1. Obtener Lapso Base
+    if (!consumirUsoGratuito('herramientas')) return;
     const a = parseInt(document.getElementById('op_a').value || 0);
     const m = parseInt(document.getElementById('op_m').value || 0);
     const d = parseInt(document.getElementById('op_d').value || 0);
@@ -4790,6 +5046,7 @@ function filtrarLeyes() {
 
 // 7. ABRIR LECTOR (CARGA BAJO DEMANDA Y FORMATO)
 async function abrirLector(idLey) {
+  if (!puedeLeerLeyHoy()) return;
     const modal = document.getElementById('modalLector');
     const cuerpo = document.getElementById('cuerpoLey');
     const titulo = document.getElementById('tituloLector');
@@ -5004,6 +5261,764 @@ function darFormatoLegal(textoPuro) {
     texto = texto.replace(/(Parágrafo\s+[A-ZIVXLC]+:?)/gi, '<b style="color: #444;">$1</b>');
 
     return texto;
+}
+// ==========================================
+// LÍMITE DE LECTURAS GRATUITAS (1 AL DÍA)
+// ==========================================
+function puedeLeerLeyHoy() {
+    // 1. Si la suscripción está VIGENTE (Premium o Admin), tiene pase libre infinito
+    if (!suscripcionVencida) return true;
+
+    // 2. Si está vencido, revisamos la memoria del teléfono
+    const hoy = new Date().toLocaleDateString();
+    let historialLeyes = JSON.parse(localStorage.getItem('lecturasGratisLeyes')) || { fecha: "", cantidad: 0 };
+
+    // 3. Si es un día nuevo, le damos 1 nueva oportunidad y reseteamos la cuenta
+    if (historialLeyes.fecha !== hoy) {
+        historialLeyes = { fecha: hoy, cantidad: 0 };
+    }
+
+    // 4. Si ya gastó su lectura de hoy, le sacamos la tarjeta roja (Abrir Muro de Pago)
+    if (historialLeyes.cantidad >= 1) {
+        document.getElementById('modalVencimiento').style.display = 'flex';
+        return false; // Bloquea el proceso y no abre la ley
+    }
+
+    // 5. Si no la ha gastado, le descontamos su comodín, lo guardamos y lo dejamos pasar
+    historialLeyes.cantidad++;
+    localStorage.setItem('lecturasGratisLeyes', JSON.stringify(historialLeyes));
+    
+    alert("🎁 Estás usando tu única (1) lectura gratuita del día. Para leer leyes de forma ilimitada, suscríbete a un plan Premium.");
+    return true; // Permite abrir el lector
+}
+// ==========================================
+// MÓDULO DE JURISPRUDENCIA (ESTILO LEXIUS)
+// ==========================================
+// ==========================================
+// MÓDULO DE JURISPRUDENCIA (ESTILO LEXIUS)
+// ==========================================
+let catalogoJurisprudencia = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    cargarJurisprudenciaDesdeMaestro();
+});
+
+async function cargarJurisprudenciaDesdeMaestro(forzar = false) {
+    const cacheJuris = localStorage.getItem('catalogoJurisCache');
+    if (cacheJuris) {
+        catalogoJurisprudencia = JSON.parse(cacheJuris);
+        renderizarJurisprudencia(catalogoJurisprudencia);
+    }
+
+    try {
+        const doc = await db.collection('configuracion_global').doc('catalogo_juris_maestro').get();
+        if (doc.exists && doc.data().contenido) {
+            const jsonNube = doc.data().contenido;
+            if (jsonNube !== cacheJuris || forzar) {
+                catalogoJurisprudencia = JSON.parse(jsonNube);
+                localStorage.setItem('catalogoJurisCache', jsonNube);
+                renderizarJurisprudencia(catalogoJurisprudencia);
+            }
+        }
+    } catch (e) { console.error("Error cargando jurisprudencia:", e); }
+}
+
+// 3. DISEÑO DE LAS TARJETAS CON MINUTA (PREMIUM)
+// 3. DISEÑO DE LAS TARJETAS CON MINUTA (PREMIUM + COMPARTIR)
+function renderizarJurisprudencia(lista) {
+    const container = document.getElementById('listaJurisContainer');
+    if (!container) return;
+    container.innerHTML = "";
+
+    if (lista.length === 0) {
+        container.innerHTML = "<p style='text-align:center; color:#777; margin-top:20px;'>No se encontraron sentencias con esos criterios.</p>";
+        return;
+    }
+
+    lista.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(jur => {
+        const card = document.createElement('div');
+        
+        // Le ponemos un ID único a la tarjeta para poder tomarle la "fotografía"
+        card.id = `tarjeta-jur-${jur.id}`;
+        
+        card.style.background = "#fff";
+        card.style.borderRadius = "12px";
+        card.style.padding = "15px";
+        card.style.boxShadow = "0 4px 10px rgba(0,0,0,0.08)";
+        card.style.borderLeft = "6px solid #00acc1";
+        card.style.display = "flex";
+        card.style.flexDirection = "column";
+        card.style.gap = "8px";
+        
+        const fechaBonita = formatFechaLatina(jur.fecha); 
+
+        card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="background: #e0f7fa; color: #00838f; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 0.75em; text-transform: uppercase;">
+                    🏛️ Sala ${jur.sala}
+                </span>
+                <span style="color: #7f8c8d; font-size: 0.85em; font-weight: bold;">📅 ${fechaBonita}</span>
+            </div>
+            <h3 style="margin: 5px 0 0 0; color: #2c3e50; font-size: 1.15em;">Sentencia Nº ${jur.num}</h3>
+            <p style="margin: 0; color: #34495e; font-size: 0.95em; line-height: 1.4;">
+                <b style="color:#00acc1;">Tema:</b> ${jur.tema}
+            </p>
+            
+            <div style="background: #f8f9fa; border-left: 3px solid #b2ebf2; padding: 10px; margin: 5px 0; border-radius: 4px; font-size: 0.85em; color: #555; font-style: italic;">
+                "${jur.minuta || "Sin minuta registrada."}"
+            </div>
+
+            <p style="margin: 0; color: #7f8c8d; font-size: 0.85em;">
+                <b>Ponente:</b> ${jur.magistrado}
+            </p>
+            
+            <div class="marca-agua-foto" style="display:none; text-align:center; margin-top:10px; font-size:0.7em; color:#00838f; font-weight:bold; border-top:1px dashed #ccc; padding-top:5px;">
+                Generado con IURIS PENAL APP ⚖️ - Dr. Charles Reyes
+            </div>
+
+            <div class="acciones-tarjeta" style="display: flex; gap: 8px; margin-top: 10px;">
+                <button onclick="abrirLectorJuris('${jur.id}')" style="flex-grow: 1; background: #00acc1; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85em; transition: 0.3s;">
+                    📖 LEER
+                </button>
+                <button onclick="compartirTarjetaJuris('${jur.id}')" style="background: #25D366; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85em;" title="Compartir Tarjeta">
+                    📲 COMPARTIR
+                </button>
+                <button onclick="descargarJurisPDF('${jur.id}', '${jur.num}')" style="background: #d93025; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85em;" title="Descargar PDF">
+                    📄 PDF
+                </button>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+
+// 4. BUSCADOR INTELIGENTE (Cruza Palabras con la Minuta)
+function filtrarJurisprudencia() {
+    const txtBusqueda = normalizarTexto(document.getElementById('busqJurisTexto').value);
+    const numBusqueda = normalizarTexto(document.getElementById('busqJurisNum').value);
+    const filtroSala = document.getElementById('busqJurisSala').value;
+    const filtroFecha = document.getElementById('busqJurisFecha').value;
+
+    // Rompemos la búsqueda en palabras sueltas
+    const terminosBusqueda = txtBusqueda.split(' ').filter(termino => termino.trim() !== '');
+
+    const filtradas = catalogoJurisprudencia.filter(jur => {
+        
+        // Unimos el tema, magistrado y la MINUTA en un solo texto invisible
+        const textoCompleto = normalizarTexto(jur.magistrado + " " + jur.tema + " " + (jur.minuta || ""));
+        const coincideTexto = terminosBusqueda.every(termino => textoCompleto.includes(termino));
+        
+        const coincideNum = !numBusqueda || normalizarTexto(jur.num).includes(numBusqueda);
+        const coincideSala = !filtroSala || jur.sala === filtroSala;
+        const coincideFecha = !filtroFecha || jur.fecha === filtroFecha;
+
+        return (terminosBusqueda.length === 0 || coincideTexto) && coincideNum && coincideSala && coincideFecha;
+    });
+
+    renderizarJurisprudencia(filtradas);
+}
+
+// 5. FUNCIÓN DEL ADMIN: GUARDAR SENTENCIA CON MINUTA
+async function guardarJurisprudenciaDirecta() {
+    const num = document.getElementById('jurNum').value.trim();
+    const fecha = document.getElementById('jurFecha').value;
+    const sala = document.getElementById('jurSala').value;
+    const magistrado = document.getElementById('jurMagistrado').value.trim();
+    const tema = document.getElementById('jurTema').value.trim();
+    const minuta = document.getElementById('jurMinuta').value.trim();
+    const contenido = document.getElementById('jurContenido').value.trim();
+
+    if (!num || !tema || !contenido || !fecha) return alert("El Nº, Fecha, Tema y Contenido son obligatorios.");
+
+    const btn = event.currentTarget;
+    btn.innerText = "⏳ PUBLICANDO...";
+    btn.disabled = true;
+
+    try {
+        await db.collection('biblioteca_jurisprudencia_individual').add({
+            num, fecha, sala, magistrado, tema, minuta, contenido, fechaCarga: Date.now()
+        });
+
+        // Limpiar
+        document.getElementById('jurNum').value = "";
+        document.getElementById('jurTema').value = "";
+        document.getElementById('jurMinuta').value = "";
+        document.getElementById('jurContenido').value = "";
+
+        // Actualizar Maestro
+        const snap = await db.collection('biblioteca_jurisprudencia_individual').get();
+        let lista = [];
+        snap.forEach(doc => {
+            let d = doc.data();
+            lista.push({ id: doc.id, num: d.num, fecha: d.fecha, sala: d.sala, magistrado: d.magistrado, tema: d.tema, minuta: d.minuta });
+        });
+        await db.collection('configuracion_global').doc('catalogo_juris_maestro').set({ contenido: JSON.stringify(lista) });
+        
+        alert(`✅ Sentencia ${num} publicada con su minuta.`);
+        cargarJurisprudenciaDesdeMaestro(true);
+    } catch (e) { alert("Error: " + e.message); } 
+    finally { btn.innerText = "💾 GUARDAR Y PUBLICAR SENTENCIA"; btn.disabled = false; }
+}
+
+// 6. ABRIR EL LECTOR
+let jurisDescargadasCache = {}; 
+
+async function abrirLectorJuris(idJur) {
+    // 🔥 NUEVA BARRERA FREEMIUM
+    if (!consumirUsoGratuito('jurisprudencia')) return;
+    
+    // AQUÍ ESTABA EL ERROR: Solo debe haber un "const modal"
+    const modal = document.getElementById('modalLector'); 
+    const cuerpo = document.getElementById('cuerpoLey');
+    const titulo = document.getElementById('tituloLector');
+    
+    modal.style.display = 'flex'; 
+    document.getElementById('busquedaInterna').value = ""; 
+    document.getElementById('contadorCoincidencias').innerText = "0/0";
+
+    if (jurisDescargadasCache[idJur]) {
+        titulo.innerText = jurisDescargadasCache[idJur].titulo;
+        cuerpo.dataset.original = jurisDescargadasCache[idJur].texto;
+        cuerpo.innerHTML = jurisDescargadasCache[idJur].texto;
+        return;
+    }
+
+    titulo.innerText = "Recuperando sentencia...";
+    cuerpo.innerHTML = "<p style='text-align:center; margin-top:50px;'>⏳ Descargando documento desde la base de datos...</p>";
+
+    try {
+        const doc = await db.collection('biblioteca_jurisprudencia_individual').doc(idJur).get();
+        if (doc.exists) {
+            const data = doc.data();
+            const tituloCompleto = `Sentencia Nº ${data.num} - Sala ${data.sala}`;
+            titulo.innerText = tituloCompleto;
+            
+            const textoFormateado = `<div style="white-space: pre-wrap; font-family: 'Segoe UI', serif; text-align: justify; line-height: 1.6;">${data.contenido}</div>`;
+            
+            cuerpo.dataset.original = textoFormateado; 
+            cuerpo.innerHTML = textoFormateado; 
+            
+            jurisDescargadasCache[idJur] = { titulo: tituloCompleto, texto: textoFormateado };
+
+            if (typeof firebase !== 'undefined' && firebase.analytics) {
+                firebase.analytics().logEvent('lectura_jurisprudencia', { sentencia: data.num, sala: data.sala });
+            }
+        }
+    } catch (e) { cuerpo.innerHTML = "<p style='color:red;'>Error de conexión.</p>"; }
+}
+
+// ==========================================
+// MÓDULO DE ACADEMIA Y DOCTRINA
+// ==========================================
+let catalogoDoctrina = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    cargarDoctrinaDesdeMaestro();
+});
+
+async function cargarDoctrinaDesdeMaestro(forzar = false) {
+    const cacheDoc = localStorage.getItem('catalogoDoctrinaCache');
+    if (cacheDoc) {
+        catalogoDoctrina = JSON.parse(cacheDoc);
+        renderizarDoctrina(catalogoDoctrina);
+    }
+
+    try {
+        const doc = await db.collection('configuracion_global').doc('catalogo_doctrina_maestro').get();
+        if (doc.exists && doc.data().contenido) {
+            const jsonNube = doc.data().contenido;
+            if (jsonNube !== cacheDoc || forzar) {
+                catalogoDoctrina = JSON.parse(jsonNube);
+                localStorage.setItem('catalogoDoctrinaCache', jsonNube);
+                renderizarDoctrina(catalogoDoctrina);
+            }
+        }
+    } catch (e) { console.error("Error cargando doctrina:", e); }
+}
+
+function renderizarDoctrina(lista) {
+    const container = document.getElementById('listaDoctrinaContainer');
+    if (!container) return;
+    container.innerHTML = "";
+
+    if (lista.length === 0) {
+        container.innerHTML = "<p style='text-align:center; color:#777;'>No se encontraron artículos.</p>";
+        return;
+    }
+
+    lista.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(doc => {
+        const card = document.createElement('div');
+        card.id = `tarjeta-doc-${doc.id}`; 
+        card.style.background = "#fff";
+        card.style.borderRadius = "12px";
+        card.style.padding = "15px";
+        card.style.boxShadow = "0 4px 10px rgba(0,0,0,0.08)";
+        card.style.borderLeft = "6px solid #8e24aa";
+        card.style.display = "flex";
+        card.style.flexDirection = "column";
+        card.style.gap = "8px";
+        
+        const fechaBonita = formatFechaLatina(doc.fecha); 
+        
+        // Círculo de la foto del autor (Si no hay, pone ícono genérico)
+        const fotoHTML = doc.foto ? 
+            `<img src="${doc.foto}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #e1bee7; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" crossorigin="anonymous">` : 
+            `<div style="width: 45px; height: 45px; border-radius: 50%; background: #e1bee7; display: flex; align-items: center; justify-content: center; font-size: 1.2em;">👤</div>`;
+
+        const tituloLimpio = doc.titulo.replace(/'/g, "\\'");
+
+        card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="flex-grow: 1; padding-right: 10px;">
+                    <span style="background: #f3e5f5; color: #6a1b9a; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 0.7em; text-transform: uppercase;">
+                        ${doc.categoria}
+                    </span>
+                    <h3 style="margin: 8px 0 0 0; color: #2c3e50; font-size: 1.1em; line-height: 1.3;">${doc.titulo}</h3>
+                </div>
+                <div style="flex-shrink: 0;">
+                    ${fotoHTML}
+                </div>
+            </div>
+            
+            <p style="margin: 0; color: #7f8c8d; font-size: 0.85em;"><b>✍️ Autor:</b> ${doc.autor} | <b>📅 ${fechaBonita}</b></p>
+            
+            <div style="background: #fafafa; border-left: 3px solid #e1bee7; padding: 10px; margin: 5px 0; border-radius: 4px; font-size: 0.85em; color: #555; font-style: italic;">
+                "${doc.resumen || "Leer artículo completo..."}"
+            </div>
+
+            <div class="marca-agua-foto-doc" style="display:none; text-align:center; margin-top:10px; font-size:0.7em; color:#6a1b9a; font-weight:bold; border-top:1px dashed #ccc; padding-top:5px;">
+                Academia IURIS PENAL ⚖️ - Dr. Charles Reyes
+            </div>
+
+            <div class="acciones-tarjeta-doc" style="display: flex; gap: 8px; margin-top: 5px;">
+                <button onclick="abrirLectorDoctrina('${doc.id}')" style="flex-grow: 1; background: #8e24aa; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85em; transition: 0.3s;">
+                    📖 LEER
+                </button>
+                <button onclick="compartirTarjetaDoctrina('${doc.id}')" style="background: #25D366; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85em;" title="Compartir Tarjeta">
+                    📲 COMPARTIR
+                </button>
+                <button onclick="descargarDoctrinaPDF('${doc.id}', '${tituloLimpio}')" style="background: #d93025; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85em;" title="Descargar PDF">
+                    📄 PDF
+                </button>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function filtrarDoctrina() {
+    const txtBusqueda = normalizarTexto(document.getElementById('busqDocTexto').value);
+    const filtroCat = document.getElementById('busqDocCat').value;
+    const terminos = txtBusqueda.split(' ').filter(t => t.trim() !== '');
+
+    const filtradas = catalogoDoctrina.filter(doc => {
+        const textoCompleto = normalizarTexto(doc.titulo + " " + doc.autor + " " + (doc.resumen || ""));
+        const coincideTexto = terminos.every(t => textoCompleto.includes(t));
+        const coincideCat = !filtroCat || doc.categoria === filtroCat;
+        return (terminos.length === 0 || coincideTexto) && coincideCat;
+    });
+
+    renderizarDoctrina(filtradas);
+}
+
+async function guardarDoctrinaDirecta() {
+    const titulo = document.getElementById('docTitulo').value.trim();
+    const categoria = document.getElementById('docCategoria').value;
+    const autor = document.getElementById('docAutor').value.trim();
+    const fecha = document.getElementById('docFecha').value;
+    const foto = document.getElementById('docFoto').value.trim(); 
+    const resumen = document.getElementById('docResumen').value.trim();
+    const contenido = document.getElementById('docContenido').value.trim();
+
+    if (!titulo || !autor || !fecha || !contenido) return alert("Complete los campos obligatorios.");
+
+    const btn = event.currentTarget;
+    btn.innerText = "⏳ PUBLICANDO...";
+    btn.disabled = true;
+
+    try {
+        await db.collection('biblioteca_doctrina').add({
+            titulo, categoria, autor, fecha, foto, resumen, contenido, fechaCarga: Date.now()
+        });
+
+        document.getElementById('docTitulo').value = "";
+        document.getElementById('docFoto').value = "";
+        document.getElementById('docResumen').value = "";
+        document.getElementById('docContenido').value = "";
+
+        const snap = await db.collection('biblioteca_doctrina').get();
+        let lista = [];
+        snap.forEach(d => { 
+            let data = d.data(); 
+            lista.push({ id: d.id, titulo: data.titulo, categoria: data.categoria, autor: data.autor, fecha: data.fecha, foto: data.foto, resumen: data.resumen }); 
+        });
+        
+        await db.collection('configuracion_global').doc('catalogo_doctrina_maestro').set({ contenido: JSON.stringify(lista) });
+        
+        alert(`✅ Artículo publicado correctamente.`);
+        cargarDoctrinaDesdeMaestro(true);
+    } catch (e) { alert("Error: " + e.message); } 
+    finally { btn.innerText = "💾 PUBLICAR ARTÍCULO"; btn.disabled = false; }
+}
+
+let doctrinaCache = {}; 
+async function abrirLectorDoctrina(idDoc) {
+    const modal = document.getElementById('modalLector'); 
+    const cuerpo = document.getElementById('cuerpoLey');
+    const titulo = document.getElementById('tituloLector');
+    
+    modal.style.display = 'flex'; 
+    document.getElementById('busquedaInterna').value = ""; 
+    document.getElementById('contadorCoincidencias').innerText = "0/0";
+
+    if (doctrinaCache[idDoc]) {
+        titulo.innerText = doctrinaCache[idDoc].titulo;
+        cuerpo.dataset.original = doctrinaCache[idDoc].texto;
+        cuerpo.innerHTML = doctrinaCache[idDoc].texto;
+        return;
+    }
+
+    titulo.innerText = "Recuperando artículo...";
+    cuerpo.innerHTML = "<p style='text-align:center;'>⏳ Descargando documento...</p>";
+
+    try {
+        const doc = await db.collection('biblioteca_doctrina').doc(idDoc).get();
+        if (doc.exists) {
+            const data = doc.data();
+            titulo.innerText = data.titulo;
+            
+            const textoFormateado = `
+                <div style="margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+                    <h2 style="margin:0; color:#6a1b9a;">${data.titulo}</h2>
+                    <p style="margin:5px 0 0 0; color:#555;"><b>Por:</b> ${data.autor} | <b>Fecha:</b> ${formatFechaLatina(data.fecha)}</p>
+                </div>
+                <div style="white-space: pre-wrap; font-family: 'Segoe UI', sans-serif; text-align: justify; line-height: 1.6; font-size: 1.05em;">${data.contenido}</div>
+            `;
+            
+            cuerpo.dataset.original = textoFormateado; 
+            cuerpo.innerHTML = textoFormateado; 
+            doctrinaCache[idDoc] = { titulo: data.titulo, texto: textoFormateado };
+
+            if (typeof firebase !== 'undefined' && firebase.analytics) {
+                firebase.analytics().logEvent('lectura_doctrina', { articulo: data.titulo, autor: data.autor });
+            }
+        }
+    } catch (e) { cuerpo.innerHTML = "<p style='color:red;'>Error de conexión.</p>"; }
+}
+
+// A. TOMAR FOTO A LA TARJETA Y COMPARTIRLA (CORREGIDO CON useCORS)
+async function compartirTarjetaJuris(idJur) {
+    const tarjeta = document.getElementById(`tarjeta-jur-${idJur}`);
+    if (!tarjeta) return;
+
+    // 1. Preparamos la tarjeta para la foto
+    const botones = tarjeta.querySelector('.acciones-tarjeta');
+    const marcaAgua = tarjeta.querySelector('.marca-agua-foto');
+    
+    botones.style.display = 'none';
+    marcaAgua.style.display = 'block';
+
+    try {
+        // 2. Tomamos la "Fotografía" (Agregado useCORS: true para igualar a Doctrina)
+        const canvas = await html2canvas(tarjeta, { scale: 3, backgroundColor: "#ffffff", useCORS: true });
+        
+        // Restauramos la tarjeta a la normalidad
+        botones.style.display = 'flex';
+        marcaAgua.style.display = 'none';
+
+        // 3. Convertimos el Canvas a un Archivo de Imagen
+        canvas.toBlob(async (blob) => {
+            const file = new File([blob], `Iuris_Sentencia_${idJur}.png`, { type: 'image/png' });
+
+            // 4. Intentamos abrir el menú nativo de compartir
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    title: 'Jurisprudencia Vinculante',
+                    text: 'Mira esta jurisprudencia que encontré en la App Iuris Penal ⚖️.',
+                    files: [file]
+                });
+            } else {
+                // 5. Plan B (Para computadoras)
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `Iuris_Sentencia_${idJur}.png`;
+                link.click();
+            }
+        }, 'image/png');
+
+    } catch (e) {
+        botones.style.display = 'flex';
+        marcaAgua.style.display = 'none';
+        alert("Error al generar la imagen: " + e.message);
+    }
+}
+
+// B. DESCARGAR TEXTO COMPLETO EN PDF DIRECTO A LA MEMORIA (CORREGIDO VARIABLES)
+async function descargarJurisPDF(idJur, numStr) {
+    const btn = event.currentTarget;
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = "⏳...";
+    btn.disabled = true;
+
+    try {
+        let contenidoSentencia = "Cargando...";
+        let salaSentencia = "Tribunal Supremo de Justicia"; // Valor por defecto
+
+        // Verificamos si ya está en la memoria caché
+        if (jurisDescargadasCache[idJur]) {
+            contenidoSentencia = jurisDescargadasCache[idJur].texto;
+            // El título en caché es "Sentencia Nº XXX - Sala YYY", lo cortamos para sacar solo la Sala
+            let partesTitulo = jurisDescargadasCache[idJur].titulo.split(' - ');
+            if (partesTitulo.length > 1) {
+                salaSentencia = partesTitulo[1]; 
+            }
+        } else {
+            // Si no está, la descargamos de Firebase
+            const doc = await db.collection('biblioteca_jurisprudencia_individual').doc(idJur).get();
+            if (doc.exists) {
+                const data = doc.data();
+                contenidoSentencia = `<div style="white-space: pre-wrap; font-family: 'Segoe UI', serif; text-align: justify; line-height: 1.6;">${data.contenido}</div>`;
+                salaSentencia = `Sala ${data.sala}`;
+            } else {
+                throw new Error("El documento ya no existe en la base de datos.");
+            }
+        }
+
+        // Creamos un contenedor "Invisible" para darle formato
+        const tempDiv = document.createElement('div');
+        tempDiv.style.padding = "25px";
+        tempDiv.style.fontFamily = "'Times New Roman', Times, serif";
+        tempDiv.innerHTML = `
+            <div style="text-align:center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #333;">TRIBUNAL SUPREMO DE JUSTICIA</h2>
+                <h3 style="margin: 5px 0; color: #555;">${salaSentencia}</h3>
+                <h3 style="margin: 5px 0; color: #00838f;">Sentencia Nº ${numStr}</h3>
+            </div>
+            <hr style="border:1px solid #ccc; margin-bottom:20px;">
+            <div style="text-align:justify; font-size:14px;">${contenidoSentencia}</div>
+            <hr style="border:1px solid #ccc; margin-top:30px;">
+            <p style="text-align:center; font-size:11px; color:#999; font-family: sans-serif;">
+                Documento extraído de la Biblioteca Jurídica de la Aplicación <b>Calculadora Penal Iuris</b>.<br>
+                Dr. Charles Reyes.
+            </p>
+        `;
+
+        // Opciones de exportación
+        const opt = {
+            margin: 15,
+            filename: `Sentencia_${numStr}_Iuris.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true }, // Agregado useCORS aquí también por seguridad
+            jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+        };
+
+        // Disparamos la descarga
+        await html2pdf().set(opt).from(tempDiv).save();
+
+    } catch (e) {
+        alert("Error al generar el PDF: " + e.message);
+    } finally {
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+    }
+}
+
+// ==========================================
+// MÓDULO DE RESTRICCIONES FREEMIUM (LÍMITES DIARIOS)
+// ==========================================
+
+function consumirUsoGratuito(moduloNombre) {
+    // 1. Los Premium y Admins tienen pase libre infinito
+    if (!suscripcionVencida) return true;
+
+    const hoy = new Date().toLocaleDateString();
+    
+    // Obtenemos o creamos el registro de usos del teléfono
+    let historialUsos = JSON.parse(localStorage.getItem('usosGratuitosApp')) || {};
+
+    // 2. Si es un día nuevo, reseteamos la cuenta de TODO
+    if (historialUsos.fecha !== hoy) {
+        historialUsos = { 
+            fecha: hoy, 
+            leyes: 0, 
+            jurisprudencia: 0, 
+            conversiones: 0, 
+            herramientas: 0 
+        };
+    }
+
+    // 3. Verificamos si ya gastó su "ticket" para este módulo específico
+    if (historialUsos[moduloNombre] >= 1) {
+        // Bloqueado: Muestra el Muro de Pago
+        abrirSuscripcion(); 
+        return false; 
+    }
+
+    // 4. Si no lo ha gastado, lo marcamos como usado, guardamos y le damos el aviso
+    historialUsos[moduloNombre]++;
+    localStorage.setItem('usosGratuitosApp', JSON.stringify(historialUsos));
+    
+    alert(`🎁 Estás usando tu única (1) consulta gratuita del día para la sección: ${moduloNombre.toUpperCase()}.\n\nPara uso ilimitado, adquiere un plan Premium.`);
+    return true; 
+}
+// ==========================================
+// MÓDULO DE DIRECTORIO COMERCIAL B2B/B2C
+// ==========================================
+let catalogoDirectorio = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    cargarDirectorioDesdeMaestro();
+});
+
+async function cargarDirectorioDesdeMaestro(forzar = false) {
+    const cacheDir = localStorage.getItem('catalogoDirectorioCache');
+    if (cacheDir) {
+        catalogoDirectorio = JSON.parse(cacheDir);
+        renderizarDirectorio(catalogoDirectorio);
+    }
+
+    try {
+        const doc = await db.collection('configuracion_global').doc('catalogo_directorio_maestro').get();
+        if (doc.exists && doc.data().contenido) {
+            const jsonNube = doc.data().contenido;
+            if (jsonNube !== cacheDir || forzar) {
+                catalogoDirectorio = JSON.parse(jsonNube);
+                localStorage.setItem('catalogoDirectorioCache', jsonNube);
+                renderizarDirectorio(catalogoDirectorio);
+            }
+        }
+    } catch (e) { console.error("Error cargando directorio:", e); }
+}
+
+function renderizarDirectorio(lista) {
+    const container = document.getElementById('listaDirectorioContainer');
+    if (!container) return;
+    container.innerHTML = "";
+
+    if (lista.length === 0) {
+        container.innerHTML = "<p style='text-align:center; color:#777; margin-top:20px;'>No hay servicios disponibles para esta búsqueda.</p>";
+        return;
+    }
+
+    // Ordenamos para que los más nuevos salgan arriba
+    lista.sort((a, b) => b.fechaCarga - a.fechaCarga).forEach(ad => {
+        const card = document.createElement('div');
+        card.style.background = "#fff";
+        card.style.borderRadius = "12px";
+        card.style.padding = "15px";
+        card.style.boxShadow = "0 4px 10px rgba(0,0,0,0.08)";
+        card.style.borderLeft = "6px solid #e65100";
+        card.style.display = "flex";
+        card.style.flexDirection = "column";
+        card.style.gap = "8px";
+
+        // Si no tiene foto, le pone un ícono según su categoría
+        let iconoFondo = "🏪";
+        let iconoEtiqueta = "💼";
+        if(ad.categoria === "Comida") { iconoFondo = "🍔"; iconoEtiqueta = "🍔"; }
+        if(ad.categoria === "Peritos") { iconoFondo = "🕵️‍♂️"; iconoEtiqueta = "🕵️‍♂️"; }
+        if(ad.categoria === "Cursos") { iconoFondo = "🎓"; iconoEtiqueta = "🎓"; }
+        if(ad.categoria === "Libreria") { iconoFondo = "📚"; iconoEtiqueta = "📖"; }
+
+        const fotoHTML = ad.foto ? 
+            `<img src="${ad.foto}" style="width: 65px; height: 65px; border-radius: 8px; object-fit: cover; border: 1px solid #ffe0b2;" crossorigin="anonymous">` : 
+            `<div style="width: 65px; height: 65px; border-radius: 8px; background: #fff3e0; display: flex; align-items: center; justify-content: center; font-size: 2em;">${iconoFondo}</div>`;
+
+        card.innerHTML = `
+            <div style="display: flex; gap: 12px; align-items: flex-start;">
+                <div style="flex-shrink: 0;">
+                    ${fotoHTML}
+                </div>
+                <div style="flex-grow: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="background: #fff3e0; color: #e65100; padding: 3px 8px; border-radius: 12px; font-weight: bold; font-size: 0.65em; text-transform: uppercase;">
+                            ${iconoEtiqueta} ${ad.categoria}
+                        </span>
+                        <span style="color: #555; font-size: 0.75em; font-weight: bold; background: #f0f2f5; padding: 3px 8px; border-radius: 6px;">
+                            📍 ${ad.ubicacion}
+                        </span>
+                    </div>
+                    <h3 style="margin: 8px 0 0 0; color: #333; font-size: 1.15em; line-height: 1.2;">${ad.nombre}</h3>
+                </div>
+            </div>
+
+            <div style="background: #fafafa; border-left: 3px solid #ffcc80; padding: 10px; margin: 5px 0; border-radius: 4px; font-size: 0.85em; color: #555;">
+                ${ad.descripcion}
+            </div>
+
+            <button onclick="window.open('https://wa.me/${ad.telefono}', '_blank')" style="background: #25D366; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.9em; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 5px; box-shadow: 0 4px 6px rgba(37, 211, 102, 0.3);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592z"/></svg>
+                CONTACTAR POR WHATSAPP
+            </button>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function filtrarDirectorio() {
+    const txtBusqueda = normalizarTexto(document.getElementById('busqDirTexto').value);
+    const filtroCat = document.getElementById('busqDirCat').value;
+    const filtroUbi = document.getElementById('busqDirUbicacion').value;
+
+    const terminos = txtBusqueda.split(' ').filter(t => t.trim() !== '');
+
+    const filtradas = catalogoDirectorio.filter(ad => {
+        const textoCompleto = normalizarTexto(ad.nombre + " " + ad.descripcion);
+        const coincideTexto = terminos.every(t => textoCompleto.includes(t));
+        const coincideCat = !filtroCat || ad.categoria === filtroCat;
+        const coincideUbi = !filtroUbi || ad.ubicacion === filtroUbi;
+
+        return (terminos.length === 0 || coincideTexto) && coincideCat && coincideUbi;
+    });
+
+    renderizarDirectorio(filtradas);
+}
+
+async function guardarAnuncioDirectorio() {
+    const nombre = document.getElementById('dirNombre').value.trim();
+    const categoria = document.getElementById('dirCategoria').value;
+    const ubicacion = document.getElementById('dirUbicacion').value;
+    // Quitamos espacios o guiones para que el link de WhatsApp no se rompa
+    const telefono = document.getElementById('dirTelefono').value.trim().replace(/\D/g, ''); 
+    const foto = document.getElementById('dirFoto').value.trim();
+    const descripcion = document.getElementById('dirDescripcion').value.trim();
+
+    if (!nombre || !telefono || !descripcion) return alert("Nombre, Teléfono y Descripción son obligatorios.");
+
+    const btn = event.currentTarget;
+    btn.innerText = "⏳ PUBLICANDO...";
+    btn.disabled = true;
+
+    try {
+        const nuevoAnuncio = {
+            nombre, categoria, ubicacion, telefono, foto, descripcion, fechaCarga: Date.now()
+        };
+
+        const docRef = await db.collection('directorio_servicios').add(nuevoAnuncio);
+        nuevoAnuncio.id = docRef.id;
+
+        // Limpiar Formulario
+        document.getElementById('dirNombre').value = "";
+        document.getElementById('dirTelefono').value = "";
+        document.getElementById('dirFoto').value = "";
+        document.getElementById('dirDescripcion').value = "";
+
+        // Actualizar Índice Maestro
+        const snap = await db.collection('directorio_servicios').get();
+        let lista = [];
+        snap.forEach(d => { 
+            let data = d.data(); 
+            data.id = d.id;
+            lista.push(data); 
+        });
+
+        await db.collection('configuracion_global').doc('catalogo_directorio_maestro').set({ contenido: JSON.stringify(lista) });
+
+        alert(`✅ Anuncio comercial publicado con éxito.`);
+        cargarDirectorioDesdeMaestro(true);
+    } catch (e) { alert("Error: " + e.message); } 
+    finally { btn.innerText = "📢 PUBLICAR ANUNCIO"; btn.disabled = false; }
 }
 
 
