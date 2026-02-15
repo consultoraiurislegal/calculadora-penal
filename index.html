@@ -5597,10 +5597,15 @@ function renderizarDoctrina(lista) {
                 Academia IURIS PENAL ⚖️ - Dr. Charles Reyes
             </div>
 
-            <div class="acciones-tarjeta-doc" style="display: flex; gap: 8px; margin-top: 5px;">
+                        <div class="acciones-tarjeta-doc" style="display: flex; gap: 8px; margin-top: 5px;">
                 <button onclick="abrirLectorDoctrina('${doc.id}')" style="flex-grow: 1; background: #8e24aa; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85em; transition: 0.3s;">
                     📖 LEER
                 </button>
+                
+                <button onclick="abrirDebate('${doc.id}', '${tituloLimpio}')" style="background: #f39c12; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85em;" title="Foro de Debate">
+                    💬 DEBATE
+                </button>
+
                 <button onclick="compartirTarjetaDoctrina('${doc.id}')" style="background: #25D366; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85em;" title="Compartir Tarjeta">
                     📲 COMPARTIR
                 </button>
@@ -5608,6 +5613,7 @@ function renderizarDoctrina(lista) {
                     📄 PDF
                 </button>
             </div>
+
         `;
         container.appendChild(card);
     });
@@ -6134,9 +6140,137 @@ async function descargarDoctrinaPDF(idDoc, tituloArticulo) {
         btn.disabled = false;
     }
 }
+// ==========================================
+// MÓDULO DE FORO Y DEBATE (DOCTRINA)
+// ==========================================
+
+async function abrirDebate(idDoc, titulo) {
+    // Si la suscripción venció, no lo dejamos comentar (opcional, pero buena idea)
+    if (typeof suscripcionVencida !== 'undefined' && suscripcionVencida) {
+        return abrirSuscripcion();
+    }
+
+    document.getElementById('idDocDebate').value = idDoc;
+    document.getElementById('tituloDebate').innerText = "Debate: " + titulo;
+    document.getElementById('textoComentario').value = "";
+    document.getElementById('modalDebate').style.display = 'flex';
+    
+    cargarComentarios(idDoc);
+}
+
+async function cargarComentarios(idDoc) {
+    const container = document.getElementById('listaComentarios');
+    container.innerHTML = "<p style='text-align:center; color:#999;'>Cargando debate... ⏳</p>";
+    
+    try {
+        // Buscamos los comentarios específicos de este artículo, ordenados por fecha
+        const snapshot = await db.collection('biblioteca_doctrina').doc(idDoc).collection('comentarios').orderBy('fecha', 'asc').get();
+        container.innerHTML = "";
+        
+        if (snapshot.empty) {
+            container.innerHTML = `
+                <div style="text-align:center; padding: 20px; color:#777;">
+                    <span style="font-size: 2em;">💬</span><br>
+                    <i>Aún no hay comentarios. ¡Sé el primero en iniciar el debate jurídico!</i>
+                </div>`;
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const fechaStr = new Date(data.fecha).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+            
+            const div = document.createElement('div');
+            div.style.background = "#f4f0f8";
+            div.style.padding = "12px";
+            div.style.borderRadius = "10px";
+            div.style.borderLeft = "4px solid #ab47bc";
+            div.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
+            
+            // Verificamos si el usuario actual fue quien escribió el comentario para pintarlo distinto
+            const miCorreo = auth.currentUser ? auth.currentUser.email : "";
+            const esMio = (data.correo === miCorreo);
+            const colorNombre = esMio ? "#1a73e8" : "#6a1b9a";
+            const textoTu = esMio ? " (Tú)" : "";
+
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px; align-items:center;">
+                    <b style="color:${colorNombre}; font-size:0.85em;">👤 ${data.autor}${textoTu}</b>
+                    <small style="color:#888; font-size:0.75em;">${fechaStr}</small>
+                </div>
+                <div style="font-size:0.95em; color:#333; line-height:1.4; text-align: justify; white-space: pre-wrap;">${data.texto}</div>
+            `;
+            container.appendChild(div);
+        });
+        
+        // Hacemos que el scroll baje automáticamente para ver el comentario más reciente
+        container.scrollTop = container.scrollHeight;
+
+    } catch (error) {
+        console.error("Error al cargar comentarios:", error);
+        container.innerHTML = "<p style='color:red; text-align:center;'>Error al cargar el debate.</p>";
+    }
+}
+
+async function publicarComentario() {
+    const texto = document.getElementById('textoComentario').value.trim();
+    const idDoc = document.getElementById('idDocDebate').value;
+    
+    // Obtenemos el nombre del usuario a partir de su correo
+    const emailCompleto = auth.currentUser ? auth.currentUser.email : "Usuario_Anonimo@correo.com";
+    const usuarioNombre = emailCompleto.split('@')[0]; 
+    
+    if (!texto) return alert("Escriba un comentario antes de publicar.");
+    
+    const btn = event.currentTarget;
+    btn.innerText = "⏳ PUBLICANDO...";
+    btn.disabled = true;
+
+    try {
+        // Guardamos el comentario en una sub-colección dentro de este artículo específico
+        await db.collection('biblioteca_doctrina').doc(idDoc).collection('comentarios').add({
+            autor: usuarioNombre.toUpperCase(),
+            correo: emailCompleto,
+            texto: texto,
+            fecha: Date.now()
+        });
+        
+        document.getElementById('textoComentario').value = ""; // Limpiar caja
+        cargarComentarios(idDoc); // Recargar la lista para que vea su comentario
+        
+    } catch (error) {
+        alert("Error al publicar: " + error.message);
+    } finally {
+        btn.innerText = "📢 PUBLICAR COMENTARIO";
+        btn.disabled = false;
+    }
+}
 
 
 </script>
+<div id="modalDebate" class="modal" style="display:none; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
+    <div class="modal-content" style="width: 90%; max-width: 500px; background: #fdfdfd; border-radius: 15px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; flex-direction: column; max-height: 85vh;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #8e24aa; padding-bottom: 10px; margin-bottom: 15px;">
+            <h2 id="tituloDebate" style="margin: 0; color: #8e24aa; font-size: 1.1em; line-height: 1.3;">Foro de Debate</h2>
+            <button onclick="document.getElementById('modalDebate').style.display='none'" style="background: transparent; color: #555; border: none; font-size: 24px; font-weight: bold; cursor: pointer;">✕</button>
+        </div>
+        
+        <div id="listaComentarios" style="flex-grow: 1; overflow-y: auto; margin-bottom: 15px; padding-right: 5px; display: flex; flex-direction: column; gap: 10px;">
+            <p style="text-align:center; color:#999;">Cargando debate...</p>
+        </div>
+
+        <div style="border-top: 1px solid #ddd; padding-top: 15px;">
+            <input type="hidden" id="idDocDebate">
+            <textarea id="textoComentario" placeholder="Escriba su opinión o aporte jurídico aquí..." style="width: 100%; height: 70px; resize: none; border-radius: 8px; border: 1px solid #ab47bc; padding: 10px; font-family: sans-serif; font-size: 0.95em; box-sizing: border-box;"></textarea>
+            <button onclick="publicarComentario()" style="background: #8e24aa; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; width: 100%; font-size: 0.9em;">
+                📢 PUBLICAR COMENTARIO
+            </button>
+        </div>
+        
+    </div>
+</div>
+
 <div id="modalLector" class="modal" style="display:none; background: rgba(0,0,0,0.95); padding: 0; z-index: 9999;">
     <div class="modal-content" style="width: 100%; height: 100%; max-width: 100%; border-radius: 0; margin: 0; display: flex; flex-direction: column; padding: 10px; box-sizing: border-box;">
         
