@@ -6023,6 +6023,111 @@ async function guardarAnuncioDirectorio() {
     } catch (e) { alert("Error: " + e.message); } 
     finally { btn.innerText = "📢 PUBLICAR ANUNCIO"; btn.disabled = false; }
 }
+// ==========================================
+// FUNCIONES DE COMPARTIR Y DESCARGAR (DOCTRINA)
+// ==========================================
+
+async function compartirTarjetaDoctrina(idDoc) {
+    const tarjeta = document.getElementById(`tarjeta-doc-${idDoc}`);
+    if (!tarjeta) return;
+
+    const botones = tarjeta.querySelector('.acciones-tarjeta-doc');
+    const marcaAgua = tarjeta.querySelector('.marca-agua-foto-doc');
+    
+    botones.style.display = 'none';
+    marcaAgua.style.display = 'block';
+
+    try {
+        const canvas = await html2canvas(tarjeta, { scale: 3, backgroundColor: "#ffffff", useCORS: true });
+        
+        botones.style.display = 'flex';
+        marcaAgua.style.display = 'none';
+
+        canvas.toBlob(async (blob) => {
+            const file = new File([blob], `Academia_Iuris_${idDoc}.png`, { type: 'image/png' });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    title: 'Academia Iuris Penal',
+                    // 🔥 MENSAJE PUBLICITARIO INCLUIDO 🔥
+                    text: 'Te comparto este excelente artículo jurídico 📚. Léelo completo y encuentra muchos más de manera GRATUITA en la App IURIS PENAL. Úsala desde tu celular aquí: https://consultoraiurislegal.github.io/calculadora-penal/',
+                    files: [file]
+                });
+            } else {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `Academia_Iuris_${idDoc}.png`;
+                link.click();
+            }
+        }, 'image/png');
+
+    } catch (e) {
+        botones.style.display = 'flex';
+        marcaAgua.style.display = 'none';
+        alert("Error al generar la imagen. Si usó una foto, asegúrese de que el enlace sea público.");
+    }
+}
+
+async function descargarDoctrinaPDF(idDoc, tituloArticulo) {
+    const btn = event.currentTarget;
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = "⏳...";
+    btn.disabled = true;
+
+    try {
+        let contenidoDoc = "Cargando...";
+        let autorDoc = "";
+        let fechaDoc = "";
+
+        if (doctrinaCache[idDoc]) {
+            contenidoDoc = doctrinaCache[idDoc].texto;
+        } else {
+            const doc = await db.collection('biblioteca_doctrina').doc(idDoc).get();
+            if (doc.exists) {
+                const data = doc.data();
+                autorDoc = data.autor;
+                fechaDoc = formatFechaLatina(data.fecha);
+                contenidoDoc = `
+                    <div style="margin-bottom: 20px; border-bottom: 2px solid #6a1b9a; padding-bottom: 10px;">
+                        <h2 style="margin:0; color:#6a1b9a; text-transform:uppercase;">${data.titulo}</h2>
+                        <p style="margin:5px 0 0 0; color:#555; font-size:14px;"><b>Por:</b> ${autorDoc} | <b>Fecha:</b> ${fechaDoc}</p>
+                    </div>
+                    <div style="text-align:justify; white-space:pre-wrap; font-size:14px; line-height: 1.6;">${data.contenido}</div>
+                `;
+            } else {
+                throw new Error("El documento no existe.");
+            }
+        }
+
+        const tempDiv = document.createElement('div');
+        tempDiv.style.padding = "25px";
+        tempDiv.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        tempDiv.innerHTML = `
+            ${contenidoDoc}
+            <hr style="border:1px solid #ccc; margin-top:30px;">
+            <p style="text-align:center; font-size:11px; color:#999;">
+                Documento extraído de la Academia de la App <b>Iuris Penal</b>.<br>
+                Dr. Charles Reyes.
+            </p>
+        `;
+
+        const opt = {
+            margin: 15,
+            filename: `Articulo_${tituloArticulo.replace(/\s+/g, '_')}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+        };
+
+        await html2pdf().set(opt).from(tempDiv).save();
+
+    } catch (e) {
+        alert("Error al generar el PDF: " + e.message);
+    } finally {
+        btn.innerHTML = textoOriginal;
+        btn.disabled = false;
+    }
+}
 
 
 </script>
