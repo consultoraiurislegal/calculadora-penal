@@ -5325,6 +5325,7 @@ async function cargarJurisprudenciaDesdeMaestro(forzar = false) {
 
 // 3. DISEÑO DE LAS TARJETAS CON MINUTA (PREMIUM)
 // 3. DISEÑO DE LAS TARJETAS CON MINUTA (PREMIUM + COMPARTIR)
+// 3. DISEÑO DE LAS TARJETAS CON MINUTA (PREMIUM + COMPARTIR)
 function renderizarJurisprudencia(lista) {
     const container = document.getElementById('listaJurisContainer');
     if (!container) return;
@@ -5338,9 +5339,8 @@ function renderizarJurisprudencia(lista) {
     lista.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)).forEach(jur => {
         const card = document.createElement('div');
         
-        // Le ponemos un ID único a la tarjeta para poder tomarle la "fotografía"
-        card.id = `tarjeta-jur-${jur.id}`;
-        
+        // RECUPERAMOS LOS ESTILOS Y EL ID (Importante para tomar la foto)
+        card.id = `tarjeta-jur-${jur.id}`; 
         card.style.background = "#fff";
         card.style.borderRadius = "12px";
         card.style.padding = "15px";
@@ -5349,9 +5349,11 @@ function renderizarJurisprudencia(lista) {
         card.style.display = "flex";
         card.style.flexDirection = "column";
         card.style.gap = "8px";
-        
-        const fechaBonita = formatFechaLatina(jur.fecha); 
 
+        // RECUPERAMOS LA VARIABLE DE LA FECHA
+        const fechaBonita = formatFechaLatina(jur.fecha);
+
+        // EL NUEVO DISEÑO CENTRADO EN LA MINUTA
         card.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="background: #e0f7fa; color: #00838f; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 0.75em; text-transform: uppercase;">
@@ -5359,13 +5361,15 @@ function renderizarJurisprudencia(lista) {
                 </span>
                 <span style="color: #7f8c8d; font-size: 0.85em; font-weight: bold;">📅 ${fechaBonita}</span>
             </div>
-            <h3 style="margin: 5px 0 0 0; color: #2c3e50; font-size: 1.15em;">Sentencia Nº ${jur.num}</h3>
-            <p style="margin: 0; color: #34495e; font-size: 0.95em; line-height: 1.4;">
-                <b style="color:#00acc1;">Tema:</b> ${jur.tema}
-            </p>
             
-            <div style="background: #f8f9fa; border-left: 3px solid #b2ebf2; padding: 10px; margin: 5px 0; border-radius: 4px; font-size: 0.85em; color: #555; font-style: italic;">
+            <h3 style="margin: 8px 0 5px 0; color: #2c3e50; font-size: 1.15em;">Sentencia Nº ${jur.num}</h3>
+            
+            <p style="margin: 5px 0 10px 0; color: #333; font-size: 1.05em; line-height: 1.5; text-align: justify;">
                 "${jur.minuta || "Sin minuta registrada."}"
+            </p>
+
+            <div style="background: #f8f9fa; border: 1px solid #e1e4e8; color: #555; padding: 6px 10px; border-radius: 6px; font-size: 0.8em; margin-bottom: 8px;">
+                <b style="color: #00acc1;">🔑 Palabras clave:</b> ${jur.tema}
             </div>
 
             <p style="margin: 0; color: #7f8c8d; font-size: 0.85em;">
@@ -5388,9 +5392,11 @@ function renderizarJurisprudencia(lista) {
                 </button>
             </div>
         `;
+
         container.appendChild(card);
     });
 }
+
 
 
 // 4. BUSCADOR INTELIGENTE (Cruza Palabras con la Minuta)
